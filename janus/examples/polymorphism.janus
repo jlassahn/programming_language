@@ -1,0 +1,168 @@
+
+#
+# Safe but expensive in memory of there's a lot of types to convert to
+#
+
+struct Message
+{
+	def AsKeyMessage ref(KeyMessage);
+
+	#...
+}
+
+struct KeyMessage
+{
+	def message Message;
+	def keycode Int32;
+}
+
+def CreateKeyMessage() -> ref(KeyMessage)
+{
+	var ret = allocate(KeyMessage);
+	ret.message.AsKeyMessage = ret;
+
+	return ret;
+}
+
+#
+# limited unsafe code with low overhead
+#
+
+struct Message
+{
+	def type Type;
+
+	# FIXME need a name for compile determinable Type
+	def Convert(CType T) -> T;  # magic, return T only works for literal types
+
+	# ...
+}
+
+
+def Message.Convert(Type T) -> T
+{
+	if T == self.type
+	{
+		return unsafe.convert(T, self);
+	}
+
+	return null;
+}
+
+
+# WARNING: methods dispatched from structs always resolve to the
+# syntactic type known at compile time,
+# so:
+
+struct Message
+{
+	def type Type;
+
+	def Execute() -> Int32;
+}
+
+struct SubMessage
+{
+	def type Type;
+
+	def Execute() -> Int32;
+}
+
+var sm = CreateSubMessage();
+var m = unsafe.convert(Message, sm);
+m.Execute(); # WARNING this runs Message.Execute, not SubMessage.Execute()
+
+#
+# Functions distinguished by parameter type
+#
+interface InfAA extends InfA;
+
+def myfunction(x: InfAA);
+def myfunction(x: InfA); # OK, must be called with exact match
+def myfunction(x: >InfA); # ERROR conflicts with InfAA
+# FIXME sytnax for "type convertable to X" is >X OK?
+def myfunction(X: InfA ...); # ERROR can have vararg that matches fixed arg
+# FIXME syntax for variable args, also keyword args
+# FIXME how to access varargs?  No way to make this overhead-free and safe?
+
+Numeric conversions:
+Int8 > Int16 > Int32 > Int64 > Integer > Float32 > Float64
+UInt8 > UInt16 > UInt32 > UInt64   (no autoconverts to signed ints or floats)
+
+numeric types all have converter methods:
+def x Int32;
+x.AsInt16();
+x.AsFloat64();
+x.AsUInt8();
+
+basic arithmatic operations have the type of the left operand:
+def x Int8 = 19;
+def y Int32 = 1234;
+def z = x + y; # ERROR, y cannot be implicitly down converted to int8
+def z = y + x; # z is an Int32, with value (1234 + 19)
+def z = x.AsInt32() + y; # z is an Int32
+def z = x + 1; # z is an Int8
+def z = x + 1000; # ERROR, Int8 constant not between -128 and 127
+
+So the + operator acts like functions with these signatures:
+	add(Int8, >Int8) -> Int8
+	add(Int16, >Int16) -> Int16
+	...
+
+Some operators like / and ^ always convert to floats
+	div(Float64, >Float64) -> Float64
+	div(Float32, >Float32) -> Float32
+	div(>Integer, >Float64) -> Float64
+
+
+constant literals vary in type depending on the context
+things like variable definitions and function parameters give a
+context to their values "suggesting" a type.
+
+def x UInt8 = 19;  # 19 is of type UInt8 because of context
+def x = 19;  # 19 is of type Integer, because no context applies
+
+def func(Int8 x) -> Void;
+def func(Int32 x) -> Void;
+func(19); # FIXME ERROR ambiguous, preferred value of Integer not available
+func(19.AsInt8());  # OK???
+
+detailed context rules:
+	the context of an expression is either a Type or none.
+	context flows through the call tree from the root
+	if the context is not none:
+		if the function to be called has a unique variant which returns
+		the context Type, try to use it
+			each parameter of the function provides as context to it's
+			children the type specified in the function definition
+			recursively apply the context rules (including fallback to none)
+		literal values try to morph into the requested context
+	if context is none or the context failed:
+		look for a unique function variant which satisfies it's arguments
+		literal values are their default values
+It is forbidden to have ambiguity in the choice of function variants if
+the parameter types are all specified.  So the context rules only mater if
+the prameters can have multiple types -- i.e. if they are literals which
+can be multiple types.
+
+note that methods can also be called with the object as the first arg:
+func(AsInt8(19)); # OK
+# FIXME what does this mean about reference vs value for struct methods?
+struct data
+{
+	def func() -> Void;
+}
+func(d); # is d of type  ref(data) or data?
+# FIXME maybe one level of ref can be added implicitly on call?
+
+# FIXME notation:
+#  ref(x) is a garbage collected reference
+#  but
+#  m_ref(x) is a manual reference?
+# or is it always clear from context?  No, variable declarations are ambiguous
+# expression types include
+#   struct by value, can turn into a m_ref
+#   struct m_ref, can create other m_ref values
+#   struct value inside a ref, can't turn into a m_ref
+
+

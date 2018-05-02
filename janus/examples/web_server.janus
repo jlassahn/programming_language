@@ -1,0 +1,59 @@
+
+
+def main(args: List(String)) -> Int32
+{
+	server = http.server.CreateServer();
+	server.SetPort(8080);
+	server.SetHandler(Handler);
+	server.Run();
+
+	return 0;
+}
+
+def Handler(req: http.Request) -> Void
+{
+	if req.path == "/index.html" & req.method == http.Request.GET
+	{
+		req.code = 200;
+		req.data = "Hello, World!";
+	}
+	else
+	{
+		req.code = 404;
+		req.data = "NOPE!";
+	}
+}
+
+
+# ---- http ------
+
+interface Request
+{
+	def code Int32;
+	def data String;
+}
+
+def CreateRequest() -> Request
+{
+	struct MyRequest
+	{
+		def code Int32;
+		def data String;
+
+		implements Request {}
+	}
+
+	var req = new(MyRequest);
+
+	return req.Request();
+}
+
+# or, shorter
+def CreateRequest() -> Request
+{
+	return new(struct {
+		def code Int32;
+		def data String;
+	}).Request();
+}
+

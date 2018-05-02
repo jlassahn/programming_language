@@ -1,0 +1,13 @@
+
+
+def HandleMessages(Message m) -> Bool
+{
+	if (m.type == m.KEY)
+		HandleKey(KeyMessage(m).keycode);
+	# or...
+	var km = KeyMessage(m);
+	if (km != Null)
+		HandleKey(km.keycode);
+	
+}
+

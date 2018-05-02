@@ -1,0 +1,21 @@
+#! /usr/bin/janus
+# shebangs should work on systems that use them
+
+#{ the first statement in any source file should be a version declaration }
+janus 1.0;
+
+# Single line comments look like this.
+#{
+	Multiline comments look like this.
+	{ They can have curly braces in them, but they must be matched }
+}
+
+import io;
+
+def main(args String) -> Int32
+{
+	io.print("Hello, World`lf`");
+	return 0;
+}
+
+

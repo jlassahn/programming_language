@@ -1,0 +1,28 @@
+
+Arithmatic operators
+ +
+ -
+ *
+ /   (Floating point divide)
+ //  (Integer divide round to zero)
+ /+ (Integer divide round towards +infinity)
+ /- (Integer divide round towards -infinity)
+ %% (Modulo, such that b*(a//b) + a%%b = a
+ %+
+ %-
+
+ ^  (Exponentiation)
+
+Bit twiddling and logic
+ <<
+ >>
+ &
+ |
+ ^| (XOR)
+ !
+
+Comparisons
+ ==  (Only works on types for which it's unambiguous)
+ ~=  (contents equal)
+ &=  (reference equal)
+

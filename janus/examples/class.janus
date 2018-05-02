@@ -1,0 +1,44 @@
+
+
+interface Message
+{
+	# FIXME declare Message.Type enum
+
+	def type Message.Type;
+
+}
+
+
+interface KeyMessage extends Message
+{
+	def keycode Int32;
+}
+
+struct KeyMessage
+{
+	# a struct with the same name as an interface implicitly implements
+	# that interface.
+}
+
+struct MyMessage
+{
+	def mykey Int32;
+	def mytype Message.Type;
+
+	implements KeyMessage
+	{
+		keycode = mykey;
+		type = mytype;
+	}
+}
+
+# declarations needed:
+# structure by value with no overhead
+# reference to bare structure with no overhead
+# object reference, points to structure with type info and garbage collection
+# interface reference
+#    interface references have type information to allow runtime and
+# compile time types to be different.  struct/object references, even
+# when garbage collected, always have the runtime and compile time types
+# the same.
+

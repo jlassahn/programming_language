@@ -1,0 +1,18 @@
+
+# examples to write
+
+Hello, World, machine mode
+Hello, World, object mode
+
+Hardware Driver, mixed mode (object style for control, machine mode for
+	direct hardware access)
+
+Embedded LED controller
+
+Implement memory allocator in machine mode
+
+Web Server, object mode
+
+
+Complex Numbers, machine mode compatible with object mode
+

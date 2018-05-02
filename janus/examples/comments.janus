@@ -1,0 +1,26 @@
+
+
+# single line comments run to the next LF
+#{ this is a
+multiline comment }
+# { this is a single line comment
+# #{ this is also a single line comment
+
+#{
+ this is a multiline comment
+#}
+
+#{
+	"}"
+	stuff in quotes do not end comments
+	'#'
+}
+
+def func( #{deleted_arg Integer, } arg2 String) -> Void
+{
+	var x = "# not a comment";
+
+}
+
+
+

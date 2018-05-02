@@ -1,0 +1,72 @@
+
+Numbers:
+	digit followed by digits, ASCII letters, _ and .
+
+	integer: [0 base_letter] digits [type_letter [digits]]
+	float: digits . digits [f digits]
+
+	0      # integer 0
+	0123   # integer 123 decimal
+	0xFF   # integer 255 hex
+	0b1111 # integer 15 binary
+	0o17   # integer 15 octal
+
+	0b_1111_0000_1100_1100_u16  # UInt16 binary
+
+	192_666.97  # float
+	1.0f32      # Float32
+	1.0_f32      # Float32
+	 -6.022 * 10 ^ 23  # float expression mult(neg(6.022), exp(10, 23))
+	123_456_._789
+
+	some non-examples
+	0_b1111 # ERROR base_letter can't have an underscore in front
+	_1      # this is a symbol, not a number
+	1e3     # ERROR "e" style floating constants not supported
+	.7      # ERROR floating fractions must have a leading zero
+	7.      # ERROR floats shoud end with a digit as well
+
+Symbols
+	any combination of digits, _ letters, non-ASCII Unicode characters
+	not beginning with a digit, and not in the list of keywords
+
+Strings
+
+"anything not cr, lf, or quote"
+
+"""
+Anything except a string of three quotes
+"""
+
+	escaped characters are of the form `stuff`
+	`q`       double quote
+	`lf`      linefeed
+	`cr`      carriage return
+	`n`       newline, which is  cr, lf, or cr+lf  depending on the platform
+	`t`       tab
+	`u1234`   unicode code point FIXME should match XML behavior
+	``        literal backquote
+
+	multiple string literals are concatenated
+
+	FIXME string escapes shouldn't conflict with common uses:
+		HTML and XML
+		regexps
+		email and web addresses
+		JSON
+		BASH????
+
+Characters
+	'c'
+	`lf`
+
+Punctuators
+	;
+	.
+	,
+	{ }
+	[ ]
+	( )
+
+
+

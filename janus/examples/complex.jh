@@ -1,0 +1,16 @@
+
+janus 1.0;
+
+m_struct Complex
+{
+	def r Float64;
+	def i Float64;
+}
+
+
+operator + (Complex a, Complex b) -> Complex;
+operator + (Complex a, >Float64 b) -> Complex;
+
+operator - (Complex a, Complex b) -> Complex;
+operator - (Complex a, >Float64 b) -> Complex;
+

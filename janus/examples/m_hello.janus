@@ -1,0 +1,42 @@
+
+janus 1.0
+{
+	machine_mode = True;
+	object_mode = False;
+}
+
+import m_io;
+
+# MString is basically a m_slice(Int8) with some extra methods
+
+def main(args: m_slice(MString)) -> Int32
+{
+
+	# def MFile.write(m_slice(UInt8)) -> MFile
+
+	m_io.stdout.write("Hello, World.`lf`");
+
+	def count Int32 = 1;
+
+	# FIXME error checking for write call????
+	# for declares a new variable s local to the block
+	for s in args
+	{
+		if m_io.stdout
+			.write("argument ")
+			.print(count)
+			.write(": ")
+			.write(s)
+			.write("`lf`")
+			.error != OK
+		{
+			# if stdout doesn't work, really what are we going to do here???
+		}
+
+		count = count + 1; # constant is Int32 because of type context
+	}
+
+
+	return 0;
+}
+

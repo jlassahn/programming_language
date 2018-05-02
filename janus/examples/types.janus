@@ -1,0 +1,179 @@
+
+def name type = value;
+
+FIXME need a name for parts of the language that have "no runtime overhead"
+	managed/unmanaged
+	hosted/unhosted
+	virtual/  um? not virtual?
+	machine/object
+	plain old data/???
+
+machine types:
+	primitive:
+		Int8
+		Int16
+		Int32
+		Int64
+		UInt8
+		UInt16
+		UInt32
+		UInt64
+		Float32
+		Float64
+		Bool
+		Type
+		CType # FIXME constant type known at compile time, is this a modifier?
+	aggregate:
+		m_array(Type, Length)
+		m_slice(Type)
+		m_struct types
+		m_ref(Type)
+
+object types:
+	primitive:
+		String  # FIXME is this an array type?
+		Integer
+	aggregate:
+		array(Type)
+		map(Type, Type)  # FIXME maps are always by reference
+		struct types
+		interface types
+		ref(Type)
+
+to_ref(x) makes a ref(struct) from an m_ref(m_struct)
+	or ref(array) from m_ref(m_array)
+
+Aggregate types
+	ways to reference
+		by value  [array, m_array, struct, m_struct, etc]
+		by manual reference [ m_ref(m_struct), m_ref(m_array), etc]
+		by garbage collected reference [ ref(Type) ]
+		read only
+		as interface
+		subset (e.g. slice, member, ...)
+	aggregate properties
+		immutable
+		lockable
+		known at compile time
+	arrays
+	structures
+	hashes
+	objects
+	interfaces
+	templates
+
+array(100, Int32)  #arrays are known size at compile time, can be by value
+vector(Int32)   # vectors are backed by arrays, size tracked at runtime
+
+	var x array(100, Int32) {1, 2, 3, 4, ...};
+	var v vector(Int32) = x[17...93];
+
+	var array2d array(8, array(8, Float32)) {{1.0, 1.0, ...}, {2.0, ...}, ...};
+	# can't convert an array2d into a vector2d directly
+
+type t vector(Int32);
+
+struct t
+{
+}
+
+Plain data (FIXME needs a name)
+each struct has a type known at compile time.  There is no inheritance,
+so the compile time type is the same as the run time type.  References
+are by plain pointers.
+Templates are available.
+structs can have method functions.  Method calls can all be resolved at
+compile time.
+
+struct List(T)
+{
+	def content T;
+	def next List(T);
+	def prev List(T);
+
+	def add(lst: List(T)) -> Void;
+	def remove() -> Void;
+}
+
+def List(T).add(List(T) lst) -> Void
+{
+	# ...
+}
+
+struct Thing
+{
+	def list List(Thing);
+
+	def func_ref (arg: Int32) -> Void;
+	# ...
+}
+
+def CreateThing() -> Thing&
+{
+	Thing& thing = alloc(Thing);
+	thing.list.content = thing;
+
+	return thing;
+}
+
+
+Function types:
+(arg1: Int32, arg2: String) -> String
+is equivalent to
+(Int32, String) -> String
+(arg1: String, tail: String...) -> Void # tail becomes a vector???
+
+
+Arrays, Lists, Vectors, etc:
+arrays always have a size known at compile time, with no runtime overhead
+Vectors are backed by array data, which may be implicitly allocated and
+garbage collected.
+
+# make a Vector aliasing an array
+vec = arr.slice(0, 10);
+# make a Vector aliasing another Vector
+vec2 = vec.slice(1,5);
+# operations producing new Vectors backed by implicit storage
+vec2 = vec.copy();
+vec3 = vec + vec2;
+# it's useful to have a vector type which is growable in place
+# but this can't be the same as a vector made by slice()
+# FIXME should this be tracked by the type system?  Can this be figured
+# out at compile time?
+# is a List a growable Vector?
+# is a string an immutable Vector?
+
+References
+unmanaged reference:
+	just a pointer with no extra bookkeeping.
+	Can be created to statically declared data or data allocated with
+	the unmanaged allocators.
+	Can't implicitly create an unmanaged reference to garbage
+	collected data, but there's probably something like pin() and unpin()
+	that create unmanaged references from managed ones.
+	Can implicitly use an unmanaged reference as a managed reference.
+	Can't allocate a struct containing a managed reference member using
+	the unmanaged allocators.
+
+managed reference:
+	the usual reference for garbage collected data such as objects.
+
+converting between managed and unmanaged references:
+	unmanaged_ref = managed_ref.pin();
+	# ... use the unmanaged ref
+	managed_ref.unpin();
+	# if done wrong, can either allow the unmanaged_ref to become invalid
+	# (from unpinning too early) or cause the managed data to never be freed
+	# (from not being unpinned at all)
+
+	managed_ref = unmanaged_ref.makeref();
+	# FIXME needs a better name
+	# if you free the unmanaged data before the managed_ref becomes unreachable
+	# the managed_ref now points to invalid data and accessing it will
+	# cause errors.
+
+	# really weird combinations are possible:
+	x = y.pin().makeref();
+	# now x and y are two references to the same data but x can become
+	# invalid if y becomes unreachable.
+

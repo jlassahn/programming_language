@@ -1,0 +1,47 @@
+
+struct Data
+{
+	def a Int32;
+	def b Float64;
+}
+
+def x Data = { 1, 2.7 }
+
+def x Data =
+{
+	a = 1;
+	b = 2.7;
+}
+
+def x ref(Data) = { 1, 2.7 }
+# is equivalent to
+def x = new(Data);
+x = { 1, 2.7 }
+
+def x dref(Data) = { 1, 2.7 } # ERROR, can't implicitly allocate()!
+
+# notice that = assignment has some semantic magic
+# to support partial structure copies, etc
+
+
+def x = 1;  # x is an Integer, because Integer is the defalt type of 1
+def x Int32 = 1; # 1 can accept Int32 context
+def x = "Hello, World"; # x is a Vector if Int8, encoded as UTF8
+def x array(Uint8) = "Hello, World"; #an array of UInt8
+def x array(Int32) = "Hello, World"; #FIXME is this UTF32 encoded?
+
+def x = 0b0000_0010_1111_1010; # binary Integer
+def x = 123u8;   # UInt8
+def x = 123s8;   # Int8
+def x = 123s64;  # Int64
+def x = 123v;  # Integer
+def x = 1.23e-5f64; # Float64
+
+def x = u8(123);
+def x = ToUint8(123);
+def x = 123u8;
+def x Uint8 = 123;
+
+def x = 1.23 * 10 ^ -4
+def x = 1.23*10^-4
+
