@@ -29,7 +29,7 @@ manage object lifetimes.
 
 ## A Simple Program
 
-'''
+```janus
 janus 1.0;
 
 import io;
@@ -39,6 +39,6 @@ def main() -> Void
 	io.stdout.print("Hello, World`lf`");
 	return 0;
 }
-'''
+```
 
 
