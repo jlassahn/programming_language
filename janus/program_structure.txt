@@ -1,0 +1,68 @@
+
+Modules generally live in directories, so
+
+import feature.subfeature
+
+Looks for definitions in
+{base path}/feature/subfeature.janus
+Looks for code in
+{base path}/feature/subfeature.jsrc
+{base path}/feature/subfeature.jlib
+
+internal stuff can be handled by putting imports into subfeature.jsrc
+import feature.internal.stuff
+which pulls code from
+{base path}/feature/internal/stuff.janus
+{base path}/feature/internal/stuff.jsrc
+
+typical project directory structure:
+source_root/
+	interfaces/  # Only contains .janus files describing public interfaces
+		feature/
+			subfeature.janus
+	source/    # contains implementation and private interfaces
+		feature/
+			subfeature.jsrc
+			internal/
+				stuff.jsrc
+				stuff.janus
+				other_stuff.jsrc
+		main_program.jsrc # or .janus
+	lib/
+		feature/
+			subfeature.jlib   # FIXME what is a jlib, really?
+	bin/
+		main_program
+
+when distributing a precompiled library, provide the interfaces and lib
+directories, but not the source.  A build process can generate code from
+interfaces and source into lib and bin.
+
+# FIXME do we really need a distinction between .janus and .jsrc, or is
+# position in the project directories sufficient?
+# YES, extensions matter.  import only looks for .janus files, and
+#  .jsrc files have automatic access to anything defined in the .janus file
+# with the same name.
+
+# FIXME these extensions are terrible
+File types include
+	interface files  file.janus
+	source files     file.jsrc
+	library files    file.jlib
+
+
+interface files contain:
+	declarations of public variable names and types
+	declarations of public constants
+		possibly with literal values, but not required
+	declarations of public functions
+	interfaces
+	public structures
+	structure name only declarations
+
+source files contain:
+	definitions of public variables not completely defined in the interface
+	definitions of constants not completely declared
+	function definitions
+
+

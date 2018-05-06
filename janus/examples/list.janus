@@ -1,0 +1,37 @@
+
+janus 1.0;
+
+m_struct List(T : CType);
+
+
+def CreateListElement(T : CType, x : m_ref(T)) -> m_ref(List(T));
+
+method List(T).Destroy() -> Void;
+method List(T).Get() -> m_ref(T);
+method List(T).Next() -> m_ref(List(T));
+method List(T).Prev() -> m_ref(List(T));
+method List(T).InsertAfter(prev : m_ref(List(T))) -> Void;
+method List(T).InsertBefore(next : m_ref(List(T))) -> Void;
+method List(T).Remove() -> Void;
+
+
+#
+# the Object Janus interface version...
+#
+
+interface ListIF(T: CType)
+{
+	def Get() -> T;
+	def Next() -> ListIF(T);
+	def Prev() -> ListIF(T);
+	def InsertAfter(prev : ListIF(T)) -> Void;
+	def InsertBefore(next : ListIF(T)) -> Void;
+	def Remove() -> Void;
+}
+
+def CreateListIF(T: CType, x: T) -> ListIF(T);
+
+# FIXME could be
+# method ListIF(T).Get() -> ref(T);
+# as well???
+

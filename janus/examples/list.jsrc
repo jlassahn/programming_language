@@ -1,0 +1,157 @@
+
+janus 1.0;
+
+#
+# Machine version
+#
+
+m_struct List(T : CType)
+{
+	def next m_ref(List(T));
+	def prev m_ref(List(T));
+	def data m_ref(T);
+
+	def Get() -> m_ref(T) { return self.data; }
+}
+
+
+def CreateListElement(T : CType, x : m_ref(T)) -> m_ref(List(T))
+{
+	def ret = allocate(List(T));
+	ret.next = null;
+	ret.prev = null;
+	ret.data = x;
+
+	return ret;
+}
+
+
+method List(T).Destroy() -> Void
+{
+	if self.next != null
+	{
+		self.next.prev = self.prev;
+	}
+
+	if self.prev != null
+	{
+		self.prev.next = self.next;
+	}
+
+	free(self);
+}
+
+
+method List(T).Next() -> m_ref(List(T))
+{
+	return self.next;
+}
+
+method List(T).Prev() -> m_ref(List(T))
+{
+	return self.prev;
+}
+
+method List(T).InsertAfter(prev : m_ref(List(T))) -> Void
+{
+	self.next = prev.next;
+	self.prev = prev;
+
+	if prev.next != null
+	{
+		prev.next.prev = self;
+	}
+
+	prev.next = self;
+}
+
+method List(T).InsertBefore(next : m_ref(List(T))) -> Void
+{
+	self.next = next;
+	self.prev = next.prev;
+
+	if next.prev != null
+	{
+		next.prev.next = self;
+	}
+
+	next.prev = self;
+}
+
+method List(T).Remove() -> Void
+{
+	if self.next != null
+	{
+		self.next.prev = self.prev;
+	}
+
+	if self.prev != null
+	{
+		self.prev.next = self.next;
+	}
+
+}
+
+
+#
+# Object version
+#
+
+# FIXME convention for struct name when there's a single public interface
+struct ListObj(T : CType)
+{
+	def next ref(ListObj(T));
+	def prev ref(ListObj(T));
+	def data T;
+
+	implements ListIF(T)
+	{
+		def Get() -> ref(T) = get;
+		def Next() -> ListIF(T) { return self.next; }
+		def Prev() -> ListIF(T) { return self.prev; }
+	}
+
+	def get() -> ref(T)
+	{
+		return self.data;
+	}
+
+}
+
+method ListIF(T).InsertAfter(iprev : ListIF(T)) -> Void
+{
+	# FIXME clunky!
+	def prev = iprev.convert(ListObj);
+	assert(prev != null);
+
+	self.next = prev.next;
+	self.prev = prev;
+
+	if prev.next != null
+	{
+		prev.next.prev = self;
+	}
+
+	prev.next = self;
+}
+
+method ListIF(T).InsertBefore(next : ListIF(T)) -> Void
+{
+	# FIXME implement
+}
+
+method ListIF(T). Remove() -> Void
+{
+	# FIXME implement
+}
+
+def CreateListIF(T: CType, x: T) -> ListIF(T)
+{
+	def ret = new(ListObj(T));
+	ret.next = null;
+	ret.prev = null;
+	ret.data = x;
+
+	return ret.convert(ListIF(T));
+}
+

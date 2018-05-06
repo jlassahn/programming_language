@@ -1,0 +1,35 @@
+
+janus 1.0;
+
+
+interface Container(T : CType) # FIXME can be just Type???
+{
+	def Contains(x : T) -> Bool;
+	def Insert(x : T) -> Void;
+	def Remove(x : T) -> Void;
+	def Start() -> Iterator(T);
+}
+
+interface Vector(T : CType) extends Container(T : CType)
+{
+	def length : Int64;
+	def Get(n : Int64) -> T;
+}
+
+
+# FIXME make sure this is efficient for simple cases
+interface Iterator(T : CType)
+{
+	def Done() -> Bool;
+	def Current() -> T;
+	def Next() -> Void;
+}
+
+# def i = thing.Start();
+# while !i.Done()
+# {
+#     def x = i.Current();
+#     i.Next();
+# }
+
+

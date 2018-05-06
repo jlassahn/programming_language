@@ -33,13 +33,13 @@ struct Message
 	def type Type;
 
 	# FIXME need a name for compile determinable Type
-	def Convert(CType T) -> T;  # magic, return T only works for literal types
+	def Convert(CType T) -> m_ref(T);
 
 	# ...
 }
 
 
-def Message.Convert(Type T) -> T
+def Message.Convert(Type T) -> m_ref(T)
 {
 	if T == self.type
 	{

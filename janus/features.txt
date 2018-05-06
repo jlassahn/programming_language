@@ -3,4 +3,7 @@ coroutines
 regexps
 enums
 switch statements
+doc comments
+exceptions
+assertions
 

@@ -1,0 +1,32 @@
+
+janus 1.0;
+
+# FIXME is it possible to represent CType values for
+# aggregate types efficiently?
+#
+# NO!
+# Since we can compare T1 == T2, CType values can't lose any information
+# and since we can create arbitrary sequences
+# m_ref(m_array(m_slice(m_ref(T)), 3))
+# we need an arbitrary amount of information for a type.
+
+def allocate(T : CType) -> m_ref(T)
+{
+	def bytes = GetBytes(T.size());
+	return unsafe.convert(T, bytes);
+}
+
+
+def allocate(T : CType, n : Int64 ) -> m_slice(T)
+{
+	def bytes = GetBytes(T.size() * n);
+	return unsafe.convertSlice(T, n, bytes);
+}
+
+def free(x : >m_ref(Any)) -> Void
+{
+	# FIXME really weird type stuff...
+	def mem = unsafe.convertContaining(MemHeader, MemHeader.payload, x);
+	Release(mem);
+}
+

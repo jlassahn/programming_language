@@ -40,6 +40,11 @@ object types:
 		interface types
 		ref(Type)
 
+pseudotypes:
+	Void # return type for functions that return nothing
+	Any  # allows constructs like >m_ref(Any) for a generic pointer
+		FIXME >m_ref(X) isn't a reference to any >X
+
 to_ref(x) makes a ref(struct) from an m_ref(m_struct)
 	or ref(array) from m_ref(m_array)
 

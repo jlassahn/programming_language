@@ -1,0 +1,7 @@
+
+janus 1.0;
+
+def allocate(T : CType) -> m_ref(T);
+def allocate(T : CType, n : Int64 ) -> m_slice(T);
+def free(x : >m_ref(Any)) -> Void;
+
