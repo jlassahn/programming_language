@@ -1,0 +1,35 @@
+
+janus 1.0;
+
+import complex as .;
+
+
+operator + (Complex a, Complex b) -> Complex
+{
+	def ret Complex;
+	ret.r = a.r + b.r;
+	ret.i = a.i + b.i;
+	return ret;
+}
+
+operator + (Complex a, >Float64 b) -> Complex
+{
+	def ret Complex;
+	ret.r = a.r + b;
+	ret.i = a.i;
+	return ret;
+}
+
+operator - (Complex a, Complex b) -> Complex
+{
+	# FIXME does this work?  Context for return is Complex so probably
+
+	return
+	{
+		r = a.r - b.r;
+		i = a.i - b.i;
+	}
+}
+
+operator - (Complex a, >Float64 b) -> Complex;
+

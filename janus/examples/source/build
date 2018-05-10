@@ -1,0 +1,8 @@
+
+# use_complex
+janusc use_complex.janus stdlib/complex.jsrc
+
+# turn everything in stdlib into a library
+janusc -lib lib/stdlib.jlib stdlib/*
+
+

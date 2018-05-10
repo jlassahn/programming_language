@@ -1,0 +1,17 @@
+
+janus 1.0;
+
+
+import io
+import complex;
+
+
+def main() -> Void
+{
+	def r complex.Complex = { 1.0, 0.0 };
+	def i complex.Complex = { 0.0, 1.0 };
+
+	io.print( (r+i)/i );
+
+}
+
