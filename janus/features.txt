@@ -7,3 +7,9 @@ doc comments
 exceptions
 assertions
 
+
+# Research Issues
+multithreaded garbage collection
+efficiently implementing iterators
+using LLVM
+

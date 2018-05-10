@@ -15,6 +15,8 @@ const (
 	STRING
 	SYMBOL
 	OPERATOR
+	PUNCTUATION
+	KEYWORD
 )
 
 var type_names = map[int]string {
@@ -24,25 +26,39 @@ var type_names = map[int]string {
 	NUMBER: "NUMBER",
 	STRING: "STRING",
 	SYMBOL: "SYMBOL",
-	OPERATOR: "OPERATOR" }
+	OPERATOR: "OPERATOR",
+	PUNCTUATION: "PUNCTUATION",
+	KEYWORD: "KEYWORD" }
 
 //FIXME complete list
-//this must have longer operators first, only multichar operators needed here
+//this must have longer operators first
 var operators = []string {
 	"->",
 	">>",
 	"<<",
 	"++",
 	"--",
-	"#{" }
+	"." }
 
 type Token struct {
 	Text []byte
 	TokenType int
+	Line, Column int
 }
 
 func (tok *Token) String() string {
-	return fmt.Sprintf("%s %s", type_names[tok.TokenType], string(tok.Text))
+	return fmt.Sprintf("(%d, %d) %s %s",
+		tok.Line, tok.Column,
+		type_names[tok.TokenType],
+		string(tok.Text))
+}
+
+
+func new_token(txt []byte, tt int) *Token {
+	return &Token {
+		txt,
+		tt,
+		0, 0 }
 }
 
 type Lexer struct {
@@ -50,6 +66,7 @@ type Lexer struct {
 	charbuf []byte
 	bufcount int
 	file_error error
+	line, column int
 }
 
 func MakeLexer(src io.Reader) *Lexer {
@@ -58,7 +75,8 @@ func MakeLexer(src io.Reader) *Lexer {
 		src,
 		make([]byte, 16),
 		0,
-		nil }
+		nil,
+		1, 1}
 
 	ret.fill()
 	return ret
@@ -82,13 +100,18 @@ func (lex *Lexer) fill() {
 }
 
 func (lex *Lexer) consume(n int) {
-	if n <= 0 {
-		return
-	}
 
-	copy(lex.charbuf[:lex.bufcount - n], lex.charbuf[n:lex.bufcount])
+	for i:=0; i<n; i++ {
+		if lex.charbuf[0] == 10 {
+			lex.line ++
+			lex.column = 1
+		} else {
+			lex.column ++
+		}
+		copy(lex.charbuf[:15], lex.charbuf[1:16])
+		lex.charbuf[15] = 0
+	}
 	lex.bufcount -= n
-	lex.charbuf[lex.bufcount] = 0
 
 	lex.fill()
 }
@@ -144,8 +167,13 @@ func (lex *Lexer)  NextToken() *Token {
 
 	lex.skip_space()
 
+	line := lex.line
+	col := lex.column
+
 	tok := lex.read_token()
 
+	tok.Line = line
+	tok.Column = col
 	return tok
 }
 
@@ -153,16 +181,21 @@ func (lex *Lexer) read_token() *Token {
 
 	if lex.is_eof() {
 		if lex.file_error == io.EOF {
-			return &Token{[]byte("EOF"), EOF}
+			return new_token([]byte("EOF"), EOF)
 		} else {
-			return &Token{ []byte(lex.file_error.Error()), ERROR }
+			return new_token([]byte(lex.file_error.Error()), ERROR)
 		}
+	}
+
+	if lex.match("#{") {
+		lex.consume(2)
+		return new_token([]byte("#{"), PUNCTUATION)
 	}
 
 	for _, op := range operators {
 		if lex.match(op) {
 			lex.consume(len(op))
-			return &Token{[]byte(op), OPERATOR}
+			return new_token([]byte(op), OPERATOR)
 		}
 	}
 
@@ -189,7 +222,7 @@ func (lex *Lexer) read_token() *Token {
 	ret := make([]byte, 1)
 	ret[0] = lex.charbuf[0]
 	lex.consume(1)
-	return &Token{ret, OPERATOR}
+	return new_token(ret, PUNCTUATION)
 }
 
 func (lex *Lexer) get_comment() *Token {
@@ -208,7 +241,7 @@ func (lex *Lexer) get_comment() *Token {
 		lex.consume(1)
 	}
 
-	return &Token{ buf, COMMENT }
+	return new_token(buf, COMMENT)
 }
 
 func (lex *Lexer) get_string() *Token {
@@ -218,7 +251,7 @@ func (lex *Lexer) get_string() *Token {
 
 	for {
 		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
-			return &Token{ []byte("Newline in string constant"), ERROR }
+			return new_token([]byte("Newline in string constant"), ERROR)
 		}
 
 		if lex.match_byte('"') {
@@ -229,7 +262,7 @@ func (lex *Lexer) get_string() *Token {
 		lex.consume(1)
 	}
 
-	return &Token{ buf, STRING }
+	return new_token(buf, STRING)
 }
 
 func (lex *Lexer) get_long_string() *Token {
@@ -239,7 +272,7 @@ func (lex *Lexer) get_long_string() *Token {
 
 	for {
 		if lex.is_eof() {
-			return &Token{ []byte("EOF in string constant"), ERROR }
+			return new_token([]byte("EOF in string constant"), ERROR)
 		}
 
 		if lex.match("\"\"\"") {
@@ -250,7 +283,7 @@ func (lex *Lexer) get_long_string() *Token {
 		lex.consume(1)
 	}
 
-	return &Token{ buf, STRING }
+	return new_token(buf, STRING)
 }
 
 func (lex *Lexer) get_number() *Token {
@@ -261,7 +294,7 @@ func (lex *Lexer) get_number() *Token {
 		lex.consume(1)
 	}
 
-	return &Token{ buf, NUMBER }
+	return new_token(buf, NUMBER)
 }
 
 func (lex *Lexer) get_symbol() *Token {
@@ -272,6 +305,7 @@ func (lex *Lexer) get_symbol() *Token {
 		lex.consume(1)
 	}
 
-	return &Token{ buf, SYMBOL }
+	//FIXME support KEYWORD
+	return new_token(buf, SYMBOL)
 }
 
