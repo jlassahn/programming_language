@@ -40,6 +40,13 @@ var operators = []string {
 	"--",
 	"." }
 
+//FIXME complete list
+var keywords = map[string]bool {
+	"def" : true,
+	"import" : true,
+	"return" : true,
+	"janus": true }
+
 type Token struct {
 	Text []byte
 	TokenType int
@@ -305,7 +312,10 @@ func (lex *Lexer) get_symbol() *Token {
 		lex.consume(1)
 	}
 
-	//FIXME support KEYWORD
-	return new_token(buf, SYMBOL)
+	if keywords[string(buf)] {
+		return new_token(buf, KEYWORD)
+	} else {
+		return new_token(buf, SYMBOL)
+	}
 }
 
