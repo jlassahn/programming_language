@@ -147,8 +147,39 @@ func (cm *commentMerger) GetElement() ParseElement {
 	}
 }
 
+type mainParser struct {
+	upstream Parser
+
+	queue []ParseElement
+}
+
+func (mp *mainParser) consume() ParseElement {
+	ret := mp.queue[0]
+	copy(mp.queue[:15], mp.queue[1:16])
+	mp.queue[15] = mp.upstream.GetElement()
+
+	return ret
+}
+
+func (mp *mainParser) GetElement() ParseElement {
+
+	return mp.parseFile()
+}
+
 func NewParser(lex *lexer.Lexer) Parser {
-	//FIXME
-	return &commentMerger{ &tokenWrapper{ lex }, nil, 0 }
+
+	ret := &mainParser{
+		&commentMerger{ &tokenWrapper{ lex }, nil, 0 },
+		make([]ParseElement, 16) }
+
+	for i:=0; i<16; i++ {
+		ret.queue[i] = ret.upstream.GetElement()
+	}
+
+	return ret
+}
+
+func (mp *mainParser) parseFile() ParseElement {
+	return mp.consume() //FIXME fake
 }
 

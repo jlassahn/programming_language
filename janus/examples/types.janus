@@ -70,10 +70,10 @@ Aggregate types
 array(100, Int32)  #arrays are known size at compile time, can be by value
 vector(Int32)   # vectors are backed by arrays, size tracked at runtime
 
-	var x array(100, Int32) {1, 2, 3, 4, ...};
+	var x array(100, Int32) = [1, 2, 3, 4, ...]
 	var v vector(Int32) = x[17...93];
 
-	var array2d array(8, array(8, Float32)) {{1.0, 1.0, ...}, {2.0, ...}, ...};
+	var array2d array(8, array(8, Float32)) = [[1.0, 1.0, ...], [2.0, ...], ...]
 	# can't convert an array2d into a vector2d directly
 
 type t vector(Int32);

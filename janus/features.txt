@@ -6,7 +6,7 @@ switch statements
 doc comments
 exceptions
 assertions
-
+multivalue returns
 
 # Research Issues
 multithreaded garbage collection

@@ -1,0 +1,53 @@
+
+
+switch x
+{
+	case 1 :  y = "One"; 
+	case 2 :  y = "Two";
+	default : y = "Unknown";
+}
+
+if      x == 1 { y = "One"; }
+else if y == 2 { y = "Two"; }
+else           { y = "Unknown"; }
+
+switch   # no switch expression means compare to true
+{
+	case x < y :
+		return x;
+
+	case x == y :
+		sys.Exit(1);
+
+	case x > y :
+		return y;
+}
+
+if x < y
+{
+	return x;
+}
+else if x == y
+{
+	sys.Exit(1);
+}
+else if x > y
+{
+	return y;
+}
+
+switch x
+{
+	case 1, 2, 3:
+		return "OK";
+}
+
+switch
+{
+	case
+	name == "Unknown",
+	address == "Nowhere",
+	birthday == "Never":
+		return false;
+}
+

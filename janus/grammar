@@ -2,6 +2,7 @@
 FILE:
 	HEADER
 	HEADER FILE_CONTENT
+	EOF
 
 HEADER:
 	janus VERSION ;
@@ -16,32 +17,39 @@ FILE_DECLARATION:
 	DEF
 	STRUCT
 	INTERFACE
+	METHOD
+	OPERATOR
 
 IMPORT:
 	import IMPORT_NAME;
 	import IMPORT_NAME as IMPORT_NAME;
-	# FIXME "bare" imports?
 
 DEF:
-	def TOKEN TYPE VALUE
-	def TOKEN VALUE
+	def TOKEN TYPE { FUNCTION_CONTENT }
+	def TOKEN TYPE = { BLOCK_CONTENT } ;
+	def TOKEN TYPE = [ LIST_CONTENT ] ;
+	def TOKEN TYPE = { } ;
+	def TOKEN TYPE = [ ] ;
+	def TOKEN TYPE = EXPRESSION ;
 	def TOKEN TYPE ;
+	def TOKEN = { BLOCK_CONTENT } ;
+	def TOKEN = [ LIST_CONTENT ] ;
+	def TOKEN = EXPRESION ;
 
 STRUCT:
-	struct TOKEN STRUCT_BODY
-	struct TOKEN;
-	m_struct TOKEN STRUCT_BODY
-	m_struct TOKEN;
+	struct TYPE_NAME { STRUCT_CONTENT }
+	struct TYPE_NAME ;
+	m_struct TYPE_NAME { STRUCT_CONTENT }
+	m_struct TYPE_NAME ;
 
 INTERFACE:
-	interface TOKEN INTERFACE_BODY
-	interface TOKEN EXTENDS_LIST INTERFACE_BODY
+	interface TYPE_NAME { INTERFACE_CONTENT }
+	interface TYPE_NAME extends EXTENDS_LIST { INTERFACE_CONTENT }
 
-VALUE:
-	= EXPRESSION ;
-	= CONSTANT_BLOCK
-	FUNCTION_BODY
-
+TYPE_NAME:
+	TOKEN
+	TOKEN ( PARAMETER_LIST )
+	# FIXME not a full parameter list, only named CTypes and constants
 
 TYPE:
 	TOKEN
@@ -51,5 +59,65 @@ TYPE:
 	m_ref(TYPE)
 	array(TYPE)
 	ref(TYPE)
-	( TYPE_LIST ) -> TYPE
+	( PARAMETER_LIST ) -> TYPE
+	# FIXME some contexts allow > TYPE to indicate automatic conversion
+
+
+PARAMETER_LIST:
+	comma separated list of
+	TOKEN : TYPE
+	TOKEN : > TYPE
+
+
+STRUCT_CONTENT:
+	sequence of
+	def TOKEN TYPE ;
+	def TOKEN TYPE { FUNCTION_CONTENT }
+	implements TOKEN ;
+	implements TOKEN { IMPLEMENTS_CONTENT }
+
+HEADER_OPTIONS:
+	ASSIGNMENT_EXPRESSION
+	ASSIGNMENT_EXPRESSION, HEADER_OPTIONS
+
+FUNCTION_CONTENT:
+	sequence of
+	DEF       # do we allow nested function definitions?
+	while EXPRESSION { FUNCTION_CONTENT }
+	if EXPRESSION { FUNCTION_CONTENT }
+	if EXPRESSION { FUNCTION_CONTENT } ELSE
+	return EXPRESSION ;
+	return ;
+	EXPRESSION ;
+	;
+
+ELSE:
+	else { FUNCTION_CONTENT }
+	else if { FUNCTION_CONTENT }
+	else if { FUNCTION_CONTENT } ELSE
+
+LIST_CONTENT:
+	EXPRESSION
+	EXPRESSION , LIST_CONTENT
+	# FIXME can end with a comma
+	# FIXME consider  allowing either comma or semicolon as separator
+
+BLOCK_CONTENT:
+	list of (either comma or semicolon delimited)
+	EXPRESSION = EXPRESSION
+	EXPRESSION : EXPRESSION
+	# FIXME can end with a comma
+	# FIXME consider  allowing either comma or semicolon as separator
+
+INTERFACE_CONTENT:
+	sequence of
+	def TOKEN TYPE ;
+
+METHOD:
+	method TYPE . TOKEN TYPE ;
+	method TYPE . TOKEN TYPE { FUNCTION_CONTENT }
+
+OPERATOR:
+	operator OPERATOR TYPE ;
+	operator OPERATOR TYPE { FUNCTION_CONTENT }
 

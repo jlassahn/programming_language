@@ -18,7 +18,7 @@ multiline comment }
 
 def func( #{deleted_arg Integer, } arg2 String) -> Void
 {
-	var x = "# not a comment";
+	def x = "# not a comment";
 
 }
 
