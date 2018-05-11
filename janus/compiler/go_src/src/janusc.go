@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log"
 	"lexer"
+	"parser"
 )
 
 const (
@@ -76,7 +77,7 @@ func main() {
 	for _, file := range args.Files {
 		fp, err := os.Open(file)
 		if err == nil {
-			print_tokens(fp)
+			processFile(fp, args)
 			fp.Close()
 		} else {
 			fmt.Println(err)
@@ -84,18 +85,92 @@ func main() {
 	}
 }
 
-func print_tokens(fp io.Reader) {
+func processFile(fp io.Reader, args *parameters ) {
 	lex := lexer.MakeLexer(fp)
+	parser := parser.NewParser(lex)
+
+	if args.Mode == MODE_TOKEN {
+		printTokens(lex)
+	} else {
+		printParseTree(parser)
+	}
+
+
+}
+
+func printTokens(lex *lexer.Lexer) {
 	for {
 		tok := lex.NextToken()
 		fmt.Println(tok)
 
+		//FIXME halt on first error, or try to recover?
 		if tok.TokenType == lexer.ERROR {
 			break
 		}
 		if tok.TokenType == lexer.EOF {
 			break
 		}
+	}
+}
+
+func printParseTree(parse parser.Parser) {
+
+	for {
+		el := parse.GetElement()
+
+		printElementTree(el, 0, false)
+
+		/*
+		tok := el.Token()
+
+		if tok != nil {
+			line, col := el.Position()
+			fmt.Printf("type = %d Position = (%d, %d) tt=%d txt=%s\n",
+				el.ElementType(),
+				line, col,
+				tok.TokenType,
+				tok.Text)
+		} else {
+			//FIXME handle nonterminals
+		}
+		*/
+
+		if el.ElementType() <= lexer.EOF {
+			break
+		}
+	}
+
+	/*
+	Children() []ParseElement
+	Comments() []ParseElement
+	ElementType() int
+	Position() (int, int)
+	Token() *lexer.Token
+	*/
+}
+
+func printElementTree(el parser.ParseElement, depth int, cmt bool) {
+
+	line, col := el.Position()
+	fmt.Printf("(%3d, %2d) ", line, col)
+
+	for i:=0; i<depth; i++ {
+		fmt.Print("\t")
+	}
+
+	if cmt {
+		fmt.Print("* ")
+	}
+
+	fmt.Printf("type = %s txt=%s\n",
+		lexer.TypeNames[el.ElementType()],
+		el.TokenString())
+
+	for _, child := range el.Comments() {
+		printElementTree(child, depth+1, true)
+	}
+	for _, child := range el.Children() {
+		printElementTree(child, depth+1, cmt)
 	}
 }
 

@@ -17,9 +17,10 @@ const (
 	OPERATOR
 	PUNCTUATION
 	KEYWORD
+	END_OF_TOKEN_TYPES
 )
 
-var type_names = map[int]string {
+var TypeNames = map[int]string {
 	ERROR: "ERROR",
 	EOF: "EOF",
 	COMMENT: "COMMENT",
@@ -28,7 +29,8 @@ var type_names = map[int]string {
 	SYMBOL: "SYMBOL",
 	OPERATOR: "OPERATOR",
 	PUNCTUATION: "PUNCTUATION",
-	KEYWORD: "KEYWORD" }
+	KEYWORD: "KEYWORD",
+	END_OF_TOKEN_TYPES: "INVALID TYPE, End of Tokens" }
 
 //FIXME complete list
 //this must have longer operators first
@@ -56,7 +58,7 @@ type Token struct {
 func (tok *Token) String() string {
 	return fmt.Sprintf("(%d, %d) %s %s",
 		tok.Line, tok.Column,
-		type_names[tok.TokenType],
+		TypeNames[tok.TokenType],
 		string(tok.Text))
 }
 
