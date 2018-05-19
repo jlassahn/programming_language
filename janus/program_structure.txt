@@ -40,9 +40,7 @@ interfaces and source into lib and bin.
 
 # FIXME do we really need a distinction between .janus and .jsrc, or is
 # position in the project directories sufficient?
-# YES, extensions matter.  import only looks for .janus files, and
-#  .jsrc files have automatic access to anything defined in the .janus file
-# with the same name.
+# YES, extensions matter.  import only looks for .janus files
 
 # FIXME these extensions are terrible
 File types include

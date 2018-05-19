@@ -114,39 +114,8 @@ func printTokens(lex *lexer.Lexer) {
 }
 
 func printParseTree(parse parser.Parser) {
-
-	for {
-		el := parse.GetElement()
-
-		printElementTree(el, 0, false)
-
-		/*
-		tok := el.Token()
-
-		if tok != nil {
-			line, col := el.Position()
-			fmt.Printf("type = %d Position = (%d, %d) tt=%d txt=%s\n",
-				el.ElementType(),
-				line, col,
-				tok.TokenType,
-				tok.Text)
-		} else {
-			//FIXME handle nonterminals
-		}
-		*/
-
-		if el.ElementType() <= lexer.EOF {
-			break
-		}
-	}
-
-	/*
-	Children() []ParseElement
-	Comments() []ParseElement
-	ElementType() int
-	Position() (int, int)
-	Token() *lexer.Token
-	*/
+	el := parse.GetElement()
+	printElementTree(el, 0, false)
 }
 
 func printElementTree(el parser.ParseElement, depth int, cmt bool) {
@@ -162,7 +131,7 @@ func printElementTree(el parser.ParseElement, depth int, cmt bool) {
 		fmt.Print("* ")
 	}
 
-	fmt.Printf("type = %s txt=%s\n",
+	fmt.Printf("[%s] %s\n",
 		lexer.TypeNames[el.ElementType()],
 		el.TokenString())
 

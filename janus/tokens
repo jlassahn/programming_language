@@ -70,3 +70,126 @@ Punctuators
 
 
 
+
+///// C Tokens //////
+keywords:
+	auto
+	break
+	case
+	char
+	const
+	continue
+	default
+	do
+	double
+	else
+	enum
+	extern
+	float
+	for
+	goto
+	if
+	int
+	long
+	register
+	return
+	short
+	signed
+	sizeof
+	static
+	struct
+	switch
+	typedef
+	union
+	unsigned
+	void
+	volatile
+	while
+
+Operators:
+	[ ] ( ) . ->
+	++ -- & * + - ~ ! sizeof
+	/ % << >> < > <= >= == != ^ | && ||
+	? :
+	= *= /= %= += -= <<= >>= &= ^= |=
+	, # ##
+
+Punctuators:
+	[ ] ( ) { } * , : = ; ... #
+
+Precedence:
+	Postfix
+	Prefix and cast
+	Multiplicative * / %
+	Aditive + -
+	Shift << >>
+	Relational < = <= >=
+	Equality == !=
+	And &
+	Exclusive OR ^
+	Inclusive Or |
+	Logical And &&
+	Logical Or ||
+	Coditional ? :
+	Assignment = *= += etc
+	Comma operator
+///// C Tokens //////
+
+
+
+	Assignment
+		=
+		//=
+		+/=
+		-/=
+		%%=
+		+%=
+		-%=
+		^|=
+		>>=
+		<<=
+		+=
+		-=
+		*=
+		/=
+		&=
+		|=
+	Or
+		|
+		^|
+	And
+		&
+	Compare
+		==
+		!=
+		<=
+		>=
+		~~
+		!~
+		...
+	Add
+		+
+		-
+	Mult
+		*
+		/
+		//
+		+/
+		-/
+		%%
+		+%
+		-%
+		>>
+		<<
+	Exp
+		^
+	Postfix
+		++
+		--
+	Prefix
+		!
+	Dot
+		.
+
+	->
+

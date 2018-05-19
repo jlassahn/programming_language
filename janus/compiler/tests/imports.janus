@@ -1,0 +1,13 @@
+
+janus 1.0;
+
+import thing1;
+
+import thing1.thing2;
+
+import thing1 as .;
+
+import thing1.thing2.thing3 as thing3;
+
+import thing1.thing2.thing3 as something.else;
+

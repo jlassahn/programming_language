@@ -1,0 +1,30 @@
+
+janus 1.0;
+
+
+interface Request extends ReadStream
+{
+	def method String;
+	def version String;
+	def headers map(String, String);
+	def length Integer
+}
+
+interface Response extends WriteStream
+{
+	def SetResponse(code : Int32, msg : String) -> Void;
+	def SetHeader(key : String, value : String) -> Void;
+	def SetLength(len : Int) -> Void;
+}
+
+interface Server
+{
+	def SetHandler( fn : (req: Request) -> Response ) -> Void;
+	def Run() -> Void;
+	def Stop() -> Void;
+}
+
+def HTTPServer(port : Int32) -> Server;
+def HTTPSServer(port : Int32, tls : TLSContext) -> Server;
+
+

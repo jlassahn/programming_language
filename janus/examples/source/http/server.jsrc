@@ -1,0 +1,28 @@
+
+janus 1.0;
+
+import http.server;
+
+
+struct Server
+{
+	implements http.server.Server;
+}
+
+method Server.SetHandler( fn : (req: Request) -> Response ) -> Void
+{
+	//FIXME implement
+}
+
+method Server.Run() -> Void
+{
+}
+
+method Server.Stop() -> Void
+{
+}
+
+def HTTPServer(port : Int32) -> Server
+{
+}
+

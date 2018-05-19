@@ -7,6 +7,7 @@ doc comments
 exceptions
 assertions
 multivalue returns
+closures, or converting methods to bare function references
 
 # Research Issues
 multithreaded garbage collection

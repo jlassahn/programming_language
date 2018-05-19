@@ -28,6 +28,7 @@ machine types:
 		m_slice(Type)
 		m_struct types
 		m_ref(Type)
+		range of Int64
 
 object types:
 	primitive:
@@ -39,6 +40,7 @@ object types:
 		struct types
 		interface types
 		ref(Type)
+		range of Integer
 
 pseudotypes:
 	Void # return type for functions that return nothing

@@ -7,48 +7,6 @@ import (
 	"bytes"
 )
 
-const (
-	ERROR = iota
-	EOF
-	COMMENT
-	NUMBER
-	STRING
-	SYMBOL
-	OPERATOR
-	PUNCTUATION
-	KEYWORD
-	END_OF_TOKEN_TYPES
-)
-
-var TypeNames = map[int]string {
-	ERROR: "ERROR",
-	EOF: "EOF",
-	COMMENT: "COMMENT",
-	NUMBER: "NUMBER",
-	STRING: "STRING",
-	SYMBOL: "SYMBOL",
-	OPERATOR: "OPERATOR",
-	PUNCTUATION: "PUNCTUATION",
-	KEYWORD: "KEYWORD",
-	END_OF_TOKEN_TYPES: "INVALID TYPE, End of Tokens" }
-
-//FIXME complete list
-//this must have longer operators first
-var operators = []string {
-	"->",
-	">>",
-	"<<",
-	"++",
-	"--",
-	"." }
-
-//FIXME complete list
-var keywords = map[string]bool {
-	"def" : true,
-	"import" : true,
-	"return" : true,
-	"janus": true }
-
 type Token struct {
 	Text []byte
 	TokenType int
@@ -201,7 +159,7 @@ func (lex *Lexer) read_token() *Token {
 		return new_token([]byte("#{"), PUNCTUATION)
 	}
 
-	for _, op := range operators {
+	for _, op := range Operators {
 		if lex.match(op) {
 			lex.consume(len(op))
 			return new_token([]byte(op), OPERATOR)
@@ -218,6 +176,10 @@ func (lex *Lexer) read_token() *Token {
 
 	if lex.match_byte('"') {
 		return lex.get_string()
+	}
+
+	if lex.match_byte('`') {
+		return lex.get_char()
 	}
 
 	if is_digit(lex.charbuf[0]) {
@@ -295,6 +257,27 @@ func (lex *Lexer) get_long_string() *Token {
 	return new_token(buf, STRING)
 }
 
+func (lex *Lexer) get_char() *Token {
+	buf := make([]byte, 0)
+
+	lex.consume(1)
+
+	for {
+		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
+			return new_token([]byte("Newline in character constant"), ERROR)
+		}
+
+		if lex.match_byte('`') {
+			lex.consume(1)
+			break
+		}
+		buf = append(buf, lex.charbuf[0])
+		lex.consume(1)
+	}
+
+	return new_token(buf, CHARACTER)
+}
+
 func (lex *Lexer) get_number() *Token {
 	var buf []byte = nil
 
@@ -314,7 +297,7 @@ func (lex *Lexer) get_symbol() *Token {
 		lex.consume(1)
 	}
 
-	if keywords[string(buf)] {
+	if Keywords[string(buf)] {
 		return new_token(buf, KEYWORD)
 	} else {
 		return new_token(buf, SYMBOL)

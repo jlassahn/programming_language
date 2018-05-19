@@ -1,5 +1,11 @@
 
-janus 1.0;
+janus 1.0
+{
+	# by default the module name is the path to the source file
+	# so this would default to stdlib.complex if we didn't override it
+	module: complex;
+}
+
 
 import complex as .;
 
