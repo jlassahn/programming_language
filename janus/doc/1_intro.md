@@ -42,3 +42,10 @@ def main() -> Void
 ```
 
 
+Some basic math
+
+Some control flow
+
+Some functions
+
+

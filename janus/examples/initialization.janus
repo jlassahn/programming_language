@@ -5,20 +5,20 @@ struct Data
 	def b Float64;
 }
 
-def x Data = { 1, 2.7 }
+def x Data = { 1, 2.7 };
 
 def x Data =
 {
 	a = 1,
 	b = 2.7
-}
+};
 
-def x ref(Data) = { 1, 2.7 }
+def x ref(Data) = { 1, 2.7 };
 # is equivalent to
 def x = new(Data);
-x = { 1, 2.7 }
+x = { 1, 2.7 };
 
-def x m_ref(Data) = { 1, 2.7 } # ERROR, can't implicitly allocate()!
+def x m_ref(Data) = { 1, 2.7 }; # ERROR, can't implicitly allocate()!
 
 # notice that = assignment has some semantic magic
 # to support partial structure copies, etc

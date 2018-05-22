@@ -1,0 +1,40 @@
+
+janus 1.0;
+
+import io;
+
+def main(args array(String)) -> Void
+{
+	def lst = [1, 2, 4, 8, 16];
+
+	for i = lst
+	{
+		io.Print(i.ToString() + "`lf`");
+	}
+
+	for i = 0:10
+	{
+		io.Print(i.ToString() + "`lf`");
+	}
+
+	def i = 0;
+	while i < 10
+	{
+		io.Print(i.ToString() + "`lf`");
+		i ++;
+	}
+
+	if i >= 10
+	{
+		io.Print("OK`lf`");
+	}
+	else if true
+	{
+		io.Print("Can't happen 1`lf`");
+	}
+	else
+	{
+		io.Print("Can't happen 2`lf`");
+	}
+}
+

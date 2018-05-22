@@ -1,0 +1,37 @@
+
+janus 1.0;
+
+
+m_struct Element(T CType)
+{
+	def prev m_ref(T);
+	def next m_ref(T);
+}
+
+method Element(T) Next() -> T
+{
+	return self.next;
+}
+
+m_struct Container(T CType, size Int32)
+{
+	def buf m_Array(T, size);
+}
+
+
+def Main(args Array(String)) -> Int32
+{
+	def x Element( function (x String) -> String ) = null;
+	def xx types.Element(Integer);
+
+	def len Int32 = 100;
+	def y m_Array( String, len);
+	def z m_Array( function (x String) -> String, len);
+	def z m_Array( function (x String) -> String, len);
+
+}
+
+def fn1 function (x String) -> Void;
+def fn2 (x String) -> Void;
+def fn3 (x String);
+

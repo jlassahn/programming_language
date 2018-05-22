@@ -1,0 +1,48 @@
+
+janus 1.0;
+
+import http.server;
+
+
+def main() -> Void
+{
+	def server = http.server.Create(8080);
+	server.SetHandler(Handler);
+	server.Run();
+}
+
+def Handler(req: http.server.Request, resp: http.server.Response) -> Void
+{
+	if req.method == "GET"
+	{
+		def msg =
+"""
+<html>
+<head> </head>
+<body>
+	<h1> Hello, World! </h1>
+</body>
+</html>
+"""
+		resp.SetResponse(200, "OK");
+		resp.SetLength(msg.length);
+		resp.write(msg);
+	}
+	else
+	{
+		def msg =
+"""
+<html>
+<head> </head>
+<body>
+	<h1> 405: Method Not Allowed </h1>
+</body>
+</html>
+"""
+		resp.SetResponse(405, "Method Not Allowed");
+		resp.SetHeader("Allow", "GET");
+		resp.SetLength(msg.length);
+		resp.write(msg);
+	}
+}
+

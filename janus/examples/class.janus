@@ -16,6 +16,7 @@ interface KeyMessage extends Message
 
 struct KeyMessage
 {
+	# FIXME no!  how to make this work?
 	# a struct with the same name as an interface implicitly implements
 	# that interface.
 }

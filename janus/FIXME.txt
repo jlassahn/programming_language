@@ -1,0 +1,10 @@
+
+Known problems
+
+... can't be an operator becasuse 1...3 is a number token
+	consider useing : instead, ( does : need to be in parameter declarations)
+
+Can't always tell whether a sequence is a TYPE or an EXPRESSION, because
+	functions can take TYPE arguments
+
+

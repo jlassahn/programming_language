@@ -9,7 +9,7 @@ struct Server
 	implements http.server.Server;
 }
 
-method Server.SetHandler( fn : (req: Request) -> Response ) -> Void
+method Server.SetHandler( fn : (req: Request, resp: Response) -> Void ) -> Void
 {
 	//FIXME implement
 }

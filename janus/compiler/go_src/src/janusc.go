@@ -87,11 +87,11 @@ func main() {
 
 func processFile(fp io.Reader, args *parameters ) {
 	lex := lexer.MakeLexer(fp)
-	parser := parser.NewParser(lex)
 
 	if args.Mode == MODE_TOKEN {
 		printTokens(lex)
 	} else {
+		parser := parser.NewParser(lex)
 		printParseTree(parser)
 	}
 

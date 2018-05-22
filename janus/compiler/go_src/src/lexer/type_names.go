@@ -59,7 +59,6 @@ var TypeNames = map[int]string {
 //FIXME complete list
 //this must have longer operators first
 var Operators = []string {
-	"...",
 	"//=",
 	"+/=",
 	"-/=",
@@ -102,6 +101,7 @@ var Operators = []string {
 	"|",
 	"!",
 	"=",
+	":",
 	"." }
 
 
@@ -131,7 +131,7 @@ var AndOperators = map[string]bool {
 	"&": true }
 
 var CompareOperators = map[string]bool {
-	"...": true,
+	":": true,
 	"==": true,
 	"!=": true,
 	"<=": true,

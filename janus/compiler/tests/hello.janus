@@ -3,7 +3,7 @@ janus 1.0;
 
 import io;
 
-def main(args : array(String)) -> Int32
+def main(args array(String)) -> Int32
 {
 	io.print("Hello, World`lf`");
 	return 0;

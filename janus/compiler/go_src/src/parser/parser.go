@@ -386,7 +386,6 @@ func (mp *mainParser) parseParameterList() ParseElement {
 		el := mp.startElement(lexer.PARAMETER)
 		ret.addChild(el)
 		el.addChild(mp.match(lexer.SYMBOL, ""))
-		mp.match(lexer.PUNCTUATION, ":")
 		el.addChild(mp.parseType())
 
 		if !mp.tryMatch(lexer.PUNCTUATION, ",") {
