@@ -2,6 +2,7 @@
 coroutines
 regexps
 enums
+constants
 switch statements
 doc comments
 exceptions

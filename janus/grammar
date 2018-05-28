@@ -8,12 +8,15 @@ HEADER:
 	janus VERSION { HEADER_OPTIONS }
 
 HEADER_OPTIONS:
-	ASSIGNMENT_EXPRESSION ;
-	ASSIGNMENT_EXPRESSION ; HEADER_OPTIONS
+	# list of
+	HEADER_OPTION;
+
+HEADER_OPTION:
+	DOT_SYMBOL = EXPRESSION
 
 FILE_CONTENT:
+	# list of
 	FILE_DECLARATION
-	FILE_DECLARATION FILE_CONTENT
 
 FILE_DECLARATION:
 	IMPORT
@@ -22,23 +25,25 @@ FILE_DECLARATION:
 	INTERFACE
 	METHOD
 	OPERATOR_DEF
+	;
 
 IMPORT:
-	import IMPORT_NAME;
-	import IMPORT_NAME as IMPORT_NAME;
+	import DOT_SYMBOL ;
+	import DOT_SYMBOL = . ;
+	import DOT_SYMBOL = DOT_SYMBOL ;
 
 DEF:
 	def TOKEN FUNCTION_TYPE { FUNCTION_CONTENT }
-	def TOKEN TYPE = { BLOCK_CONTENT } ;
-	def TOKEN TYPE = [ LIST_CONTENT ] ;
-	def TOKEN TYPE = { } ;
-	def TOKEN TYPE = [ ] ;
-	def TOKEN TYPE = EXPRESSION ;
+	def TOKEN FUNCTION_TYPE = EXPRESSION ;
 	def TOKEN FUNCTION_TYPE ;
+	def TOKEN TYPE { FUNCTION_CONTENT }
+	def TOKEN TYPE = EXPRESSION ;
 	def TOKEN TYPE ;
-	def TOKEN = { BLOCK_CONTENT } ;
-	def TOKEN = [ LIST_CONTENT ] ;
-	def TOKEN = EXPRESION ;
+	def TOKEN = EXPRESSION ;
+	# these are permitted by the grammar, but useless and forbidden
+	# by semantic constraints
+	# def TOKEN { FUNCTION_CONTENT }
+	# def TOKEN ;
 
 STRUCT:
 	struct TYPE_NAME { STRUCT_CONTENT }
@@ -50,28 +55,48 @@ INTERFACE:
 	interface TYPE_NAME { INTERFACE_CONTENT }
 	interface TYPE_NAME extends EXTENDS_LIST { INTERFACE_CONTENT }
 
+METHOD:
+	method TYPE TOKEN FUNCTION_TYPE { FUNCTION_CONTENT }
+	method TYPE TOKEN FUNCTION_TYPE = EXPRESSION ;
+	method TYPE TOKEN FUNCTION_TYPE ;
+	# FIXME is this permitted?
+	# method TYPE TOKEN TYPE { FUNCTION_CONTENT }
+	# e.g.
+	# method MyType MyMethod function (x Integer) -> Integer;
+
+OPERATOR_DEF:
+	operator OPERATOR FUNCTION_TYPE { FUNCTION_CONTENT }
+	operator OPERATOR FUNCTION_TYPE = EXPRESSION ;
+	operator OPERATOR FUNCTION_TYPE ;
+
 TYPE_NAME:
+	# for declaring new struct and interface types
+	# FIXME what kinds of things can be type parameters?
+	#       definitely CType values,
+	#       definitely numbers
+	#       can't use things that aren't compile time constants
+	#       is it useful to allow statically declared structs, references
+	#       etc?  What about enums?
 	TOKEN
 	TOKEN ( PARAMETER_LIST )
-	# FIXME not a full parameter list, only named CTypes and constants
 
-TYPE:
-	TOKEN
-	TOKEN ( TYPE_LIST )
-	m_array(TYPE, INTEGER_CONSTANT)
-	m_slice(TYPE)
-	m_ref(TYPE)
-	array(TYPE)
-	ref(TYPE)
-	function ( PARAMETER_LIST ) -> TYPE
-	# FIXME some contexts allow > TYPE to indicate automatic conversion
-	# FIXME Module.Type(params) hast to work
-
+FUNCTION_TYPE:
+	( PARAMETER_LIST )
+	( PARAMETER_LIST ) -> TYPE
 
 PARAMETER_LIST:
-	comma separated list of
+	# comma separated list of
 	TOKEN TYPE
 	TOKEN > TYPE
+
+TYPE:
+	# not every expression can be a type, but because types can be
+	# values of expressions and type names can look like other kinds of
+	# symbols, this distinction must be made by semantic constraints
+	#
+	# TYPE is only a separate element in the grammar to clarify the
+	# role of some expressions in definitions
+	EXPRESSION
 
 
 STRUCT_CONTENT:
@@ -99,17 +124,6 @@ ELSE:
 	else if { FUNCTION_CONTENT }
 	else if { FUNCTION_CONTENT } ELSE
 
-LIST_CONTENT:
-	EXPRESSION
-	EXPRESSION , LIST_CONTENT
-	# FIXME can end with a comma
-	# FIXME consider  allowing either comma or semicolon as separator
-
-BLOCK_CONTENT:
-	list of
-	EXPRESSION = EXPRESSION
-	# FIXME can end with a comma
-
 INTERFACE_CONTENT:
 	sequence of
 	def TOKEN TYPE ;
@@ -121,6 +135,10 @@ METHOD:
 OPERATOR_DEF:
 	operator OPERATOR TYPE ;
 	operator OPERATOR TYPE { FUNCTION_CONTENT }
+
+DOT_SYMBOL:
+	SYMBOL
+	DOT_SYMBOL . SYMBOL
 
 ASSIGNMENT_EXPRESSION:
 	EXPRESSION = EXPRESSION
@@ -157,21 +175,24 @@ EXPRESSION_PREFIX:
 
 EXPRESSION_SUFFIX:
 	( EXPRESSION )
-	EXPRESSION_DOT
+	[ LIST_CONTENT ]
+	{ MAP_CONTENT }
+	DOT_SYMBOL
 	NUMBER
 	STRING
 	CHARACTER
+	function FUNCTION_TYPE
 	EXPRESSION_SUFFIX SUFFIX_OP
 	EXPRESSION_SUFFIX [ EXPRESSION ]
-	EXPRESSION_SUFFIX ( EXPRESSION_LIST )
+	EXPRESSION_SUFFIX ( LIST_CONTENT )
 
-EXPRESSION_DOT:
-	SYMBOL
-	EXPRESSION_DOT . SYMBOL
-
-EXPRESSION_LIST:
+LIST_CONTENT:
+	# comma separated list of
 	EXPRESSION
-	EXPRESSION_LIST , EXPRESSION
+
+MAP_CONTENT:
+	# list of
+	EXPRESSION = EXPRESSION ;
 
 # FIXME expression operator precedence
 # Dot for scope resolution and object dereference

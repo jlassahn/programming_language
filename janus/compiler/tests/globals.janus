@@ -1,0 +1,36 @@
+
+janus 1.0
+{
+	machine_mode = True;
+	object_mode = True;
+}
+
+import io;
+
+def fn1 (args array(String)) -> Int32;
+
+def fn1 (args array(String)) -> Int32
+{
+	return 0;
+}
+
+def fn_alias (args array(String)) -> Int32 = fn1;
+def fn_ref m_ref(function (args array(String)) -> Int32) = fn1;
+
+
+def global_string String;
+def global_string2 String = "hello";
+def global_string3 = "hello";
+
+def global_ctype = String;
+def global_ctype2 = function (x Int32) -> Void;
+def global_ctype3 = function (x Int32);
+
+def global_array = [1, 2, 3, 4];
+def global_map =
+{
+	"key1" = "value1";
+	"key2" = "value2";
+};
+
+

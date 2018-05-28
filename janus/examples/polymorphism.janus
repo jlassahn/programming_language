@@ -68,8 +68,8 @@ struct SubMessage
 	def Execute() -> Int32;
 }
 
-var sm = CreateSubMessage();
-var m = unsafe.convert(Message, sm);
+def sm = CreateSubMessage();
+def m = unsafe.convert(Message, sm);
 m.Execute(); # WARNING this runs Message.Execute, not SubMessage.Execute()
 
 #

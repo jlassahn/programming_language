@@ -15,7 +15,9 @@ const (
 	// end of token types
 	SOURCE_FILE
 	HEADER
+	LIST
 	IMPORT
+	DOT_LIST
 	DEF
 	TYPE
 	FUNCTION_TYPE
@@ -27,6 +29,8 @@ const (
 	EXPRESSION
 	INDEX
 	CALL
+	STRUCT_DEF
+	TYPE_NAME
 )
 
 
@@ -43,7 +47,9 @@ var TypeNames = map[int]string {
 	KEYWORD: "KEYWORD",
 	SOURCE_FILE: "SOURCE_FILE",
 	HEADER: "HEADER",
+	LIST: "LIST",
 	IMPORT: "IMPORT",
+	DOT_LIST: "DOT_LIST",
 	DEF: "DEF",
 	TYPE: "TYPE",
 	FUNCTION_TYPE: "FUNCTION_TYPE",
@@ -54,7 +60,9 @@ var TypeNames = map[int]string {
 	ASSIGNMENT: "ASSIGNMENT",
 	EXPRESSION: "EXPRESSION",
 	INDEX: "INDEX",
-	CALL: "CALL" }
+	CALL: "CALL",
+	STRUCT_DEF: "STRUCT_DEF",
+	TYPE_NAME: "TYPE_NAME" }
 
 //FIXME complete list
 //this must have longer operators first
@@ -158,14 +166,22 @@ var MultOperators = map[string]bool {
 var ExpOperators = map[string]bool {
 	"^": true }
 
+var PrefixOperators = map[string]bool {
+	"!": true }
+
 var SuffixOperators = map[string]bool { }
 
 
 //FIXME complete list
 var Keywords = map[string]bool {
-	"def" : true,
 	"import" : true,
-	"as" : true,
+	"def" : true,
+	"struct" : true,
+	"m_struct" : true,
+	"interface" : true,
+	"method" : true,
+	"operator" : true,
+	"function" : true,
 	"return" : true,
 	"janus": true }
 

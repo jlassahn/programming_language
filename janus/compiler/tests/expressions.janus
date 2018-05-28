@@ -7,6 +7,8 @@ def no_args() -> Void {
 
 	def n = (x != 3) & x >= 1.0 | true | null !~ null;
 
+	def f Float64 = sqrt(x)^2;
+
 	return;
 }
 
@@ -17,7 +19,7 @@ def length(x String) -> Integer {
 def lots_of_args(
 	a Integer,
 	b array(map(String, String)),
-	c ref(ref(slice(UInt8)))) -> () -> Void
+	c ref(ref(slice(UInt8)))) -> function () -> Void
 {
 	return no_args;
 }

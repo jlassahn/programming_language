@@ -5,9 +5,9 @@ import thing1;
 
 import thing1.thing2;
 
-import thing1 as .;
+import thing1 = .;
 
-import thing1.thing2.thing3 as thing3;
+import thing1.thing2.thing3 = thing3;
 
-import thing1.thing2.thing3 as something.else;
+import thing1.thing2.thing3 = something.else;
 
