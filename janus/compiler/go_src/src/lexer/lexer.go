@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"bytes"
+	"output"
 )
 
 type Token struct {
@@ -141,6 +142,8 @@ func (lex *Lexer)  NextToken() *Token {
 
 	tok.Line = line
 	tok.Column = col
+
+	output.EmitToken(tok.String())
 	return tok
 }
 

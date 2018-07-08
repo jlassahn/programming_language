@@ -18,11 +18,17 @@ interface Vector(T : CType) extends Container(T : CType)
 
 
 # FIXME make sure this is efficient for simple cases
-interface Iterator(T : CType)
+interface Iterator(T CType)
 {
 	def Done() -> Bool;
 	def Current() -> T;
 	def Next() -> Void;
+	def Destroy() -> Void;
+}
+
+interface Iterable(T CType)
+{
+	def Start() -> Iterator(T);
 }
 
 # def i = thing.Start();
@@ -32,4 +38,87 @@ interface Iterator(T : CType)
 #     i.Next();
 # }
 
+for i = thing
+{
+	i.DoSomething();
+}
+# is the same as
+{
+	def iter = thing.Start();
+	while ! iter.Done()
+	{
+		def i = iter.Current();
+		i.DoSomething();
+		iter.Next();
+	}
+	iter.Destroy();
+}
+# if things implements Iterable(TYPE)
+# or
+
+while !thing.Done()
+{
+	def i = thing.Current();
+	i.DoSomething();
+	thing.Next();
+}
+
+# For things like array walking, this can be an m_truct by value
+m_struct FancyArray(T CType)
+{
+	def buf slice(T CType);
+	# .. other stuff
+
+	implements Iterable(T);
+
+	def Start() -> FancyArrayIterator(T)
+	{
+		def ret FancyArrayIterator(T) = { self, self.buf.length, 0 };
+		return ret;
+	}
+}
+
+m_struct FancyArrayIterator(T CType)
+{
+	def parent m_ref(FancyArray(T));
+	def length Int32;
+	def pos Int32;
+
+	implements Iterator(T);
+
+	def Done() -> Bool { return self.pos >= self.length; }
+	def Current() -> T { return self.parent.buf[self.pos]; }
+	def Next() -> Void { self.pos ++; }
+	def Destroy() -> Void { } # no-op
+}
+
+# unoptimized, this expands to
+	def iter = fancy_array.Start(); # iter is FancyArrayIterator(T)
+	while !iter.Done()
+	{
+		def i = iter.Current();
+		i.DoSomething();
+		iter.Next();
+	}
+	iter.Destroy();
+
+# inlining...
+
+	def iter FancyArrayIterator(T) = { fancy_array, fancy_array.buf.length, 0 };
+	while iter.pos <= iter.length
+	{
+		def i = iter.parent.buf[iter.pos];
+		i.DoSomething();
+		iter.pos ++;
+	}
+	# no destroy
+
+# expanding struct elements
+	def pos = 0;
+	while pos <= fancy_array.buf.length
+	{
+		def i = fancy_array.buf[pos];
+		i.DoSomething();
+		pos ++;
+	}
 

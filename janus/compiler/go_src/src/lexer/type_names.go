@@ -31,6 +31,11 @@ const (
 	CALL
 	STRUCT_DEF
 	TYPE_NAME
+	INTERFACE_MAP
+	IF
+	INTERFACE
+	METHOD
+	OPERATOR_DEF
 )
 
 
@@ -62,7 +67,12 @@ var TypeNames = map[int]string {
 	INDEX: "INDEX",
 	CALL: "CALL",
 	STRUCT_DEF: "STRUCT_DEF",
-	TYPE_NAME: "TYPE_NAME" }
+	TYPE_NAME: "TYPE_NAME",
+	INTERFACE_MAP: "INTERFACE_MAP",
+	IF: "IF",
+	INTERFACE: "INTERFACE",
+	METHOD: "METHOD",
+	OPERATOR_DEF: "OPERATOR_DEF" }
 
 //FIXME complete list
 //this must have longer operators first
@@ -182,6 +192,15 @@ var Keywords = map[string]bool {
 	"method" : true,
 	"operator" : true,
 	"function" : true,
+	"if" : true,
+	"else" : true,
+	"while" : true,
+	"for" : true,
+	"with" : true,
 	"return" : true,
+	"continue" : true,
+	"break" : true,
+	"label" : true,
+	"goto" : true,
 	"janus": true }
 

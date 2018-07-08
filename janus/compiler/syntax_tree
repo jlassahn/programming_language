@@ -1,0 +1,31 @@
+
+SOURCE_FILE
+	HEADER   [version NUMBER] [options?]
+	(global statements)
+
+global statements
+	IMPORT       [module] [local_name?]
+	DEF          [symbol] [type?] [value?]
+	STRUCT_DEF   [struct content list] # FIXME distinguish m_struct from struct
+	INTERFACE    [interface content list]
+	METHOD       [struct type] [symbol] [symbol type] [content or alias?]
+	OPERATOR_DEF [operator] [type] [value?]
+
+function content
+	DEF
+	IF       [test] [if content] [else content?]
+	WHILE    [test] [content]
+	FOR      [symbol] [expression] [content]
+	WITH     [symbol] [expression] [content]
+	RETURN   [value?]
+	CONTINUE
+	BREAK    [number?]
+	LABEL     [symbol]
+	GOTO       [symbol or expression]
+	ASSIGNMENT [symbol] [expression]
+	EXPRESSION (FIXME can also be NUMBER, STRING, CALL etc)
+
+struct content
+	DEF
+	IMPLEMENTS
+
