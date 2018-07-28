@@ -10,19 +10,19 @@ import (
 
 type Token struct {
 	Text []byte
-	TokenType int
+	TokenType *Tag
 	Line, Column int
 }
 
 func (tok *Token) String() string {
 	return fmt.Sprintf("(%d, %d) %s %s",
 		tok.Line, tok.Column,
-		TypeNames[tok.TokenType],
+		tok.TokenType.string,
 		string(tok.Text))
 }
 
 
-func new_token(txt []byte, tt int) *Token {
+func new_token(txt []byte, tt *Tag) *Token {
 	return &Token {
 		txt,
 		tt,

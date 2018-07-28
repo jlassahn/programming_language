@@ -10,7 +10,7 @@ import (
 type ParseElement interface {
 	Children() []ParseElement
 	Comments() []ParseElement
-	ElementType() int
+	ElementType() *lexer.Tag
 	Position() (int, int)
 	Token() *lexer.Token
 	TokenString() string
@@ -28,7 +28,7 @@ func EmitError(err string) {
 type parseElement struct {
 	children []ParseElement
 	comments []ParseElement
-	elementType int
+	elementType *lexer.Tag
 	line, column int
 	token *lexer.Token
 }
@@ -41,7 +41,7 @@ func (pe *parseElement) Comments() []ParseElement {
 	return pe.comments
 }
 
-func (pe *parseElement) ElementType() int {
+func (pe *parseElement) ElementType() *lexer.Tag {
 	return pe.elementType
 }
 
@@ -73,6 +73,10 @@ type tokenWrapper struct {
 
 func (tw *tokenWrapper) GetElement() ParseElement {
 	tok := tw.lex.NextToken()
+
+	if tok.TokenType == lexer.ERROR {
+		EmitError(string(tok.Text))
+	}
 
 	ret := parseElement{
 		nil, nil,
@@ -164,7 +168,7 @@ func (mp *mainParser) consume() ParseElement {
 	return ret
 }
 
-func (mp *mainParser) peek(pos int, etype int, txt string) bool {
+func (mp *mainParser) peek(pos int, etype *lexer.Tag, txt string) bool {
 	el := mp.queue[pos]
 	if etype != el.ElementType() {
 		return false
@@ -177,7 +181,7 @@ func (mp *mainParser) peek(pos int, etype int, txt string) bool {
 	return true
 }
 
-func (mp *mainParser) match(etype int, txt string) ParseElement {
+func (mp *mainParser) match(etype *lexer.Tag, txt string) ParseElement {
 	if mp.peek(0, etype, txt) {
 		mp.resync = false
 		return mp.consume()
@@ -185,13 +189,13 @@ func (mp *mainParser) match(etype int, txt string) ParseElement {
 		var err string
 		if txt == "" {
 			err = fmt.Sprintf("expected %s got %s %s",
-				lexer.TypeNames[etype],
-				lexer.TypeNames[mp.queue[0].ElementType()],
+				etype,
+				mp.queue[0].ElementType(),
 				mp.queue[0].TokenString())
 		} else {
 			err = fmt.Sprintf("expected %s %s got %s %s",
-				lexer.TypeNames[etype], txt,
-				lexer.TypeNames[mp.queue[0].ElementType()],
+				etype, txt,
+				mp.queue[0].ElementType(),
 				mp.queue[0].TokenString())
 		}
 		mp.error(err)
@@ -204,14 +208,14 @@ func (mp *mainParser) checkProgress() {
 		mp.progress = false
 	} else {
 		err := fmt.Sprintf("unexpected %s %s",
-			lexer.TypeNames[mp.queue[0].ElementType()],
+			mp.queue[0].ElementType(),
 			mp.queue[0].TokenString())
 		mp.error(err)
 		mp.consume()
 	}
 }
 
-func (mp *mainParser) tryMatch(etype int, txt string) bool {
+func (mp *mainParser) tryMatch(etype *lexer.Tag, txt string) bool {
 	if mp.peek(0, etype, txt) {
 		mp.resync = false
 		mp.consume()
@@ -228,7 +232,7 @@ func (mp *mainParser) tryOperator(oplist map[string]bool) bool {
 }
 
 
-func (mp *mainParser) startElement(etype int) *parseElement {
+func (mp *mainParser) startElement(etype *lexer.Tag) *parseElement {
 
 	line, col := mp.queue[0].Position()
 	comments := mp.queue[0].Comments()

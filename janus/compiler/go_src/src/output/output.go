@@ -27,3 +27,7 @@ func EmitToken(x string) {
 	}
 }
 
+type LLVMFile struct {
+	//FIXME implement
+}
+

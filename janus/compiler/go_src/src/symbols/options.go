@@ -23,7 +23,10 @@ func InterpretHeaderOptions(file *SourceFile) {
 	}
 	options := header.Children()[1]
 	for _, opt := range options.Children() {
-		fmt.Println(opt)
+		name := DotListAsStrings(opt.Children()[0])
+		value := EvaluateConstExpression(opt.Children()[1], PredefinedSymbols)
+		fmt.Println(name)
+		fmt.Println(value)
 	}
 }
 

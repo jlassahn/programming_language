@@ -3,7 +3,6 @@ package parser
 
 import (
 	"fmt"
-	"lexer"
 )
 
 
@@ -21,7 +20,7 @@ func EmitElementTree(el ParseElement, depth int, cmt bool) {
 	}
 
 	fmt.Printf("[%s] %s\n",
-		lexer.TypeNames[el.ElementType()],
+		el.ElementType(),
 		el.TokenString())
 
 	for _, child := range el.Comments() {
