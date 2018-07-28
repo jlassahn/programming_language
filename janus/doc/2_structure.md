@@ -19,7 +19,7 @@ Module names are tokens separated by dots.  The compiler searches for
 source files for a module by converting these to directory and file names.
 For example,
 
-````janus
+```janus
 import experimental.web_handlers;
 ```
 
