@@ -5,4 +5,5 @@ export GOPATH=$(MAKEFILE_DIR)/go_src
 
 all:
 	go build go_src/src/janusc.go
+	go build go_src/src/janustest.go
 

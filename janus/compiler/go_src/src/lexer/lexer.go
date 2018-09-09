@@ -150,11 +150,10 @@ func (lex *Lexer)  NextToken() *Token {
 func (lex *Lexer) read_token() *Token {
 
 	if lex.is_eof() {
-		if lex.file_error == io.EOF {
-			return new_token([]byte("EOF"), EOF)
-		} else {
-			return new_token([]byte(lex.file_error.Error()), ERROR)
+		if lex.file_error != io.EOF {
+			output.FatalError(lex.line, lex.column, lex.file_error.Error())
 		}
+		return new_token([]byte("EOF"), EOF)
 	}
 
 	if lex.match("#{") {
@@ -225,7 +224,8 @@ func (lex *Lexer) get_string() *Token {
 
 	for {
 		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
-			return new_token([]byte("Newline in string constant"), ERROR)
+			output.FatalError(lex.line, lex.column,
+				"Newline in string constant")
 		}
 
 		if lex.match_byte('"') {
@@ -246,7 +246,7 @@ func (lex *Lexer) get_long_string() *Token {
 
 	for {
 		if lex.is_eof() {
-			return new_token([]byte("EOF in string constant"), ERROR)
+			output.FatalError(lex.line, lex.column, "EOF in string constant")
 		}
 
 		if lex.match("\"\"\"") {
@@ -267,7 +267,8 @@ func (lex *Lexer) get_char() *Token {
 
 	for {
 		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
-			return new_token([]byte("Newline in character constant"), ERROR)
+			output.FatalError(lex.line, lex.column,
+				"Newline in character constant")
 		}
 
 		if lex.match_byte('`') {

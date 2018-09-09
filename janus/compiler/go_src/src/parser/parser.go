@@ -2,9 +2,9 @@
 package parser
 
 import (
-	"os"
 	"fmt"
 	"lexer"
+	"output"
 )
 
 type ParseElement interface {
@@ -19,11 +19,6 @@ type ParseElement interface {
 type Parser interface {
 	GetElement() ParseElement
 }
-
-func EmitError(err string) {
-	os.Stderr.WriteString(err + "\n")
-}
-
 
 type parseElement struct {
 	children []ParseElement
@@ -74,10 +69,6 @@ type tokenWrapper struct {
 func (tw *tokenWrapper) GetElement() ParseElement {
 	tok := tw.lex.NextToken()
 
-	if tok.TokenType == lexer.ERROR {
-		EmitError(string(tok.Text))
-	}
-
 	ret := parseElement{
 		nil, nil,
 		tok.TokenType,
@@ -101,7 +92,8 @@ func (cm *commentMerger) GetElement() ParseElement {
 
 		if el.ElementType() == lexer.EOF {
 			if cm.depth > 0 {
-				EmitError("EOF inside block comment")
+				line, col := cm.comments[0].Position()
+				output.FatalError(line, col, "EOF inside block comment")
 			}
 			if cm.comments != nil {
 				comments := cm.comments
@@ -251,8 +243,7 @@ func (mp *mainParser) error(txt string) {
 
 	if !mp.resync {
 		line, col := mp.queue[0].Position()
-		txt = fmt.Sprintf("at (%d, %d) %s", line, col, txt)
-		EmitError(txt)
+		output.Error(line, col, txt)
 		mp.resync = true
 	}
 }

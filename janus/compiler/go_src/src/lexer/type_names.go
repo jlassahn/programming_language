@@ -7,7 +7,6 @@ func (t *Tag) String() string {
 	return t.string
 }
 
-var ERROR = &Tag{"ERROR"}
 var EOF = &Tag{"EOF"}
 var COMMENT = &Tag{"COMMENT"}
 var NUMBER = &Tag{"NUMBER"}
