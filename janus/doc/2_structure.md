@@ -129,24 +129,19 @@ default value for that data type.
 # The Main Function
 
 One file in any program should declare a function at file scope named Main.
-The Main function is never exported, and can not be accessed through an
-import.  Only one file in a program can contain a Main function.
 
-The Main function must either have no return value, or return any integer
-type. It must take either no parameters or a single parameter of one
-of these types:
-* array(String)
-* m_slice(MString)
+The Main function must either have no parameters and Void return type:
 
-FIXME need to work out string types in more detail
-
-It is possible to export the Main function indirectly by aliasing it:
 ```janus
-
-# MainAlias is exported using the same rules as other functions.
-def MainAlias() = Main;
-
 def Main()
+{
+}
+```
+
+or
+
+```janus
+def Main() -> Void
 {
 }
 ```

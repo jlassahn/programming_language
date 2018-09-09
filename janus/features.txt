@@ -9,6 +9,7 @@ exceptions
 assertions
 multivalue returns
 closures, or converting methods to bare function references
+autocompile on run, e.g. "/usr/bin/janus program.janus"
 
 # Research Issues
 multithreaded garbage collection

@@ -12,9 +12,9 @@ janus 1.0;
 
 import io;
 
-def main(args String) -> Int32
+def Main()
 {
-	io.print("Hello, World`lf`");
+	io.Print("Hello, World`lf`");
 	return 0;
 }
 

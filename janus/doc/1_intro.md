@@ -34,9 +34,9 @@ janus 1.0;
 
 import io;
 
-def main() -> Void
+def Main() -> Void
 {
-	io.stdout.print("Hello, World`lf`");
+	io.stdout.Print("Hello, World`lf`");
 	return 0;
 }
 ```

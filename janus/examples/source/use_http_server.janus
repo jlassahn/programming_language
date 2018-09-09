@@ -4,7 +4,7 @@ janus 1.0;
 import http.server;
 
 
-def main() -> Void
+def Main() -> Void
 {
 	def server = http.server.Create(8080);
 	server.SetHandler(Handler);

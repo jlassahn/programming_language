@@ -1,13 +1,11 @@
 
 
-def main(args: List(String)) -> Int32
+def Main()
 {
 	server = http.server.CreateServer();
 	server.SetPort(8080);
 	server.SetHandler(Handler);
 	server.Run();
-
-	return 0;
 }
 
 def Handler(req: http.Request) -> Void

@@ -6,11 +6,11 @@ Recommended style for identifiers:
 
 * variables are lowercase with underscores, a_local_variable
 * functions and methods are capitalized, AFunctionOrMethod
-# types are capitalized, in the same style as functions.
+* types are capitalized, in the same style as functions.
 * symbolic constants are all caps with underscores, A_SYMBOLIC_CONSTANT
 * module names are all lower case, some.module
 
-File organization for reusable code
+## File organization for reusable code
 
 each module has a .janus file in /interfaces named for the module name.
 It contains only public definitions, and should be readable as brief
@@ -21,9 +21,9 @@ the module.
 
 If a module needs enough code that splitting it into multiple files is helpful
 other files are in a subdirectory of /source with .janus files to be imported
-bu the main file, and possibly related .jsrc files.
+by the main file, and possibly related .jsrc files.
 
-'''
+```
 interfaces/
 	module.janus
 source/
@@ -31,12 +31,12 @@ source/
 	module/
 		other_stuff.janus
 		other_stuff.jsrc
-'''
+```
 
 
 ## Inline Documentation
 
-'''
+```janus
 #{ A module that handles things and stuff}
 janus 1.0;
 
@@ -90,5 +90,5 @@ struct Stuff
 	def triangle Shape;
 }
 
-'''
+```
 

@@ -6,7 +6,7 @@ import io
 import complex;
 
 
-def main() -> Void
+def Main() -> Void
 {
 	def r complex.Complex = { 1.0, 0.0 };
 	def i complex.Complex = { 0.0, 1.0 };

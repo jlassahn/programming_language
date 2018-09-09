@@ -13,5 +13,6 @@
 8. [Documentation and Style](8_style.md)
 
 A. [Lexographic Tokens](A_lexer.md)
+
 B. [Grammar](B_grammar.md)
 

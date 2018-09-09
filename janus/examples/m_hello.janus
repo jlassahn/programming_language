@@ -9,7 +9,7 @@ import m_io;
 
 # MString is basically a m_slice(Int8) with some extra methods
 
-def main(args: m_slice(MString)) -> Int32
+def Main()
 {
 
 	# def MFile.write(m_slice(UInt8)) -> MFile
@@ -17,6 +17,8 @@ def main(args: m_slice(MString)) -> Int32
 	m_io.stdout.write("Hello, World.`lf`");
 
 	def count Int32 = 1;
+
+	def args = m_io.CommandLine();
 
 	# FIXME error checking for write call????
 	# for declares a new variable s local to the block
@@ -36,7 +38,5 @@ def main(args: m_slice(MString)) -> Int32
 		count = count + 1; # constant is Int32 because of type context
 	}
 
-
-	return 0;
 }
 
