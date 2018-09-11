@@ -16,8 +16,7 @@ func InterpretHeaderOptions(file *SourceFile) {
 		return
 	}
 
-	version := header.Children()[0].TokenString()
-	fmt.Println(version)
+	//version := header.Children()[0].TokenString()
 	if len(header.Children()) < 2 {
 		return
 	}
