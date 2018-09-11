@@ -17,6 +17,11 @@ func FatalError(line int, col int, txt string) {
 	os.Exit(1)
 }
 
+func FatalNoFile(txt string) {
+	fmt.Fprintf(os.Stderr, "FATAL ERROR %s\n", txt)
+	os.Exit(1)
+}
+
 func Error(line int, col int, txt string) {
 	fmt.Fprintf(os.Stderr, "ERROR at (%d, %d) %s\n",
 		line, col, txt)

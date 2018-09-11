@@ -14,7 +14,6 @@ package main
 
 import (
 	"os"
-	"log"
 	"output"
 	"parser"
 	"symbols"
@@ -52,7 +51,7 @@ func parseArgs() *parameters {
 					ret.Mode = MODE_SYMBOL
 
 				default:
-					log.Fatal("unknown option: "+arg) //FIXME better handling
+					output.FatalNoFile("unknown option: "+arg) //FIXME better handling
 			}
 
 		} else {
@@ -61,7 +60,7 @@ func parseArgs() *parameters {
 	}
 
 	if ret.Files == nil {
-		log.Fatal("no source files specified")
+		output.FatalNoFile("no source files specified")
 	}
 
 	return ret

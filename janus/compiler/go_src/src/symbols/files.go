@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"lexer"
 	"parser"
+	"output"
 )
 
 
@@ -45,8 +46,7 @@ func (fs *FileSet) AddByFileName(name string) {
 
 	fp, err := os.Open(name)
 	if err != nil {
-		fmt.Println(err) //FIXME error reporting
-		return
+		output.FatalError(0,0, "unable to open file "+name)
 	}
 
 	lex := lexer.MakeLexer(fp)
