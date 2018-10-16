@@ -1,0 +1,42 @@
+
+janus 1.0;
+
+
+# a Janus souce file is UTF-8 text
+
+def str = "Hello, World";
+# a string literal has type m_array(UInt8, length)
+# so here, str has type m_array(UInt8, 12)
+
+def str2 StringObj = str;
+# not used in practice very often
+# StringObj is an alias for Array(UInt8)
+# defined like this:
+# alias StringObj String implements String;
+
+def str3 String = str;
+# String is an interface implemented by StringObj
+# which might also be implemented by other types
+# to create custom string-like objects
+
+
+# concatenation
+def x String = "one string " + "two strings";
+def y String = "head " + x + " tail";
+# operator acts like
+# add(>String, >String) -> String
+# and allocates new StringObj for result
+
+# function calls
+def fn(x String);
+x = fn("literal");
+
+# misc string operations
+x.ToUpper();
+
+# this doesn't have to work:
+# "lower".ToUpper();
+
+# iterators
+for c = x.Chars() { }
+

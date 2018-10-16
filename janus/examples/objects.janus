@@ -1,0 +1,160 @@
+
+
+janus 1.0;
+
+# m_struct, a bare data structure without runtime type checks or g.c.
+
+# opaque declarations
+m_struct Thing;
+method Thing.Method1(x Int32) -> String;
+method Thing.Method2() -> Int32;
+method Thing.Method3() -> m_ref(Thing);
+
+# methods can be declared multiple times, as long as they exactly match.
+# this means application code can inject new methods into existing types.
+
+# an opaque declaration can use "extends"
+# an m_struct can only extend one type, and that type is laid out in memory
+# at the beginning of the new m_struct.
+# some declarations can use extends and others not, as long
+# as all the ones that have it match.
+# Typically, extends is included on a declaration like this if the
+# type being extended is part of the public API
+
+m_struct SubThing extends Thing;
+
+
+# full definitions
+# a definition block makes this a complete definition, not just a declaration.
+# there can be only one definition for each m_struct.
+
+# method declarations inside the definition are optional, but if they
+# exist they must match any outside declarations.
+
+m_struct Thing
+{
+	def member1 Int32;
+	def member2 String;
+
+	def Method1(x Int32) -> String;
+
+	def Method2() -> Int32
+	{
+		return self.member1;
+	}
+
+	# method3 is not redeclared here, that's OK
+}
+
+method Thing.Method1(x Int32) -> String
+{
+	return self.member2;
+}
+
+method Thing.Method3() -> m_ref(Thing)
+{
+	return self;
+}
+
+
+# subclassing by extending an m_struct
+# extends on the definition can either be in the body or before it.
+# if any declaration uses extends, the definition must explicitly use
+# it as well, and all must match.
+
+m_struct SubThing
+{
+	extends Thing;
+
+	def member3 Int32;
+}
+
+# the names of fields can be overwritten in the definition to avoid
+# collisions.
+# when the object is referenced as type SubThing the member must be
+# accessed by the name submember1
+# when the object is referenced as type Thing the member is
+# accessed by the name member1
+
+m_struct SubThing2
+{
+	extends Thing
+	{
+		member1 = submember1;  # name override to avoid collisions
+	}
+
+	def member1 Float64;
+}
+
+# m_struct can extend from any type, not just other structure types
+# (not garbage collected types, though, just like it can't have them as
+# members)
+m_struct SubInt
+{
+	extends Int32;
+	# ...
+}
+
+
+# using m_struct with Object Janus
+# There are several ways to create object types from m_structs.
+# These act like garbage collected types, but the garbage collector can't
+# guarantee that the backing m_struct remains valid -- the application must
+# do that.
+
+# create a G.C. reference to an m_struct
+def x = allocate(Thing);  # no G.C. must use free() when done
+def r1 = m_ref(x);        # also no G.C.
+def r2 = ref(x);          # usable as if it's a G.C. reference
+
+# use as an interface
+m_struct Thing implements ThingInterface;
+def i1 = x.ThingInterface;
+
+
+
+# parameterized types
+
+# Janus does compile-time type checking, so all type parameters need
+# to be resolvable at compile time,
+
+# parameter can be a constant of a variety of types, e.g. integers
+m_struct SizedThing(SIZE Int32)
+{
+	def content m_array(Thing, SIZE);
+}
+
+# parameters can be a type, types have type CType.
+m_struct MetaThing(TYPE CType)
+{
+	def content TYPE;
+}
+
+# CType(x) means any type convertable to x, so
+# CType(InterfaceName) means any type which implements that interface
+m_struct MetaThing2(TYPE Ctype(Hashable))
+{
+	def content Map(TYPE, Bool);
+}
+
+
+struct String
+{
+	extends Array(UInt8);
+
+	def CharAt(pos Int64) -> Int32;
+}
+
+struct String
+{
+	extends Array(UInt8);
+	implenents StringIF;
+}
+
+
+def Function()
+{
+	def x SubInt = 123; # can be initialized like Int32
+	x = 456; # can be assigned to like Int32
+}
+

@@ -1,0 +1,18 @@
+
+janus 1.0
+{
+	machine_mode = True;
+	object_mode = True;
+	module_name = example.module;
+	export_symbols = True;
+	a = 1;
+	a.b = 0xFFFF;
+	a.c = 1234.56r64;
+	a.b.c.d = (1+2+3)/2;
+}
+
+
+def Main()
+{
+}
+

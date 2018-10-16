@@ -3,8 +3,9 @@ Numbers:
 	digit followed by digits, ASCII letters, _ and .
 
 	integer: [0 base_letter] digits [type_letter [digits]]
-	float: digits . digits [f digits]
-
+	float: [0 base_letter] digits . digits [r digits]
+	base_letter: x -> hex, o -> octal, b -> binary, d -> decimal
+	type_letter: u -> unsigned, s -> signed, r -> real, i -> bignum int
 	0      # integer 0
 	0123   # integer 123 decimal
 	0xFF   # integer 255 hex
@@ -14,12 +15,14 @@ Numbers:
 	0b_1111_0000_1100_1100_u16  # UInt16 binary
 
 	192_666.97  # float
-	1.0f32      # Float32
-	1.0_f32      # Float32
+	1.0r32      # Float32
+	1.0_r32      # Float32
 	 -6.022 * 10 ^ 23  # float expression mult(neg(6.022), exp(10, 23))
 	123_456_._789
+	0b111000.0010  # float binary
 
 	some non-examples
+	0x      # ERROR needs a digit after the base
 	0_b1111 # ERROR base_letter can't have an underscore in front
 	_1      # this is a symbol, not a number
 	1e3     # ERROR "e" style floating constants not supported

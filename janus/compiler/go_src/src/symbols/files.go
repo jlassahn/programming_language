@@ -14,6 +14,7 @@ type SourceFile struct {
 	FileName string
 	ModulePath []string
 	ParseTree parser.ParseElement
+	Options HeaderOptions
 }
 
 func NewSourceFile() *SourceFile {

@@ -4,7 +4,18 @@ package symbols
 import (
 	"fmt"
 	"lexer"
+	"parser"
 )
+
+type HeaderOptions struct {
+	ByName map[string] *HeaderOption
+	Version string
+}
+
+type HeaderOption struct {
+	Name string
+	ParseTree parser.ParseElement
+}
 
 func InterpretHeaderOptions(file *SourceFile) {
 	if len(file.ParseTree.Children()) == 0 {
@@ -16,16 +27,36 @@ func InterpretHeaderOptions(file *SourceFile) {
 		return
 	}
 
-	//version := header.Children()[0].TokenString()
+	file.Options.Version = header.Children()[0].TokenString()
+	file.Options.ByName = make(map[string] *HeaderOption)
+
 	if len(header.Children()) < 2 {
 		return
 	}
 	options := header.Children()[1]
 	for _, opt := range options.Children() {
-		name := DotListAsStrings(opt.Children()[0])
+
+		keys := DotListAsStrings(opt.Children()[0])
+		name := ""
+		for _, x := range(keys) {
+			if name == "" {
+				name = x
+			} else {
+				name = name + "." + x
+			}
+		}
+
+		file.Options.ByName[name] = &HeaderOption {
+			ParseTree: opt.Children()[1],
+			Name: name }
+
 		value := EvaluateConstExpression(opt.Children()[1], PredefinedSymbols)
-		fmt.Println(name)
 		fmt.Println(value)
+	}
+
+	for k, v := range file.Options.ByName {
+		fmt.Println(k)
+		fmt.Println(v)
 	}
 }
 

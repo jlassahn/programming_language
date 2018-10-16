@@ -1,6 +1,9 @@
 
 def name type = value;
 
+FIXME need some internal types, like StringObj.  How to name these without
+      cluttering the namespace?
+
 FIXME need a name for parts of the language that have "no runtime overhead"
 	managed/unmanaged
 	hosted/unhosted
@@ -24,22 +27,22 @@ machine types:
 		Type
 		CType # FIXME constant type known at compile time, is this a modifier?
 	aggregate:
-		m_array(Type, Length)
-		m_slice(Type)
+		MArray(CType, Length)  # FIXME better name for array by value
+		MSlice(CType)
+		MRef(CType)
 		m_struct types
-		m_ref(Type)
 		range of Int64
 
 object types:
 	primitive:
-		String  # FIXME is this an array type?
+		String  # an interface, beacked by StringObj which aliases Array(UInt8)
 		Integer
 	aggregate:
-		array(Type)
-		map(Type, Type)  # FIXME maps are always by reference
+		Array(Type)
+		Map(Type, Type)  # FIXME maps are always by reference
+		Ref(Type)
 		struct types
 		interface types
-		ref(Type)
 		range of Integer
 
 pseudotypes:

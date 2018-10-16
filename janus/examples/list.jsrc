@@ -104,6 +104,7 @@ struct ListObj(T : CType)
 	def prev ref(ListObj(T));
 	def data T;
 
+	# FIXME should implements be part of the public section?
 	implements ListIF(T)
 	{
 		def Get() -> ref(T) = get;
@@ -118,7 +119,7 @@ struct ListObj(T : CType)
 
 }
 
-method ListIF(T).InsertAfter(iprev : ListIF(T)) -> Void
+method ListObj(T).InsertAfter(iprev : ListIF(T)) -> Void
 {
 	# FIXME clunky!
 	def prev = iprev.convert(ListObj);
@@ -135,12 +136,12 @@ method ListIF(T).InsertAfter(iprev : ListIF(T)) -> Void
 	prev.next = self;
 }
 
-method ListIF(T).InsertBefore(next : ListIF(T)) -> Void
+method ListObj(T).InsertBefore(next : ListIF(T)) -> Void
 {
 	# FIXME implement
 }
 
-method ListIF(T). Remove() -> Void
+method ListObj(T). Remove() -> Void
 {
 	# FIXME implement
 }

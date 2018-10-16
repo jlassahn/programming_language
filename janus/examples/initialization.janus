@@ -50,3 +50,22 @@ def x Uint8 = 123;
 def x = 1.23 * 10 ^ -4;
 def x = 1.23*10^-4;
 
+
+# constant values which can be used as compile-time initializers
+#
+# FIXME is there a const type qualifier?
+# FIXME if we do explicit const, has to be appliable to operator definitions
+#
+# functions can be called at compile time if
+#    only use Machine Janus compatible features
+#    FIXME what happens to slices if Machine Janus is disabled?
+#    they don't take references to parameters or local variables
+#         can be called with MRef parameters
+#         can't take a reference of a non-ref parameter to pass to another
+#         function
+#    they don't write to non-local variables
+#    only call functions that follow these rules
+#    don't recurse to themselves, directly or indirectly.
+#    use control flow that is guaranteed to terminate (no while)
+
+

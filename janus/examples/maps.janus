@@ -1,0 +1,16 @@
+
+janus 1.0;
+
+struct Map(Ctype(Hashable), CType);
+
+def x Map(Int32, String) =
+{
+	1 = "One";
+	2 = "Two";
+};
+
+interface Hashable
+{
+	def Hash() -> Int32;
+}
+

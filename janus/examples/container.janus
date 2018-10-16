@@ -63,7 +63,7 @@ while !thing.Done()
 	thing.Next();
 }
 
-# For things like array walking, this can be an m_truct by value
+# For things like array walking, this can be an m_struct by value
 m_struct FancyArray(T CType)
 {
 	def buf slice(T CType);

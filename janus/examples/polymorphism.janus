@@ -127,6 +127,12 @@ def func(Int32 x) -> Void;
 func(19); # FIXME ERROR ambiguous, preferred value of Integer not available
 func(19.AsInt8());  # OK???
 
+# FIXME maybe aviod context completely, since constants can specify their types
+#  e.g.
+# def x UInt8 = 19u8;
+# def x = 19u8;
+# def x Uint8 = 19;  # ERROR
+
 detailed context rules:
 	the context of an expression is either a Type or none.
 	context flows through the call tree from the root
