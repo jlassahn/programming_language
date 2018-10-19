@@ -138,6 +138,15 @@ m_struct MetaThing2(TYPE Ctype(Hashable))
 }
 
 
+# multiple versions of the same interface
+#
+# a struct that's part of two different lists
+
+struct ListedThing
+	implements List alias item_list,
+	implements List alias free_list;
+
+
 struct String
 {
 	extends Array(UInt8);

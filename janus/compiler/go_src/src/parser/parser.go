@@ -318,7 +318,7 @@ func (mp *mainParser) parseHeaderOption() ParseElement {
 func (mp *mainParser) parseFileDeclaration() ParseElement {
 
 	if mp.peek(0, lexer.KEYWORD, "import") {
-		return mp.parseImport()
+		return mp.parseImportStatement()
 	}
 
 	if mp.peek(0, lexer.KEYWORD, "def") {
@@ -352,16 +352,18 @@ func (mp *mainParser) parseFileDeclaration() ParseElement {
 	return nil
 }
 
-func (mp *mainParser) parseImport() ParseElement {
+func (mp *mainParser) parseImportStatement() ParseElement {
 
 	ret := mp.startElement(lexer.IMPORT)
 	mp.match(lexer.KEYWORD, "import")
-	ret.addChild(mp.parseExpressionDot())
 
-	if mp.tryMatch(lexer.OPERATOR, "=") {
-		if mp.peek(0, lexer.OPERATOR, ".") {
-			ret.addChild(mp.match(lexer.OPERATOR, "."))
-		} else {
+	if mp.peek(0, lexer.OPERATOR, ".") {
+		ret.addChild(mp.match(lexer.OPERATOR, "."))
+		mp.match(lexer.OPERATOR, "=")
+		ret.addChild(mp.parseExpressionDot())
+	} else {
+		ret.addChild(mp.parseExpressionDot())
+		if mp.tryMatch(lexer.OPERATOR, "=") {
 			ret.addChild(mp.parseExpressionDot())
 		}
 	}
@@ -653,18 +655,6 @@ func (mp *mainParser) parseImplementsContent() ParseElement {
 	return nil
 }
 
-func (mp *mainParser) parseExpressionDot() ParseElement {
-
-	ret := mp.startElement(lexer.DOT_LIST)
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-
-	//FIXME why is . an operator?
-	for mp.tryMatch(lexer.OPERATOR, ".") {
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
-	}
-	return ret
-}
-
 func (mp *mainParser) parseAssignmentStatement() ParseElement {
 	lhs := mp.parseExpression()
 	if mp.tryMatch(lexer.OPERATOR, "=") { //FIXME other assignment operators
@@ -837,6 +827,18 @@ func (mp *mainParser) parseMapContent() ParseElement {
 		mp.match(lexer.PUNCTUATION, ";")
 		ret.addChild(el)
 		mp.checkProgress()
+	}
+	return ret
+}
+
+func (mp *mainParser) parseExpressionDot() ParseElement {
+
+	ret := mp.startElement(lexer.DOT_LIST)
+	ret.addChild(mp.match(lexer.SYMBOL, ""))
+
+	//FIXME why is . an operator?
+	for mp.tryMatch(lexer.OPERATOR, ".") {
+		ret.addChild(mp.match(lexer.SYMBOL, ""))
 	}
 	return ret
 }
