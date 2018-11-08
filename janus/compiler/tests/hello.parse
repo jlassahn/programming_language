@@ -5,15 +5,16 @@
 (  4,  8) 		[DOT_LIST] 
 (  4,  8) 			[SYMBOL] io
 (  6,  1) 	[DEF] 
+(  6,  1) 		[KEYWORD] def
 (  6,  5) 		[SYMBOL] main
 (  6,  9) 		[FUNCTION_TYPE] 
 (  6, 10) 			[PARAMETER_LIST] 
 (  6, 10) 				[PARAMETER] 
 (  6, 10) 					[SYMBOL] args
 (  6, 15) 					[TYPE] 
-(  6, 21) 						[CALL] 
-(  6, 15) 							[DOT_LIST] 
-(  6, 15) 								[SYMBOL] array
+(  6, 15) 						[DOT_LIST] 
+(  6, 15) 							[SYMBOL] array
+(  6, 21) 						[LIST] 
 (  6, 21) 							[DOT_LIST] 
 (  6, 21) 								[SYMBOL] String
 (  6, 33) 			[TYPE] 
@@ -24,7 +25,8 @@
 (  8,  2) 				[DOT_LIST] 
 (  8,  2) 					[SYMBOL] io
 (  8,  5) 					[SYMBOL] print
-(  8, 11) 				[STRING] Hello, World`lf`
+(  8, 11) 				[LIST] 
+(  8, 11) 					[STRING] Hello, World`lf`
 (  9,  2) 			[EXPRESSION] 
 (  9,  2) 				[KEYWORD] return
 (  9,  9) 				[NUMBER] 0

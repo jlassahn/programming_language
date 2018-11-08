@@ -1,0 +1,39 @@
+
+
+janus 1.0;
+
+# numbers support these comparison operators:
+x == y
+x != y
+x <= y
+x >= y
+x < y
+x > y
+
+# Booleans, CTypes, Ranges support these
+# x == y
+# x != y
+
+# String interfaces support these
+# x == y
+# x != y
+# x ~~ y
+# x !~ y
+#
+
+# Any reference types support 
+# x ~~ y
+# x !~ y
+# two references are equal if they point to the same object, even
+# if they are different syntactic types, or one in an MRef and the other
+# is a Ref
+
+# Array and Map are reference types so support ~~
+#
+
+# MArray doesn't support any comparisons
+#
+
+ ==  <=  >=  !=   value comparison (works on primitives and when defined)
+ ~~  !~  reference comparison, works on ref, m_ref and interface types
+

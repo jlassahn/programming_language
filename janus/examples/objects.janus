@@ -23,6 +23,19 @@ method Thing.Method3() -> m_ref(Thing);
 
 m_struct SubThing extends Thing;
 
+# FIXME consider allowing sized opaque by-value types
+#
+m_struct SizedThing size 4;
+m_struct SizedThing size sizeof(Int32);
+m_struct SizedParameterizedThing(T CType) size 16+sizeof(T);
+m_struct SizedParameterizedArrayThing(T CType, N Int32) size 16+sizeof(T)*N;
+#
+# this allows code that doesn't know the internal representation to still
+# use the data by value.
+# it is a compile error if the size given doesn't match the real size in the
+# full definition.  It's redundant but permitted to include a size in a 
+# full definition.
+# Only works on m_struct not struct
 
 # full definitions
 # a definition block makes this a complete definition, not just a declaration.

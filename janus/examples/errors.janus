@@ -1,0 +1,36 @@
+
+janus 1.0;
+
+import io;
+
+def Main()
+{
+	def fp io.File;          # by value m_struct
+	if fp.Open("filename")   # Bool success return
+	{
+		def buf MArray(UInt8, 1024);
+		def out_length Int64;
+
+		if !fp.Read(buf, out_length)
+		{
+			HandleError(fp.Error());
+		}
+		HandleData(buf[0:out_length])
+
+		len = fp.Read(buf);
+		if fp.Error() != NULL
+		{
+			HandleError(fp.Error());
+		}
+		fp.Close()
+		HandleData(buf[0:len])
+	}
+	else
+	{
+		HandleError(fp.Error());  # last error
+	}
+
+	
+}
+
+

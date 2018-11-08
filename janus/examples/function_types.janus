@@ -1,0 +1,48 @@
+
+janus 1.0;
+
+# normal function declaration
+def fn(x Int32) -> Int32;
+
+#normal functon definition
+def fn(x Int32) -> Int32
+{
+	return 2*x;
+}
+
+# these both create function names which are kind of like
+# const definitions.  FIXME clarify
+
+# there are more elaborate syntaxes which do the same thing
+def fn function(x Int32) -> Int32;
+def fn = function(x Int32) -> Int32
+{
+	return 2*x;
+}
+
+alias FNType function(x Int32) -> Int32;
+def fn FNType;
+def fn FNType
+{
+	return 2*x;
+}
+
+# you can initialize one function name with another
+def fn2 = fn;
+
+# you can't assign to a function name after definition
+# or pass them as by-value parameters
+def fn2(x Int32) -> Int32;
+fn2 = fn;  # ERROR assignment to a function name forbidden
+
+
+# you can create function references, which are like function pointers
+# but can hold methods from m_struct struct or interface types.
+def pfn MRef(FNType);  # can ony reference bare functions
+def pfn Ref(FNType); # can also hold methods and interface members
+
+# multiple references to the same function called on the same object
+# compare equal. That is
+# (x.method ~~ y.method)  IFF (x ~~ y)
+
+

@@ -1,0 +1,106 @@
+
+#{
+	GUI
+	Build and manage graphical user interfaces.
+}
+
+janus 1.0;
+
+
+# Creates a default GUI Controller, with whatever the normal settings
+# are.  Some implementations might also provide custom CreateControlerXXX
+# functions that give more control over the connection.
+#
+def CreateController() -> Controller;
+
+
+# a Controller is a connection to the graphics system.
+# Typically a program will create a single Controller at startup and
+# continue using it forever.
+#
+# For things like remote desktop systems, it may be useful to create
+# multiple Controllers that manage different displays.
+#
+# Some implementations will refuse to create more than one Controller at
+# a time.
+#
+interface Controller
+{
+	def CreateWindow() -> Window;
+
+	# Run with no parameters does not return until Break is called
+	# even if all windows have been destroyed.
+	#
+	# Run(0.0) performs any pending GUI work and returns immediately.
+	# A program that is doing a long calculation can do Run(0) occasionally
+	# to prevent the GUI from freezing.
+	#
+	def Run() -> Void;
+	def Run(seconds Float64) -> Void;
+
+	# Break() can be called to make Run return
+	# can be called from an event handler in an Element
+	# or from another thread
+	def Break() -> Void;
+}
+
+interface Element
+{
+	def Destroy() -> Void;
+	def Show() -> Void;
+	def Hide() -> Void;
+
+	def SetOutsideSize(x0 Int32, y0, Int32, dx Int32, dy Int32) -> Void;
+	def SetOutsideSize(rect Rectangle) -> Void;
+	def GetOutsideSize() -> Rectangle;
+
+	def SetContentSize(x0 Int32, y0, Int32, dx Int32, dy Int32) -> Void;
+	def SetContentSize(rect Rectangle) -> Void;
+	def GetContentSize() -> Rectangle;
+
+	# an event can have multiple handlers, but a given function
+	# can only be in the list once.
+	#
+	def Subscribe(event EventID, handler Handler) -> Void;
+	def Unsubscribe(event EventID, handler Handler) -> Void;
+	def SendEvent(event Event) -> Void;
+}
+
+interface Window extends Element
+{
+	def SetDecorations(x DecorationFlags) -> Void;
+	def GetDecorations() -> DecorationFlags;
+
+}
+
+interface Widget extends Element
+{
+	def parent Element;
+}
+
+
+interface Event
+{
+	id EventID;
+}
+
+alias EventID Int32;
+
+alias Handler Ref(function(event Event) -> Bool);
+
+m_struct Rectangle
+{
+	def x0 Int32;
+	def y0 Int32;
+	def dx Int32;
+	def dy Int32;
+}
+
+alias DecorationFlags Int32;
+
+const TITLE_DECORATION  DecorationFlags = 0x0001;
+const CLOSE_DECORATION  DecorationFlags = 0x0002;
+const RESIZE_DECORATION DecorationFlags = 0x0004;
+const MENU_DECORATION   DecorationFlags = 0x0008;
+
+

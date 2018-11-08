@@ -7,6 +7,8 @@ def no_args() -> Void {
 
 	def n = (x != 3) & x >= 1.0 | true | null !~ null;
 
+	def q = !n & !!!n;
+
 	def f Float64 = sqrt(x)^2;
 
 	return;

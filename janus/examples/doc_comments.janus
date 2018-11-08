@@ -1,0 +1,28 @@
+
+#{
+A module which implements complex arithmatic.
+}
+janus 1.0;
+
+#{
+a complex number
+	@r: the real part
+	@i: the imaginay part
+}
+m_struct Complex
+{
+	def r Float64;
+	def i Float64;
+}
+
+# complex addition
+operator + (a Complex, b Complex) -> Complex;
+
+# complex multiplication
+operator * (a Complex, b Complex) -> Complex;
+
+#{
+an approximation of pi as a complex number
+}
+const PI Complex = { 3.1415926, 0.0 }
+

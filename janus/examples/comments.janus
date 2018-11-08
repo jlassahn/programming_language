@@ -14,6 +14,7 @@ multiline comment }
 	"}"
 	stuff in quotes do not end comments
 	'#'
+	#} single line comments can't end multiline comments
 }
 
 def func( #{deleted_arg Integer, } arg2 String) -> Void

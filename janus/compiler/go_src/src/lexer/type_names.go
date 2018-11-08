@@ -37,11 +37,20 @@ var STRUCT_DEF = &Tag{"STRUCT_DEF"}
 var TYPE_NAME = &Tag{"TYPE_NAME"}
 var INTERFACE_MAP = &Tag{"INTERFACE_MAP"}
 var IF = &Tag{"IF"}
+var WHILE = &Tag{"WHILE"}
+var FOR = &Tag{"FOR"}
+var WITH = &Tag{"WITH"}
 var INTERFACE = &Tag{"INTERFACE"}
 var METHOD = &Tag{"METHOD"}
 var OPERATOR_DEF = &Tag{"OPERATOR_DEF"}
+var EXTENDS_DEF = &Tag{"EXTENDS_DEF"}
+var IMPLEMENTS_DEF = &Tag{"IMPLEMENTS_DEF"} //FIXME INTERFACE_MAP
+// FIXME do we want var SIZE_DEF = &Tag("SIZE_DEF"}
+var ALIAS_DEF = &Tag{"ALIAS_DEF"}
 
 
+//FIXME stuff that can be defined by the "operator" syntax should be an
+//      Operator, other stuff should be Punctuation?
 //FIXME complete list
 //this must have longer operators first
 var Operators = []string {
@@ -87,6 +96,8 @@ var Operators = []string {
 	"|",
 	"!",
 	"=",
+	">",
+	"<",
 	":",
 	"." }
 
@@ -118,6 +129,8 @@ var AndOperators = map[string]bool {
 
 var CompareOperators = map[string]bool {
 	":": true,
+	"<": true,
+	">": true,
 	"==": true,
 	"!=": true,
 	"<=": true,
@@ -147,19 +160,27 @@ var ExpOperators = map[string]bool {
 var PrefixOperators = map[string]bool {
 	"!": true }
 
-var SuffixOperators = map[string]bool { }
+var SuffixOperators = map[string]bool {
+	"++": true,
+	"--": true,
+}
 
 
 //FIXME complete list
 var Keywords = map[string]bool {
 	"import" : true,
 	"def" : true,
+	"const" : true,
 	"struct" : true,
 	"m_struct" : true,
 	"interface" : true,
 	"method" : true,
+	"alias" : true,
 	"operator" : true,
 	"function" : true,
+	"implements" : true,
+	"extends" : true,
+	// FIXME do we want "size" : true,
 	"if" : true,
 	"else" : true,
 	"while" : true,

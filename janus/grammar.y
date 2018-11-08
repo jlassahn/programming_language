@@ -26,6 +26,7 @@
 %token STRUCT_OR_MSTRUCT
 %token EXTENDS
 %token IMPLEMENTS
+/* FIXME do we want???  %token SIZE */
 %token ALIAS
 %token INTERFACE
 %token METHOD
@@ -67,39 +68,18 @@ header_option:
 file_declaration:
 	';'
 	| import_statement
-	| def_statement
 	| struct_declaration
 	| interface_declaration
 	| method_declaration
 	| alias_declaration
 	| operator_declaration
+	| def_statement
 	;
 
 import_statement:
 	IMPORT expression_dot ';'
 	| IMPORT '.' '=' expression_dot ';'
 	| IMPORT expression_dot '=' expression_dot ';'
-	;
-
-def_statement:
-	def_or_const SYMBOL_TOKEN function_type initializer
-	| def_or_const SYMBOL_TOKEN function_type '{' function_content '}'
-	| def_or_const SYMBOL_TOKEN function_type ';'
-	| def_or_const SYMBOL_TOKEN type initializer
-	| def_or_const SYMBOL_TOKEN type '{' function_content '}'
-	| def_or_const SYMBOL_TOKEN type ';'
-	| def_or_const SYMBOL_TOKEN initializer
-	;
-
-def_or_const:
-	DEF
-	| CONST
-	;
-
-initializer:
-	'=' expression ';'
-	| '=' '{' map_content '}'
-	| '=' '[' list_content ']'
 	;
 
 struct_declaration:
@@ -121,6 +101,7 @@ struct_option:
 	EXTENDS type
 	| IMPLEMENTS type
 	| IMPLEMENTS type ALIAS SYMBOL_TOKEN
+	/* FIXME do we want   | SIZE expression */
 	;
 
 struct_content:
@@ -143,7 +124,11 @@ extends_declaration:
 
 extends_content:
 	/* empty */
-	| extends_content SYMBOL_TOKEN '=' SYMBOL_TOKEN ';'
+	| extends_content extends_item
+	;
+
+extends_item:
+	SYMBOL_TOKEN '=' SYMBOL_TOKEN ';'
 	;
 
 implements_declaration:
@@ -155,9 +140,11 @@ implements_declaration:
 
 implements_content:
 	/* empty */
-	| implements_content SYMBOL_TOKEN '=' SYMBOL_TOKEN ';'
-	| implements_content DEF SYMBOL_TOKEN function_type '{' function_content '}'
-	| implements_content DEF SYMBOL_TOKEN type '{' function_content '}'
+	| implements_content implements_item
+	;
+
+implements_item:
+	SYMBOL_TOKEN '=' SYMBOL_TOKEN ';'
 	;
 
 type_name:
@@ -186,13 +173,12 @@ interface_option:
 interface_content:
 	/* empty */
 	| interface_content interface_element
-	| EXTENDS type;
-	| EXTENDS type '{' extends_content '}'
 	;
 
 interface_element:
 	DEF SYMBOL_TOKEN type ';'
 	| DEF SYMBOL_TOKEN function_type ';'
+	| extends_declaration
 	;
 
 method_declaration:
@@ -217,6 +203,27 @@ operator_declaration:
 	| OPERATOR ANY_OP type ';'
 	;
 
+def_statement:
+	def_or_const SYMBOL_TOKEN function_type initializer
+	| def_or_const SYMBOL_TOKEN function_type '{' function_content '}'
+	| def_or_const SYMBOL_TOKEN function_type ';'
+	| def_or_const SYMBOL_TOKEN type initializer
+	| def_or_const SYMBOL_TOKEN type '{' function_content '}'
+	| def_or_const SYMBOL_TOKEN type ';'
+	| def_or_const SYMBOL_TOKEN initializer
+	;
+
+def_or_const:
+	DEF
+	| CONST
+	;
+
+initializer:
+	'=' expression ';'
+	| '=' '{' map_content '}'
+	| '=' '[' list_content ']'
+	;
+
 function_content:
 	/* empty */
 	| function_content function_statement
@@ -239,7 +246,6 @@ function_statement:
 	| LABEL SYMBOL_TOKEN ';'
 	| GOTO SYMBOL_TOKEN ';'
 	| assignment_statement
-	| expression ';'
 	;
 
 else_statement:
@@ -249,7 +255,8 @@ else_statement:
 	;
 
 assignment_statement:
-	expression initializer
+	expression ';'
+	| expression initializer
 	| expression ASSIGNMENT_OP expression ';'
 	;
 
@@ -265,7 +272,7 @@ expression_and:
 
 expression_compare:
 	expression_add
-	| expression_compare COMPARE_OP expression_add //"==" "!=" "~~" "!~" "<=" ">=" ":"
+	| expression_compare COMPARE_OP expression_add //"==" "!=" "~~" "!~" "<=" ">=" ">" "<" ":"
 	;
 
 expression_add:

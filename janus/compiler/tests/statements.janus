@@ -36,5 +36,25 @@ def main(args array(String)) -> Void
 	{
 		io.Print("Can't happen 2`lf`");
 	}
+
+	i = 0;
+	while true
+	{
+		if i >= 10
+		{
+			break;
+		}
+		else if i >= 10
+		{
+			break 1;
+		}
+
+		io.Print(i.ToString() + "`lf`");
+		i ++;
+	}
+
+	goto target;
+
+	label target;
 }
 
