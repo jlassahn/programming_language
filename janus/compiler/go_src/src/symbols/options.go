@@ -15,6 +15,8 @@ type HeaderOptions struct {
 type HeaderOption struct {
 	Name string
 	ParseTree parser.ParseElement
+	Value DataValue
+	DotName []string
 }
 
 func InterpretHeaderOptions(file *SourceFile) {
@@ -46,17 +48,33 @@ func InterpretHeaderOptions(file *SourceFile) {
 			}
 		}
 
+		//values are either constant expressions or
+		// previously undefined dot lists used as e.g. module names
+		//
+		ctx := &EvalContext {
+			Symbols: PredefinedSymbols,
+			PreferredType: nil,
+		}
+		value := EvaluateConstExpression(opt.Children()[1], ctx)
+		var dotval []string
+		if value == nil {
+			dotval = DotListAsStrings(opt.Children()[1])
+		}
+
 		file.Options.ByName[name] = &HeaderOption {
 			ParseTree: opt.Children()[1],
-			Name: name }
-
-		value := EvaluateConstExpression(opt.Children()[1], PredefinedSymbols)
-		fmt.Println(value)
+			Name: name,
+			Value: value,
+			DotName: dotval,
+		}
 	}
 
 	for k, v := range file.Options.ByName {
-		fmt.Println(k)
-		fmt.Println(v)
+		if v.Value == nil {
+			fmt.Printf("option [%v] = [%v]\n", k, v.DotName)
+		} else {
+			fmt.Printf("option [%v] = [%v]\n", k, v.Value)
+		}
 	}
 }
 

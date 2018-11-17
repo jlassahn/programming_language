@@ -12,6 +12,7 @@ Arithmatic operators
  -%
 
  ^  (Exponentiation)
+FIXME ^^ (Integer Exponentiation) ???
 
 Bit twiddling and logic
  <<

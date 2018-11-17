@@ -54,6 +54,8 @@ def SetGlobal(x Float64);
 # example.jsrc
 janus 1.0;
 
+import example;
+
 def global_variable Float64 = 0.0;
 
 def GetGlobal() -> Float64
@@ -74,6 +76,16 @@ def InternalCall()
 }
 
 ```
+
+Modules typically have either a single .janus file, or one .janus file and
+one .jsrc file.  It is sometimes possible to have multiple files in the
+same module.  This is permitted, and follows the symbol resolution rules
+below, but is bad style.  Compilers may generate a warning about this.
+
+Frequently, the .jsrc file for a module will import it's own module name.
+This gives the .jsrc file access to everything declared in the .janus file.
+If a file does not import it's own module, it will only have access to
+symbols it explicitly declares.
 
 ## Overriding Module Name Defaults
 
@@ -124,6 +136,53 @@ At most one of the declarations of a given object may initialize it.  Multiple
 intializations are an error even if they specify the same value.  If none
 of an object's declarations initialize it, it is intialized with the
 default value for that data type.
+
+Expressions in a file may only reference symbols explicitly declared in or
+imported by that file.  In particular if a module has a source file which
+declares an unexported symbol, other source files in that same module can
+only access the symbol if they also declare it.
+
+
+## Modules With Multiple Source Files
+
+Sometimes a module is large enough that splitting it into multiple files is
+useful.  The usual style for doing this is to have a single .janus file
+which declares all the external symbols, a single .jsrc file which has
+definitiions for those symbols, and submodules with only .jsrc files which
+contain additional code.  For example:
+
+```janus
+# example.janus
+
+janus 1.0;
+
+def SomeComplicatedFunction();
+def AnotherComplicatedFuncion();
+```
+
+```janus
+# example.jsrc
+
+janus 1.0;
+
+# import some subpackages from
+# example/utilities.jsrc
+# and
+# example/another_function.jsrc
+import example.utilities;
+import example.another_function;
+
+def SomeComplicatedFunction()
+{
+	# call some stuff in the subpackages
+	def x = example.utilities.DoSomething();
+	example.utilities.DoMoreStuff(x);
+}
+
+# alias a complete function definition from a subpackage
+def AnotherComplicatedFuncion() =
+	example.another_function.AnotherComplicatedFunction;
+```
 
 
 # The Main Function

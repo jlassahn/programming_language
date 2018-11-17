@@ -88,6 +88,6 @@ func runParseTests() {
 
 var valid_parse_tests = []string {
 	"./tests/hello",
-	"./tests/hellox",
+	"./tests/options",
 }
 

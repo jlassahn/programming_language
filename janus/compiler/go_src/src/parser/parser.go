@@ -28,6 +28,10 @@ type parseElement struct {
 	token *lexer.Token
 }
 
+func (pe *parseElement) String() string {
+	return pe.elementType.String() + "(" + pe.TokenString() + ")"
+}
+
 func (pe *parseElement) Children() []ParseElement {
 	return pe.children
 }

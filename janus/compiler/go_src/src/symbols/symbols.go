@@ -5,67 +5,45 @@ import (
 	"fmt"
 )
 
-type Tag struct { string }
-
-var VOID_TYPE = &Tag{"VOID"}
-var BOOL_TYPE = &Tag{"BOOL"}
-var INT_TYPE = &Tag{"INT"}
-
-
-type DataType struct {
-	BaseType *Tag
-	SubTypes []*DataValue
+type Symbol interface {
+	Name() string
+	Type() DataType
+	InitialValue() DataValue
 }
 
-type DataValue struct {
-	Type *DataType
-	Int64 int64
-	UInt64 uint64
-	Float64 float64
+type SymbolTable interface {
+	Lookup(string) Symbol
+	Emit()
 }
 
-type Symbol struct {
+type symbolTable struct {
 	Name string
-	Type *DataType
-	InitialValue *DataValue
+	Symbols map[string]Symbol
+	Parent *symbolTable
 }
 
-type SymbolTable struct {
-	Name string
-	Symbols map[string]*Symbol
-	Parent *SymbolTable
-}
+func (self *symbolTable) Lookup(x string) Symbol {
 
-func ValueString(dv *DataValue) string {
-	//FIXME
-	return "???"
-}
-
-func TypeString(dt *DataType) string {
-	ret := dt.BaseType.string
-	if dt.SubTypes != nil {
-		ret += "("
-		for i, st := range dt.SubTypes {
-			if i > 0 {
-				ret += ", "
-			}
-			ret += ValueString(st)
-		}
-		ret += ")"
+	ret := self.Symbols[x]
+	if ret != nil {
+		return ret
+	}
+	if self.Parent == nil {
+		return nil
 	}
 
-	return ret
+	return self.Parent.Lookup(x)
 }
 
-func EmitSymbolTable(st *SymbolTable) {
+func (st *symbolTable) Emit() {
 
 	for st != nil {
 		fmt.Printf("----%s---\n", st.Name)
 		for k, v := range st.Symbols {
 			fmt.Printf("%v %v = %v\n",
 				k,
-				TypeString(v.Type),
-				ValueString(v.InitialValue))
+				TypeString(v.Type()),
+				v.InitialValue().ValueAsString())
 		}
 		st = st.Parent
 	}
@@ -75,17 +53,24 @@ func ResolveGlobals(file_set *FileSet) {
 	//FIXME implement
 }
 
-var boolType = &DataType{BaseType: BOOL_TYPE}
 
-var trueValue = &DataValue{ Type: boolType }
-var falseValue = &DataValue{ Type: boolType }
+//FIXME organize
 
+type baseSymbol struct {
+	name string
+	dtype DataType
+	initialValue DataValue
+}
+
+func (self *baseSymbol) Name() string { return self.name; }
+func (self *baseSymbol) Type() DataType { return self.dtype; }
+func (self *baseSymbol) InitialValue() DataValue { return self.initialValue; }
 
 //FIXME implement
-var PredefinedSymbols = &SymbolTable {
+var PredefinedSymbols = &symbolTable {
 	Name: "PREDEFINED",
-	Symbols: map[string]*Symbol {
-		"True": &Symbol {"True", boolType, trueValue } ,
-		"False": &Symbol {"False", boolType, falseValue } },
+	Symbols: map[string]Symbol {
+		"True": &baseSymbol {"True", BoolType, TrueValue } ,
+		"False": &baseSymbol {"False", BoolType, FalseValue } },
 	Parent: nil }
 
