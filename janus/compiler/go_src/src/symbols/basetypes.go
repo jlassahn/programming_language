@@ -8,6 +8,8 @@ package symbols
 
 var VOID_TYPE = &Tag{"VOID"}
 var NAMESPACE_TYPE = &Tag{"NAMESPACE"}
+var FUNCTIONCHOICE_TYPE = &Tag{"FUNCTIONCHOICE"}
+var FUNCTION_TYPE = &Tag{"FUNCTION"}
 
 var BOOL_TYPE = &Tag{"BOOL"}
 
@@ -27,22 +29,22 @@ var REAL32_TYPE = &Tag{"REAL32"}
 var REAL64_TYPE = &Tag{"REAL64"}
 
 
-var VoidType = &SimpleDataType{*VOID_TYPE}
-var NamespaceType = &SimpleDataType{*NAMESPACE_TYPE}
-var BoolType = &SimpleDataType{*BOOL_TYPE}
+var VoidType = &simpleDT{*VOID_TYPE}
+var NamespaceType = &simpleDT{*NAMESPACE_TYPE}
+var BoolType = &simpleDT{*BOOL_TYPE}
 
-var IntegerType = &SimpleDataType{*INTEGER_TYPE}
-var Int8Type = &SimpleDataType{*INT8_TYPE}
-var Int16Type = &SimpleDataType{*INT16_TYPE}
-var Int32Type = &SimpleDataType{*INT32_TYPE}
-var Int64Type = &SimpleDataType{*INT64_TYPE}
-var UInt8Type = &SimpleDataType{*UINT8_TYPE}
-var UInt16Type = &SimpleDataType{*UINT16_TYPE}
-var UInt32Type = &SimpleDataType{*UINT32_TYPE}
-var UInt64Type = &SimpleDataType{*UINT64_TYPE}
+var IntegerType = &simpleDT{*INTEGER_TYPE}
+var Int8Type = &simpleDT{*INT8_TYPE}
+var Int16Type = &simpleDT{*INT16_TYPE}
+var Int32Type = &simpleDT{*INT32_TYPE}
+var Int64Type = &simpleDT{*INT64_TYPE}
+var UInt8Type = &simpleDT{*UINT8_TYPE}
+var UInt16Type = &simpleDT{*UINT16_TYPE}
+var UInt32Type = &simpleDT{*UINT32_TYPE}
+var UInt64Type = &simpleDT{*UINT64_TYPE}
 
-var Real32Type = &SimpleDataType{*REAL32_TYPE}
-var Real64Type = &SimpleDataType{*REAL64_TYPE}
+var Real32Type = &simpleDT{*REAL32_TYPE}
+var Real64Type = &simpleDT{*REAL64_TYPE}
 
 var TrueValue = &boolDV{ true }
 var FalseValue = &boolDV{ false }

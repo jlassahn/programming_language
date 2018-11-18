@@ -305,6 +305,10 @@ expression_suffix:
 	| expression_dot
 	;
 
+//FIXME dots need to act more like normal operators in expressions, so
+//      things like "method_call().struct_member" work right.
+//      maybe keep expression_dot around for imports, etc
+
 expression_dot:
 	SYMBOL_TOKEN
 	| expression_dot '.' SYMBOL_TOKEN

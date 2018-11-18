@@ -14,7 +14,6 @@ type Evaluator interface {
 
 type EvalContext struct {
 	Symbols SymbolTable
-	PreferredType DataType
 }
 
 var evaluators = map[lexer.Tag] Evaluator {

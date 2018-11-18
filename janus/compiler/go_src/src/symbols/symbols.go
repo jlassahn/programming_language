@@ -9,6 +9,7 @@ type Symbol interface {
 	Name() string
 	Type() DataType
 	InitialValue() DataValue
+	IsConst() bool
 }
 
 type SymbolTable interface {
@@ -60,17 +61,32 @@ type baseSymbol struct {
 	name string
 	dtype DataType
 	initialValue DataValue
+	isConst bool
 }
 
 func (self *baseSymbol) Name() string { return self.name; }
 func (self *baseSymbol) Type() DataType { return self.dtype; }
 func (self *baseSymbol) InitialValue() DataValue { return self.initialValue; }
+func (self *baseSymbol) IsConst() bool { return self.isConst; }
+
+
+var add_op = &functionchoiceDT {
+	choices: []FunctionDataType {
+		&functionDT{
+			Int64Type, []FunctionParameter{
+				{"a", Int64Type, false},
+				{"b", Int64Type, true},
+			}, false },
+	},
+}
 
 //FIXME implement
 var PredefinedSymbols = &symbolTable {
 	Name: "PREDEFINED",
 	Symbols: map[string]Symbol {
-		"True": &baseSymbol {"True", BoolType, TrueValue } ,
-		"False": &baseSymbol {"False", BoolType, FalseValue } },
+		"True": &baseSymbol {"True", BoolType, TrueValue, true } ,
+		"False": &baseSymbol {"False", BoolType, FalseValue, true },
+		"+": &baseSymbol {"+", add_op, nil, true },
+	},
 	Parent: nil }
 

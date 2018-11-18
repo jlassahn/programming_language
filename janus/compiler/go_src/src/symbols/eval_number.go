@@ -6,60 +6,37 @@ import (
 	"parser"
 )
 
-type PTKey struct {
-	tag string
-	IsFloat bool
-}
-
-var preferredTypes = map[PTKey] []DataType {
-
-	PTKey{"", false}:
-		{Int64Type, Int32Type, Int16Type, Int8Type, IntegerType,
-		Real64Type, Real32Type},
-
-	PTKey{"", true}: {Real64Type, Real32Type},
-
-	PTKey{"i", false} : {IntegerType},
-	PTKey{"u", false} : {UInt64Type, UInt32Type, UInt16Type, UInt8Type},
-	PTKey{"s", false} : {Int64Type, Int32Type, Int16Type, Int8Type},
-
-	PTKey{"r", false} : {Real64Type, Real32Type},
-	PTKey{"r", true} : {Real64Type, Real32Type},
-
-	PTKey{"r64", false} : {Real64Type},
-	PTKey{"r64", true} : {Real64Type},
-	PTKey{"r32", false} : {Real32Type},
-	PTKey{"r32", true} : {Real32Type},
-
-	PTKey{"s64", false} : {Int64Type},
-	PTKey{"s32", false} : {Int32Type},
-	PTKey{"s16", false} : {Int16Type},
-	PTKey{"s8", false} : {Int8Type},
-
-	PTKey{"u64", false} : {UInt64Type},
-	PTKey{"u32", false} : {UInt32Type},
-	PTKey{"u16", false} : {UInt16Type},
-	PTKey{"u8", false} : {UInt8Type},
-
-}
-
 const CAT_REAL = 1
 const CAT_SIGNED = 2
 const CAT_UNSIGNED = 3
 const CAT_BIGNUM = 4
 
-var categoryForType = map[DataType] int {
-	IntegerType: CAT_BIGNUM,
-	Int8Type: CAT_SIGNED,
-	Int16Type: CAT_SIGNED,
-	Int32Type: CAT_SIGNED,
-	Int64Type: CAT_SIGNED,
-	UInt8Type: CAT_UNSIGNED,
-	UInt16Type: CAT_UNSIGNED,
-	UInt32Type: CAT_UNSIGNED,
-	UInt64Type: CAT_UNSIGNED,
-	Real32Type: CAT_REAL,
-	Real64Type: CAT_REAL,
+type typeInfo struct {
+	dtype DataType
+	cat int
+}
+
+var typeInfoFromTag = map[string] *typeInfo {
+
+	"i" : {IntegerType, CAT_BIGNUM},
+	"u" : {UInt64Type, CAT_UNSIGNED},
+	"s" : {Int64Type, CAT_SIGNED},
+
+	"r" : {Real64Type, CAT_REAL},
+
+	"r64" : {Real64Type, CAT_REAL},
+	"r32" : {Real32Type, CAT_REAL},
+
+	"s64" : {Int64Type, CAT_SIGNED},
+	"s32" : {Int32Type, CAT_SIGNED},
+	"s16" : {Int16Type, CAT_SIGNED},
+	"s8" : {Int8Type, CAT_SIGNED},
+
+	"u64" : {UInt64Type, CAT_UNSIGNED},
+	"u32" : {UInt32Type, CAT_UNSIGNED},
+	"u16" : {UInt16Type, CAT_UNSIGNED},
+	"u8" : {UInt8Type, CAT_UNSIGNED},
+
 }
 
 type NumberEval struct {}
@@ -149,32 +126,39 @@ func (*NumberEval) EvaluateConstExpression(
 
 	tag := txt[i:]
 
-	types := preferredTypes[PTKey{tag, is_float}]
+	if tag == "" {
+		if is_float {
+			return &realDV{Real64Type, float64(iv) + frac}
+		} else {
+			return &signedDV{Int64Type, int64(iv)}
+		}
+	}
 
-	if types == nil {
+	typeInfo := typeInfoFromTag[tag]
+	if typeInfo == nil {
 		output.Error(line, col, "invalid type specifier for number constant")
 		return nil
 	}
 
-	bestType := types[0]
-	for _, t := range types {
-		if t == ctx.PreferredType {
-			bestType = t
-			break
-		}
-	}
-
 	//FIXME bounds check values
 
-	switch categoryForType[bestType] {
+	switch typeInfo.cat {
 		case CAT_REAL:
-			return &realDV{bestType, float64(iv) + frac}
+			return &realDV{typeInfo.dtype, float64(iv) + frac}
 
 		case CAT_SIGNED:
-			return &signedDV{bestType, int64(iv)}
+			if is_float {
+				output.Error(line, col, "fractional part in integer constant")
+				return nil
+			}
+			return &signedDV{typeInfo.dtype, int64(iv)}
 
 		case CAT_UNSIGNED:
-			return &unsignedDV{bestType, iv}
+			if is_float {
+				output.Error(line, col, "fractional part in integer constant")
+				return nil
+			}
+			return &unsignedDV{typeInfo.dtype, iv}
 
 		case CAT_BIGNUM:
 			output.Error(line, col, "FIXME large integer values not implemented")

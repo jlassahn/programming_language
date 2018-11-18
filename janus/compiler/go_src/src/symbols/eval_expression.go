@@ -14,28 +14,38 @@ func (*ExpressionEval) EvaluateConstExpression(
 		el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	children := el.Children()
-	op := children[0]
+	opElement := children[0]
+	opName := opElement.TokenString()
+	line, col := opElement.Position()
 
-	if op.ElementType() != lexer.OPERATOR {
-		line, col := op.Position()
-		output.Error(line, col, "FIXME not an operator: "+op.TokenString())
+	if opElement.ElementType() != lexer.OPERATOR {
+		output.Error(line, col, "FIXME not an operator: "+opName)
 		return nil
 	}
-
-	//FIXME figure out preferred data type stuff here.
 
 	args := make([]DataValue, len(children) -1)
 	for i, x := range(children[1:]) {
 		args[i] = EvaluateConstExpression(x, ctx)
 	}
 
-	return doConstOp(op, args, ctx)
+	//FIXME operators have to be treated specially in symbol tables
+	//      because they aren't qualified by namespaces like other
+	//      symbols.  e.g. if a module defines +, you can't disambiguate it
+	//      by saying 123 module.+ 456
+
+	op := ctx.Symbols.Lookup(opName)
+	if op == nil {
+		output.Error(line, col, "No definition for operator "+opName)
+		return nil
+	}
+
+	return doConstOp(opElement, args, ctx)
 }
 
 func doConstOp(op parser.ParseElement,
 	args []DataValue, ctx *EvalContext) DataValue {
 
-	fmt.Printf("operator: %v args: %v\n", op, args)
+	fmt.Printf("FIXME operator: %v args: %v\n", op, args)
 	//FIXME
 	return nil
 }

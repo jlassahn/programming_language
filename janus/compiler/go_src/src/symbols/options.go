@@ -53,7 +53,6 @@ func InterpretHeaderOptions(file *SourceFile) {
 		//
 		ctx := &EvalContext {
 			Symbols: PredefinedSymbols,
-			PreferredType: nil,
 		}
 		value := EvaluateConstExpression(opt.Children()[1], ctx)
 		var dotval []string

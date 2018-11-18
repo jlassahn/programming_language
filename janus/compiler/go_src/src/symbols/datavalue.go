@@ -8,6 +8,7 @@ import (
 type DataValue interface {
 	Type() DataType
 	ValueAsString() string
+	String() string
 }
 
 func DataValueString(dv DataValue) string {
@@ -112,6 +113,10 @@ func (self *boolDV) ValueAsString() string {
 	} else {
 		return "FALSE"
 	}
+}
+
+func (self *boolDV) String() string {
+	return DataValueString(self)
 }
 
 func (self *boolDV) AsBool() bool {
