@@ -52,12 +52,15 @@ func InterpretHeaderOptions(file *SourceFile) {
 		// previously undefined dot lists used as e.g. module names
 		//
 		ctx := &EvalContext {
-			Symbols: PredefinedSymbols,
+			Symbols: PredefinedSymbols(),
 		}
-		value := EvaluateConstExpression(opt.Children()[1], ctx)
-		var dotval []string
-		if value == nil {
-			dotval = DotListAsStrings(opt.Children()[1])
+
+
+		dotval := getUndefinedDotlist(opt.Children()[1], ctx)
+
+		var value DataValue
+		if dotval == nil {
+			value = EvaluateConstExpression(opt.Children()[1], ctx)
 		}
 
 		file.Options.ByName[name] = &HeaderOption {
@@ -69,11 +72,22 @@ func InterpretHeaderOptions(file *SourceFile) {
 	}
 
 	for k, v := range file.Options.ByName {
-		if v.Value == nil {
-			fmt.Printf("option [%v] = [%v]\n", k, v.DotName)
-		} else {
+		if v.DotName == nil {
 			fmt.Printf("option [%v] = [%v]\n", k, v.Value)
+		} else {
+			fmt.Printf("option [%v] = [%v]\n", k, v.DotName)
 		}
 	}
+}
+
+func getUndefinedDotlist(el parser.ParseElement, ctx *EvalContext) []string {
+		dotval := DotListAsStrings(el)
+		if dotval == nil {
+			return nil
+		}
+		if ctx.Symbols.Lookup(dotval[0]) == nil {
+			return dotval
+		}
+		return nil
 }
 

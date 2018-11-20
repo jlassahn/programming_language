@@ -194,6 +194,8 @@ alias_declaration:
 	ALIAS SYMBOL_TOKEN type ';'
 	;
 
+/* FIXME how to create const operators? */
+
 operator_declaration:
 	OPERATOR ANY_OP function_type '{' function_content '}'
 	| OPERATOR ANY_OP function_type '=' expression ';'
@@ -297,17 +299,14 @@ expression_suffix:
 	NUMBER_TOKEN
 	| STRING_TOKEN
 	| CHARACTER_TOKEN
+	| SYMBOL_TOKEN
 	| FUNCTION function_type
 	| expression_suffix SUFFIX_OP
 	| expression_suffix '[' expression ']'
 	| expression_suffix '(' list_content ')'
+	| expression_suffix '.' SYMBOL_TOKEN
 	| '(' expression ')'
-	| expression_dot
 	;
-
-//FIXME dots need to act more like normal operators in expressions, so
-//      things like "method_call().struct_member" work right.
-//      maybe keep expression_dot around for imports, etc
 
 expression_dot:
 	SYMBOL_TOKEN

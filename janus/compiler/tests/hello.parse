@@ -2,8 +2,7 @@
 (  2,  7) 	[HEADER] 
 (  2,  7) 		[NUMBER] 1.0
 (  4,  1) 	[IMPORT] 
-(  4,  8) 		[DOT_LIST] 
-(  4,  8) 			[SYMBOL] io
+(  4,  8) 		[SYMBOL] io
 (  6,  1) 	[DEF] 
 (  6,  1) 		[KEYWORD] def
 (  6,  5) 		[SYMBOL] main
@@ -12,17 +11,14 @@
 (  6, 10) 				[PARAMETER] 
 (  6, 10) 					[SYMBOL] args
 (  6, 15) 					[TYPE] 
-(  6, 15) 						[DOT_LIST] 
-(  6, 15) 							[SYMBOL] array
+(  6, 15) 						[SYMBOL] array
 (  6, 21) 						[LIST] 
-(  6, 21) 							[DOT_LIST] 
-(  6, 21) 								[SYMBOL] String
+(  6, 21) 							[SYMBOL] String
 (  6, 33) 			[TYPE] 
-(  6, 33) 				[DOT_LIST] 
-(  6, 33) 					[SYMBOL] Int32
+(  6, 33) 				[SYMBOL] Int32
 (  8,  2) 		[FUNCTION_CONTENT] 
 (  8, 11) 			[CALL] 
-(  8,  2) 				[DOT_LIST] 
+(  8,  5) 				[DOT_LIST] 
 (  8,  2) 					[SYMBOL] io
 (  8,  5) 					[SYMBOL] print
 (  8, 11) 				[LIST] 

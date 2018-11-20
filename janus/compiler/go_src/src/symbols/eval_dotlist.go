@@ -36,13 +36,17 @@ func evaluateConstDotList(vals []string, ctx *EvalContext) DataValue {
 
 func DotListAsStrings(el parser.ParseElement) []string {
 
+	if el.ElementType() == lexer.SYMBOL {
+		return []string{ el.TokenString() }
+	}
+
 	if el.ElementType() != lexer.DOT_LIST {
 		return nil
 	}
 
 	var ret []string
 	for _, x := range(el.Children()) {
-		ret = append(ret, x.TokenString())
+		ret = append(ret, DotListAsStrings(x)...)
 	}
 	return ret
 }

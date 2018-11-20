@@ -28,14 +28,11 @@ func (*ExpressionEval) EvaluateConstExpression(
 		args[i] = EvaluateConstExpression(x, ctx)
 	}
 
-	//FIXME operators have to be treated specially in symbol tables
-	//      because they aren't qualified by namespaces like other
-	//      symbols.  e.g. if a module defines +, you can't disambiguate it
-	//      by saying 123 module.+ 456
-
-	op := ctx.Symbols.Lookup(opName)
+	op := ctx.Symbols.LookupOperator(opName)
 	if op == nil {
 		output.Error(line, col, "No definition for operator "+opName)
+		//FIXME testing
+		ctx.Symbols.Emit()
 		return nil
 	}
 

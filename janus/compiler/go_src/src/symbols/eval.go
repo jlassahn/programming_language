@@ -18,6 +18,7 @@ type EvalContext struct {
 
 var evaluators = map[lexer.Tag] Evaluator {
 	*lexer.NUMBER: &NumberEval {},
+	*lexer.SYMBOL: &SymbolEval {},
 	*lexer.DOT_LIST: &DotListEval {},
 	*lexer.EXPRESSION: &ExpressionEval {},
 }

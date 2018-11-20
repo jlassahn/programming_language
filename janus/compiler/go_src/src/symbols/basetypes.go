@@ -31,6 +31,7 @@ var REAL64_TYPE = &Tag{"REAL64"}
 
 var VoidType = &simpleDT{*VOID_TYPE}
 var NamespaceType = &simpleDT{*NAMESPACE_TYPE}
+var FunctionChoiceType = &simpleDT{*FUNCTIONCHOICE_TYPE}
 var BoolType = &simpleDT{*BOOL_TYPE}
 
 var IntegerType = &simpleDT{*INTEGER_TYPE}

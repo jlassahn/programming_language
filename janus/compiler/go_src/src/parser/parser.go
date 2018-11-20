@@ -1349,12 +1349,13 @@ expression_suffix:
 	NUMBER_TOKEN
 	| STRING_TOKEN
 	| CHARACTER_TOKEN
+	| SYMBOL_TOKEN
 	| FUNCTION function_type
 	| expression_suffix SUFFIX_OP
 	| expression_suffix '[' expression ']'
 	| expression_suffix '(' list_content ')'
+	| expression_suffix '.' SYMBOL_TOKEN
 	| '(' expression ')'
-	| expression_dot
 	;
 *****/
 
@@ -1368,10 +1369,10 @@ func (mp *mainParser) parseExpressionSuffix() ParseElement {
 		ret = mp.consume()
 	} else if mp.peek(0, lexer.CHARACTER, "") {
 		ret = mp.consume()
+	} else if mp.peek(0, lexer.SYMBOL, "") {
+		ret = mp.consume()
 	} else if mp.tryMatch(lexer.KEYWORD, "function") {
 		ret = mp.parseFunctionType()
-	} else if mp.peek(0, lexer.SYMBOL, "") {
-		ret = mp.parseExpressionDot()
 	} else if mp.tryMatch(lexer.PUNCTUATION, "(") {
 		ret = mp.parseExpression()
 		mp.match(lexer.PUNCTUATION, ")")
@@ -1398,6 +1399,11 @@ func (mp *mainParser) parseExpressionSuffix() ParseElement {
 			el.addChild(mp.parseListContent())
 			mp.match(lexer.PUNCTUATION, ")")
 			ret = el
+		} else if mp.tryMatch(lexer.OPERATOR, ".") {
+			el := mp.startElement(lexer.DOT_LIST)
+			el.addChild(ret)
+			el.addChild(mp.match(lexer.SYMBOL, ""))
+			ret = el
 		} else {
 			break
 		}
@@ -1415,12 +1421,13 @@ expression_dot:
 
 func (mp *mainParser) parseExpressionDot() ParseElement {
 
-	ret := mp.startElement(lexer.DOT_LIST)
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
+	ret := mp.match(lexer.SYMBOL, "")
 
-	//FIXME why is . an operator?
 	for mp.tryMatch(lexer.OPERATOR, ".") {
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
+		el := mp.startElement(lexer.DOT_LIST)
+		el.addChild(ret)
+		el.addChild(mp.match(lexer.SYMBOL, ""))
+		ret = el
 	}
 	return ret
 }

@@ -82,32 +82,6 @@ func (self *functionDT) IsMethod() bool {
 	return self.isMethod
 }
 
-
-type FunctionChoice interface {
-	DataType
-	Choices() []FunctionDataType
-}
-
-type functionchoiceDT struct {
-	choices []FunctionDataType
-}
-
-func (self *functionchoiceDT) Base() *Tag {
-	return FUNCTIONCHOICE_TYPE
-}
-
-func (self *functionchoiceDT) SubTypes() []DataValue {
-	return nil
-}
-
-func (self *functionchoiceDT) String() string {
-	return "FIXMEchoice"
-}
-
-func (self *functionchoiceDT) Choices() []FunctionDataType {
-	return self.choices
-}
-
 type simpleDT struct {
 	Tag
 }
@@ -122,23 +96,5 @@ func (self *simpleDT) SubTypes() []DataValue {
 
 func (self *simpleDT) String() string {
 	return self.string
-}
-
-//FIXME make this a member??
-
-func TypeString(dt DataType) string {
-	ret := dt.Base().string
-	if dt.SubTypes != nil {
-		ret += "("
-		for i, st := range dt.SubTypes() {
-			if i > 0 {
-				ret += ", "
-			}
-			ret += st.ValueAsString()
-		}
-		ret += ")"
-	}
-
-	return ret
 }
 
