@@ -6,10 +6,15 @@ import (
 
 type Tag struct { string }
 
+type DTypeParameter struct {
+	Number int64
+	dtype DataType
+}
+
 type DataType interface {
 	String() string
 	Base() *Tag
-	SubTypes() []DataValue
+	SubTypes() []DTypeParameter
 }
 
 type FunctionParameter struct {
@@ -66,7 +71,7 @@ func (self *functionDT) Base() *Tag {
 	return FUNCTION_TYPE
 }
 
-func (self *functionDT) SubTypes() []DataValue {
+func (self *functionDT) SubTypes() []DTypeParameter {
 	return nil
 }
 
@@ -90,7 +95,7 @@ func (self *simpleDT) Base() *Tag {
 	return &self.Tag
 }
 
-func (self *simpleDT) SubTypes() []DataValue {
+func (self *simpleDT) SubTypes() []DTypeParameter {
 	return nil
 }
 

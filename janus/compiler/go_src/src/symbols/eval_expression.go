@@ -26,24 +26,93 @@ func (*ExpressionEval) EvaluateConstExpression(
 	args := make([]DataValue, len(children) -1)
 	for i, x := range(children[1:]) {
 		args[i] = EvaluateConstExpression(x, ctx)
+		if args[i] == nil {
+			fmt.Printf("FIXME args not available\n")
+			return nil
+		}
 	}
 
-	op := ctx.Symbols.LookupOperator(opName)
-	if op == nil {
+	opChoices := ctx.Symbols.LookupOperator(opName)
+	if opChoices == nil {
 		output.Error(line, col, "No definition for operator "+opName)
 		//FIXME testing
 		ctx.Symbols.Emit()
 		return nil
 	}
 
-	return doConstOp(opElement, args, ctx)
+	op := selectFunctionChoice(opChoices, args)
+	if op == nil {
+		output.Error(line, col,
+			"Operator "+opName+" can't take these parameters")
+		return nil
+	}
+
+	if !op.IsConst() {
+		output.Error(line, col,
+			"Operator "+opName+" not const")
+		return nil
+	}
+
+	return doConstOp(op, args, ctx)
 }
 
-func doConstOp(op parser.ParseElement,
+func doConstOp(op Symbol,
 	args []DataValue, ctx *EvalContext) DataValue {
 
-	fmt.Printf("FIXME operator: %v args: %v\n", op, args)
-	//FIXME
+	val := op.InitialValue()
+
+	return val.(CodeDataValue).EvaluateConst(op, args)
+}
+
+func selectFunctionChoice(op FunctionChoiceSymbol, args []DataValue) Symbol {
+
+	for _,choice := range op.Choices() {
+
+		dtype := choice.Type().(FunctionDataType)
+		params := dtype.Parameters()
+
+		if !CanConvertArgs(args, params) { continue; }
+
+		return choice
+	}
+
 	return nil
+}
+
+
+func CanConvertArgs(args []DataValue, params []FunctionParameter) bool {
+
+	if len(args) != len(params) {
+		return false
+	}
+
+	for i, param := range params {
+		arg := args[i]
+
+		if param.AutoConvert {
+			if !CanConvert(arg.Type(), param.DType) {
+				return false
+			}
+		} else {
+			if !TypeMatches(arg.Type(), param.DType) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+//FIXME move these
+
+func CanConvert(argType DataType, paramType DataType) bool {
+
+	//FIXME fake
+	return argType == paramType
+}
+
+func TypeMatches(a DataType, b DataType) bool {
+	//FIXME fake
+	return a == b
 }
 

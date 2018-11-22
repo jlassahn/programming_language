@@ -59,6 +59,7 @@ func (fs *FileSet) AddByFileName(name string) {
 	fs.FileList = append(fs.FileList, ret)
 
 	InterpretHeaderOptions(ret)
+	ret.Options.Emit()
 
 	//FIXME add to module tree
 }

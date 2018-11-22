@@ -70,8 +70,11 @@ func InterpretHeaderOptions(file *SourceFile) {
 			DotName: dotval,
 		}
 	}
+}
 
-	for k, v := range file.Options.ByName {
+func (self *HeaderOptions) Emit() {
+
+	for k, v := range self.ByName {
 		if v.DotName == nil {
 			fmt.Printf("option [%v] = [%v]\n", k, v.Value)
 		} else {

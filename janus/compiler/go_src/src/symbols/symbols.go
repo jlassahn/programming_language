@@ -17,18 +17,25 @@ type Symbol interface {
 type FunctionChoiceSymbol interface {
 	Symbol
 	Choices() []Symbol
+
+	Add(x Symbol) error
 }
 
 type SymbolTable interface {
 	Lookup(string) Symbol
 	LookupOperator(string) FunctionChoiceSymbol
 	Emit()
+
+	AddConst(name string, dtype DataType, val DataValue) error
+
+	AddOperator(name string, retType DataType, params []FunctionParameter,
+		isConst bool, impl DataValue) error
 }
 
 type symbolTable struct {
 	Name string
 	Symbols map[string]Symbol
-	Operators map[string]FunctionChoiceSymbol
+	Operators map[string] FunctionChoiceSymbol
 	Parent *symbolTable
 }
 
@@ -58,6 +65,37 @@ func (self *symbolTable) LookupOperator(x string) FunctionChoiceSymbol {
 	return self.Parent.LookupOperator(x)
 }
 
+func (self *symbolTable) AddConst(
+	name string, dtype DataType, val DataValue) error {
+
+	if self.Symbols[name] != nil {
+		return fmt.Errorf("redefinition of symbol %v", name)
+	}
+
+	self.Symbols[name] = &baseSymbol { name, dtype, val, true }
+	return nil
+}
+
+func (self *symbolTable) AddOperator(
+	name string, retType DataType, params []FunctionParameter,
+	isConst bool, impl DataValue) error {
+
+	if self.Operators[name] == nil {
+		self.Operators[name] = &functionChoiceSymbol {name, nil}
+	}
+
+	choices := self.Operators[name]
+
+	return choices.Add(
+		&baseSymbol {
+			name,
+			&functionDT {retType, params, false},
+			impl,
+			isConst,
+		})
+
+}
+
 func (st *symbolTable) Emit() {
 
 	for st != nil {
@@ -70,7 +108,6 @@ func (st *symbolTable) Emit() {
 				v.InitialValue())
 		}
 
-		//FIXME more detail about operators
 		fmt.Printf("Operators:\n")
 		for k, v := range st.Operators {
 			fmt.Printf("  %v %v\n",
@@ -86,6 +123,7 @@ func (st *symbolTable) Emit() {
 		st = st.Parent
 	}
 }
+
 
 func ResolveGlobals(file_set *FileSet) {
 	//FIXME implement
@@ -106,6 +144,10 @@ func (self *baseSymbol) Type() DataType { return self.dtype; }
 func (self *baseSymbol) InitialValue() DataValue { return self.initialValue; }
 func (self *baseSymbol) IsConst() bool { return self.isConst; }
 
+func (self *baseSymbol) String() string {
+	return self.name + ":" + self.dtype.String()
+}
+
 
 type functionChoiceSymbol struct {
 	name string
@@ -118,41 +160,18 @@ func (self *functionChoiceSymbol) InitialValue() DataValue { return nil; }
 func (self *functionChoiceSymbol) IsConst() bool { return true; }
 func (self *functionChoiceSymbol) Choices() []Symbol { return self.choices; }
 
+func (self *functionChoiceSymbol) Add(x Symbol) error {
+	//FIXME
+	// if FunctionParamsAmbiguous(params, choices) ...
+	// FIXME how to handle error messsages, etc
 
-//FIXME reorganize and correct
-
-var add_op = []Symbol {
-		&baseSymbol { "+",
-			&functionDT {
-			Int64Type, []FunctionParameter{
-				{"a", Int64Type, false},
-				{"b", Int64Type, true},
-			}, false },
-		nil,
-		true },
+	self.choices = append(self.choices, x)
+	return nil
 }
 
-/*
-var add_op = &functionchoiceDT {
-	choices: []FunctionDataType {
-		&functionDT{
-			Int64Type, []FunctionParameter{
-				{"a", Int64Type, false},
-				{"b", Int64Type, true},
-			}, false },
-	},
-}
 
-var div_op = &functionchoiceDT {
-	choices: []FunctionDataType {
-		&functionDT{
-			Real64Type, []FunctionParameter{
-				{"a", Int64Type, true},
-				{"b", Int64Type, true},
-			}, false },
-	},
-}
-*/
+
+var predefinedSymbols *symbolTable;
 
 func PredefinedSymbols() *symbolTable {
 	if predefinedSymbols == nil {
@@ -162,21 +181,44 @@ func PredefinedSymbols() *symbolTable {
 }
 
 
+//FIXME reorganize and correct
 func buildPredefinedSymbols() *symbolTable {
-	return nil //FIXME
-}
 
-var predefinedSymbols = &symbolTable {
-	Name: "PREDEFINED",
-	Symbols: map[string]Symbol {
-		"True": &baseSymbol {"True", BoolType, TrueValue, true } ,
-		"False": &baseSymbol {"False", BoolType, FalseValue, true },
+	syms := &symbolTable {
+		Name: "PREDEFINED",
+		Symbols: map[string]Symbol {},
+		Operators: map[string]FunctionChoiceSymbol {},
+		Parent: nil,
+	}
+	syms.AddConst("True", BoolType, TrueValue)
+	syms.AddConst("False", BoolType, FalseValue)
+
+	syms.AddOperator("+", Real64Type, []FunctionParameter {
+		{"a", Real64Type, false},
+		{"b", Real64Type, true},
 	},
-	Operators: map[string]FunctionChoiceSymbol {
-		"+": &functionChoiceSymbol {"+", add_op },
-		/*
-		"/": &baseSymbol {"+", div_op, nil, true },
-		*/
+	true, nil) //FIXME nil implementation
+
+	syms.AddOperator("+", Int64Type, []FunctionParameter {
+		{"a", Int64Type, false},
+		{"b", Int64Type, true},
 	},
-	Parent: nil }
+	true, IntrinsicAddInt64)
+
+	syms.AddOperator("/", Real64Type, []FunctionParameter {
+		{"a", Real64Type, false},
+		{"b", Real64Type, true},
+	},
+	true, IntrinsicDivReal64)
+
+	//FIXME should  be Int64, >Real64
+	//FIXME should have other IntXXX versions
+	syms.AddOperator("/", Real64Type, []FunctionParameter {
+		{"a", Int64Type, false},
+		{"b", Int64Type, true},
+	},
+	true, IntrinsicDivReal64)
+
+	return syms
+}
 

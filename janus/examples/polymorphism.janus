@@ -1,11 +1,11 @@
 
 #
-# Safe but expensive in memory of there's a lot of types to convert to
+# Safe but expensive in memory if there's a lot of types to convert to
 #
 
 struct Message
 {
-	def AsKeyMessage ref(KeyMessage);
+	def AsKeyMessage Ref(KeyMessage);
 
 	#...
 }
@@ -16,7 +16,7 @@ struct KeyMessage
 	def keycode Int32;
 }
 
-def CreateKeyMessage() -> ref(KeyMessage)
+def CreateKeyMessage() -> Ref(KeyMessage)
 {
 	var ret = allocate(KeyMessage);
 	ret.message.AsKeyMessage = ret;
@@ -27,19 +27,20 @@ def CreateKeyMessage() -> ref(KeyMessage)
 #
 # limited unsafe code with low overhead
 #
+#   does the Convert function produce a separate stub function in the
+#   object code for each type it's called with?
 
 struct Message
 {
 	def type Type;
 
-	# FIXME need a name for compile determinable Type
-	def Convert(CType T) -> m_ref(T);
+	def Convert(CType T) -> MRef(T);
 
 	# ...
 }
 
 
-def Message.Convert(Type T) -> m_ref(T)
+def Message.Convert(CType T) -> MRef(T)
 {
 	if T == self.type
 	{
@@ -75,13 +76,27 @@ m.Execute(); # WARNING this runs Message.Execute, not SubMessage.Execute()
 #
 # Functions distinguished by parameter type
 #
+# a function parameter marked as convertible (x > Type) allows all the same
+# implicit conversions as assignment does.
+# a parameter not marked convertible (x Type) only allows
+#   adding one level of Ref or MRef
+#   removing any number of Ref or MRef
+#   converting MArray to MSlice to Array
+#
+# a parameter cannot be both convertible and polymorphic.  When resolving
+# functions or operators by parameter type, compare the number of parameters
+# and the types of any not marked convertible.
+#
+# This means an operator really shouldn't have all params convertible:
+#   operator * (a > Real64, b > Real64) -> Real64;  # PREVENTS ALL OTHER DEFS!!
+#
+
 interface InfAA extends InfA;
 
-def myfunction(x: InfAA);
-def myfunction(x: InfA); # OK, must be called with exact match
-def myfunction(x: >InfA); # ERROR conflicts with InfAA
-# FIXME sytnax for "type convertable to X" is >X OK?
-def myfunction(X: InfA ...); # ERROR can have vararg that matches fixed arg
+def myfunction(x InfAA);
+def myfunction(x InfA); # OK, must be called with exact match
+def myfunction(x >InfA); # ERROR conflicts with InfAA
+def myfunction(x InfA ...); # ERROR can have vararg that matches fixed arg
 # FIXME syntax for variable args, also keyword args
 # FIXME how to access varargs?  No way to make this overhead-free and safe?
 
