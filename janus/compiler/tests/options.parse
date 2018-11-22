@@ -3,45 +3,39 @@
 (  2,  7) 		[NUMBER] 1.0
 (  4,  2) 		[LIST] 
 (  4,  2) 			[ASSIGNMENT] 
-(  4,  2) 				[DOT_LIST] 
-(  4,  2) 					[SYMBOL] machine_mode
-(  4, 17) 				[DOT_LIST] 
-(  4, 17) 					[SYMBOL] True
+(  4,  2) 				[SYMBOL] machine_mode
+(  4, 17) 				[SYMBOL] True
 (  5,  2) 			[ASSIGNMENT] 
-(  5,  2) 				[DOT_LIST] 
-(  5,  2) 					[SYMBOL] object_mode
-(  5, 16) 				[DOT_LIST] 
-(  5, 16) 					[SYMBOL] True
+(  5,  2) 				[SYMBOL] object_mode
+(  5, 16) 				[SYMBOL] True
 (  6,  2) 			[ASSIGNMENT] 
-(  6,  2) 				[DOT_LIST] 
-(  6,  2) 					[SYMBOL] module_name
-(  6, 16) 				[DOT_LIST] 
+(  6,  2) 				[SYMBOL] module_name
+(  6, 24) 				[DOT_LIST] 
 (  6, 16) 					[SYMBOL] example
 (  6, 24) 					[SYMBOL] module
 (  7,  2) 			[ASSIGNMENT] 
-(  7,  2) 				[DOT_LIST] 
-(  7,  2) 					[SYMBOL] export_symbols
-(  7, 19) 				[DOT_LIST] 
-(  7, 19) 					[SYMBOL] True
+(  7,  2) 				[SYMBOL] export_symbols
+(  7, 19) 				[SYMBOL] True
 (  8,  2) 			[ASSIGNMENT] 
-(  8,  2) 				[DOT_LIST] 
-(  8,  2) 					[SYMBOL] a
+(  8,  2) 				[SYMBOL] a
 (  8,  6) 				[NUMBER] 1
 (  9,  2) 			[ASSIGNMENT] 
-(  9,  2) 				[DOT_LIST] 
+(  9,  4) 				[DOT_LIST] 
 (  9,  2) 					[SYMBOL] a
 (  9,  4) 					[SYMBOL] b
 (  9,  8) 				[NUMBER] 0xFFFF
 ( 10,  2) 			[ASSIGNMENT] 
-( 10,  2) 				[DOT_LIST] 
+( 10,  4) 				[DOT_LIST] 
 ( 10,  2) 					[SYMBOL] a
 ( 10,  4) 					[SYMBOL] c
 ( 10,  8) 				[NUMBER] 1234.56r64
 ( 11,  2) 			[ASSIGNMENT] 
-( 11,  2) 				[DOT_LIST] 
-( 11,  2) 					[SYMBOL] a
-( 11,  4) 					[SYMBOL] b
-( 11,  6) 					[SYMBOL] c
+( 11,  8) 				[DOT_LIST] 
+( 11,  6) 					[DOT_LIST] 
+( 11,  4) 						[DOT_LIST] 
+( 11,  2) 							[SYMBOL] a
+( 11,  4) 							[SYMBOL] b
+( 11,  6) 						[SYMBOL] c
 ( 11,  8) 					[SYMBOL] d
 ( 11, 19) 				[EXPRESSION] 
 ( 11, 19) 					[OPERATOR] /
@@ -53,9 +47,12 @@
 ( 11, 15) 							[NUMBER] 2
 ( 11, 17) 						[NUMBER] 3
 ( 11, 20) 					[NUMBER] 2
-( 15,  1) 	[DEF] 
-( 15,  1) 		[KEYWORD] def
-( 15,  5) 		[SYMBOL] Main
-( 15,  9) 		[FUNCTION_TYPE] 
-( 15, 10) 			[PARAMETER_LIST] 
-( 17,  1) 		[FUNCTION_CONTENT] 
+( 12,  2) 			[ASSIGNMENT] 
+( 12,  2) 				[SYMBOL] b
+( 12,  6) 				[SYMBOL] undefined
+( 16,  1) 	[DEF] 
+( 16,  1) 		[KEYWORD] def
+( 16,  5) 		[SYMBOL] Main
+( 16,  9) 		[FUNCTION_TYPE] 
+( 16, 10) 			[PARAMETER_LIST] 
+( 18,  1) 		[FUNCTION_CONTENT] 

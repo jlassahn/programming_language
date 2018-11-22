@@ -14,53 +14,56 @@ package main
 
 import (
 	"os"
+	"fmt"
 	"output"
 	"parser"
 	"symbols"
 )
 
-const (
-	MODE_COMPILE = 0
-	MODE_LIB = 1
-	MODE_SYMBOL = 2
-	MODE_PARSE = 3
-	MODE_TOKEN = 4
-)
+
+func PrintHelp() {
+	fmt.Println("FIXME help")
+}
 
 type parameters struct {
 	Files []string
-	Mode int
+	Flags map[string]bool
 }
 
 func parseArgs() *parameters {
-	ret := &parameters {
-		nil,
-		MODE_COMPILE }
+
+	var files []string
+	var flags = map[string]bool {
+		"help": false,
+		"lib": false,
+		"show-tokens": false,
+		"show-parse": false,
+		"show-header": false,
+		"parse-only": false,
+	}
 
 	for _, arg := range os.Args[1:] {
 
 		if arg[0] == '-' {
-			switch arg[1:] {
-				case "lib":
-					ret.Mode = MODE_LIB
-				case "tokens":
-					ret.Mode = MODE_TOKEN
-				case "parse":
-					ret.Mode = MODE_PARSE
-				case "symbols":
-					ret.Mode = MODE_SYMBOL
-
-				default:
-					output.FatalNoFile("unknown option: "+arg) //FIXME better handling
+			flag := arg[1:]
+			_, ok := flags[flag]
+			if !ok {
+				output.FatalNoFile("unknown option: "+arg)
+				flags["help"] = true
 			}
-
+			flags[flag] = true
 		} else {
-			ret.Files = append(ret.Files, arg)
+			files = append(files, arg)
 		}
 	}
 
-	if ret.Files == nil {
+	if files == nil && !flags["help"] {
 		output.FatalNoFile("no source files specified")
+	}
+
+	ret := &parameters {
+		files,
+		flags,
 	}
 
 	return ret
@@ -68,13 +71,14 @@ func parseArgs() *parameters {
 
 func main() {
 	args := parseArgs()
-	if args == nil {
+	if args.Flags["help"] {
+		PrintHelp()
 		os.Exit(1)
 	}
 
 	file_set := symbols.NewFileSet()
 
-	if args.Mode == MODE_TOKEN {
+	if args.Flags["show-tokens"] {
 		output.EnableTokens()
 	}
 
@@ -82,15 +86,23 @@ func main() {
 		file_set.AddByFileName(file)
 	}
 
-	if args.Mode == MODE_PARSE {
+	if args.Flags["show-parse"] {
 		for _, file := range file_set.FileList {
 			parser.EmitParseTree(file.ParseTree)
 		}
 	}
 
-	if args.Mode >= MODE_PARSE {
+	if args.Flags["show-header"] {
+		for _, file := range file_set.FileList {
+			file.Options.Emit()
+		}
+	}
+
+	if args.Flags["parse-only"] {
 		return
 	}
+
+	fmt.Println("FIXME continuing after parse")
 
 	symbols.ResolveImports(file_set)
 

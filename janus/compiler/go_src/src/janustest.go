@@ -52,7 +52,8 @@ func runParseTests() {
 		compare_file := file + ".parse"
 
 		out, err := exec.Command(
-			"./janusc", "-parse", input_file).CombinedOutput()
+			"./janusc", "-parse-only", "-show-parse",
+			input_file).CombinedOutput()
 
 		{
 			fp, _ := os.Create(file + ".out")

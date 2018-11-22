@@ -41,7 +41,7 @@ type FileSet struct {
    its import name defaults to the file name without
    extension or path. */
 
-func (fs *FileSet) AddByFileName(name string) {
+func (fs *FileSet) AddByFileName(name string) *SourceFile {
 
 	ret := NewSourceFile()
 
@@ -59,9 +59,10 @@ func (fs *FileSet) AddByFileName(name string) {
 	fs.FileList = append(fs.FileList, ret)
 
 	InterpretHeaderOptions(ret)
-	ret.Options.Emit()
 
 	//FIXME add to module tree
+
+	return ret
 }
 
 func (fs *FileSet) AddByImportName(name []string) {
