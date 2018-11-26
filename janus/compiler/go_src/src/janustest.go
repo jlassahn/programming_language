@@ -5,12 +5,22 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 
 var err_fp *os.File
+var env []string
 
 func main() {
+
+	path := filepath.Dir(os.Args[0])
+	path = filepath.Join(path, "tests")
+	env = []string {
+		"JANUS_SOURCE_PATH="+filepath.Join(path, "source"),
+		"JANUS_INTERFACE_PATH="+filepath.Join(path, "interfaces"),
+	}
+
 	err_fp, _ = os.Create("janustest.log")
 	runParseTests()
 	err_fp.Close()
@@ -51,9 +61,11 @@ func runParseTests() {
 		input_file := file + ".janus"
 		compare_file := file + ".parse"
 
-		out, err := exec.Command(
+		cmd := exec.Command(
 			"./janusc", "-parse-only", "-show-parse",
-			input_file).CombinedOutput()
+			input_file)
+		cmd.Env = env
+		out, err := cmd.CombinedOutput()
 
 		{
 			fp, _ := os.Create(file + ".out")

@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"lexer"
 	"parser"
+	"output"
 )
 
 type HeaderOptions struct {
 	ByName map[string] *HeaderOption
+
 	Version string
+	ModuleName []string
+	ExportSymbols bool
+	ObjectMode bool
+	MachineMode bool
 }
 
 type HeaderOption struct {
@@ -17,6 +23,7 @@ type HeaderOption struct {
 	ParseTree parser.ParseElement
 	Value DataValue
 	DotName []string
+	Recognized bool
 }
 
 func InterpretHeaderOptions(file *SourceFile) {
@@ -68,6 +75,30 @@ func InterpretHeaderOptions(file *SourceFile) {
 			Name: name,
 			Value: value,
 			DotName: dotval,
+			Recognized: false,
+		}
+	}
+
+	val := file.Options.ByName["module_name"]
+	if val != nil {
+		val.Recognized = true
+		if val.DotName != nil {
+			file.Options.ModuleName = val.DotName
+		} else {
+			line,col := val.ParseTree.Position()
+			output.Error(line, col, "invalid value for module_name")
+		}
+	}
+
+	// FIXME add these
+	//ExportSymbols bool
+	//ObjectMode bool
+	//MachineMode bool
+
+	for k, v := range file.Options.ByName {
+		if !v.Recognized {
+			line,col := v.ParseTree.Position()
+			output.Warning(line, col, "unrecognized option: "+k)
 		}
 	}
 }

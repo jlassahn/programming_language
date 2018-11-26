@@ -308,3 +308,21 @@ func (lex *Lexer) get_symbol() *Token {
 	}
 }
 
+func IsValidIdentifier(name string) bool {
+	if len(name) == 0 {
+		return false
+	}
+
+	if !is_identifier_start(name[0]) {
+		return false
+	}
+
+	for _,x := range([]byte(name)) {
+		if !is_identifier(x) {
+			return false
+		}
+	}
+
+	return true
+}
+

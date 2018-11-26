@@ -1,13 +1,5 @@
 
 /* janusc: the Janus language compiler
-
-options:
-	janusc [files]  compile to an executable program, named from the first file
-	janusc -lib output.jlib [files]  FIXME what interfaces are public?
-	janusc -tokens [file]  output the token list from parsing a file
-	janusc -parse [file] output the parse tree from a file
-	FIXME cross-reference generator, showing imports
-	FIXME dump symbol tables
 */
 
 package main
@@ -15,21 +7,45 @@ package main
 import (
 	"os"
 	"fmt"
+	"path/filepath"
 	"output"
 	"parser"
 	"symbols"
 )
 
 
-func PrintHelp() {
-	fmt.Println("FIXME help")
-}
+func PrintHelp() { fmt.Print(
+`janusc [options] [files]
+
+compile a Janus program.  Unless the -lib option is used the output will be
+an executable program named after the first source file.
+
+Options:
+ -help        : print this help text
+ -lib         : output a .jlib library file
+
+ -parse-only  : stop after parsing the source files
+
+ -show-tokens : print the tokenized files to stdout
+ -show-parse  : print a parse tree to stdout
+ -show-header : print the janus header options to stdout
+ -show-modules: print included source files and module names
+ -show-imports: print files found through import statements
+
+
+  FIXME cross-reference generator, showing imports
+  FIXME dump symbol tables
+  FIXME search path
+`) }
 
 type parameters struct {
 	Files []string
 	Flags map[string]bool
 }
 
+//FIXME support args with values like
+//  -name outfile.exe
+//
 func parseArgs() *parameters {
 
 	var files []string
@@ -39,6 +55,8 @@ func parseArgs() *parameters {
 		"show-tokens": false,
 		"show-parse": false,
 		"show-header": false,
+		"show-modules": false,
+		"show-imports": false,
 		"parse-only": false,
 	}
 
@@ -70,11 +88,23 @@ func parseArgs() *parameters {
 }
 
 func main() {
+
 	args := parseArgs()
 	if args.Flags["help"] {
 		PrintHelp()
 		os.Exit(1)
 	}
+
+	sourcePaths := append(
+		filepath.SplitList(os.Getenv("JANUS_SOURCE_PATH")),
+		".",
+		"./source")
+
+	interfacePaths := append(
+		filepath.SplitList(os.Getenv("JANUS_INTERFACE_PATH")),
+		".",
+		"./interfaces")
+
 
 	file_set := symbols.NewFileSet()
 
@@ -92,19 +122,31 @@ func main() {
 		}
 	}
 
+	if args.Flags["parse-only"] {
+		return
+	}
+
+	for _, file := range file_set.FileList {
+		symbols.InterpretHeaderOptions(file)
+	}
+
 	if args.Flags["show-header"] {
 		for _, file := range file_set.FileList {
 			file.Options.Emit()
 		}
 	}
 
-	if args.Flags["parse-only"] {
-		return
+	for _, file := range file_set.FileList {
+		file_set.AddFileToModules(file)
 	}
 
-	fmt.Println("FIXME continuing after parse")
 
-	symbols.ResolveImports(file_set)
+	symbols.ResolveImports(file_set, interfacePaths, sourcePaths,
+		args.Flags["show-imports"])
+
+	if args.Flags["show-modules"] {
+		file_set.EmitModuleTree()
+	}
 
 	symbols.ResolveGlobals(file_set)
 
