@@ -11,6 +11,7 @@ var enable_tokens bool = false
 
 // FIXME report filename
 // FIXME handle error in file open, etc
+
 func FatalError(line int, col int, txt string) {
 	fmt.Fprintf(os.Stderr, "FATAL ERROR at (%d, %d) %s\n",
 		line, col, txt)

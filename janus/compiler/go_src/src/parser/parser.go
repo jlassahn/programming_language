@@ -3,16 +3,15 @@ package parser
 
 import (
 	"fmt"
-	"lexer"
 	"output"
 )
 
 type ParseElement interface {
 	Children() []ParseElement
 	Comments() []ParseElement
-	ElementType() *lexer.Tag
-	Position() (int, int)
-	Token() *lexer.Token
+	ElementType() *Tag
+	FilePos() *FilePosition
+	Token() *Token
 	TokenString() string
 }
 
@@ -23,10 +22,9 @@ type Parser interface {
 type parseElement struct {
 	children []ParseElement
 	comments []ParseElement
-	elementType *lexer.Tag
-	line, column int
-	file string
-	token *lexer.Token
+	elementType *Tag
+	pos *FilePosition
+	token *Token
 }
 
 func (pe *parseElement) String() string {
@@ -41,15 +39,19 @@ func (pe *parseElement) Comments() []ParseElement {
 	return pe.comments
 }
 
-func (pe *parseElement) ElementType() *lexer.Tag {
+func (pe *parseElement) ElementType() *Tag {
 	return pe.elementType
 }
 
 func (pe *parseElement) Position() (int, int) {
-	return pe.line, pe.column
+	return pe.pos.Line, pe.pos.Column
 }
 
-func (pe *parseElement) Token() *lexer.Token {
+func (pe *parseElement) FilePos() *FilePosition {
+	return pe.pos
+}
+
+func (pe *parseElement) Token() *Token {
 	return pe.token
 }
 
@@ -68,7 +70,7 @@ func (pe *parseElement) addChild(child ParseElement) {
 
 
 type tokenWrapper struct {
-	lex *lexer.Lexer
+	lex *Lexer
 }
 
 func (tw *tokenWrapper) GetElement() ParseElement {
@@ -78,9 +80,7 @@ func (tw *tokenWrapper) GetElement() ParseElement {
 		children: nil,
 		comments: nil,
 		elementType: tok.TokenType,
-		line: tok.Position.Line, //FIXME reference FilePosition instead
-		column: tok.Position.Column,
-		file: "",
+		pos: &tok.Position,
 		token: tok,
 		}
 
@@ -98,22 +98,20 @@ func (cm *commentMerger) GetElement() ParseElement {
 	for {
 		el := cm.upstream.GetElement()
 
-		if el.ElementType() == lexer.EOF {
+		if el.ElementType() == EOF {
 			if cm.depth > 0 {
-				line, col := cm.comments[0].Position()
-				output.FatalError(line, col, "EOF inside block comment")
+				pos := cm.comments[0].FilePos()
+				output.FatalError(pos.Line, pos.Column, "EOF inside block comment")
 			}
 			if cm.comments != nil {
 				comments := cm.comments
 				cm.comments = nil
-				line, col := el.Position()
+				pos := el.FilePos()
 				return &parseElement {
 					children: el.Children(),
 					comments: comments,   //FIXME merge existing comments
 					elementType: el.ElementType(),
-					line: line,
-					column: col,
-					file: "",
+					pos: pos,
 					token: el.Token(),
 				}
 			} else {
@@ -121,21 +119,19 @@ func (cm *commentMerger) GetElement() ParseElement {
 			}
 		}
 
-		if cm.depth == 0 && el.ElementType() != lexer.COMMENT {
-			if el.ElementType() == lexer.PUNCTUATION && el.TokenString() == "#{" {
+		if cm.depth == 0 && el.ElementType() != COMMENT {
+			if el.ElementType() == PUNCTUATION && el.TokenString() == "#{" {
 				cm.comments = append(cm.comments, el)
 				cm.depth = 1
 			} else if cm.comments != nil {
 				comments := cm.comments
 				cm.comments = nil
-				line, col := el.Position()
+				pos := el.FilePos()
 				return &parseElement {
 					children: el.Children(),
 					comments: comments,   //FIXME merge existing comments
 					elementType: el.ElementType(),
-					line: line,
-					column: col,
-					file: "",
+					pos: pos,
 					token: el.Token(),
 				}
 			} else {
@@ -143,7 +139,7 @@ func (cm *commentMerger) GetElement() ParseElement {
 			}
 		} else {
 			cm.comments = append(cm.comments, el)
-			if el.ElementType() == lexer.PUNCTUATION {
+			if el.ElementType() == PUNCTUATION {
 				if el.TokenString() == "#{" {
 					cm.depth ++
 				}
@@ -174,7 +170,7 @@ func (mp *mainParser) consume() ParseElement {
 	return ret
 }
 
-func (mp *mainParser) peek(pos int, etype *lexer.Tag, txt string) bool {
+func (mp *mainParser) peek(pos int, etype *Tag, txt string) bool {
 	el := mp.queue[pos]
 	if etype != el.ElementType() {
 		return false
@@ -187,7 +183,7 @@ func (mp *mainParser) peek(pos int, etype *lexer.Tag, txt string) bool {
 	return true
 }
 
-func (mp *mainParser) match(etype *lexer.Tag, txt string) ParseElement {
+func (mp *mainParser) match(etype *Tag, txt string) ParseElement {
 	if mp.peek(0, etype, txt) {
 		mp.resync = false
 		return mp.consume()
@@ -221,7 +217,7 @@ func (mp *mainParser) checkProgress() {
 	}
 }
 
-func (mp *mainParser) tryMatch(etype *lexer.Tag, txt string) bool {
+func (mp *mainParser) tryMatch(etype *Tag, txt string) bool {
 	if mp.peek(0, etype, txt) {
 		mp.resync = false
 		mp.consume()
@@ -231,25 +227,24 @@ func (mp *mainParser) tryMatch(etype *lexer.Tag, txt string) bool {
 }
 
 func (mp *mainParser) tryOperator(oplist map[string]bool) bool {
-	if mp.queue[0].ElementType() != lexer.OPERATOR {
+	if mp.queue[0].ElementType() != OPERATOR {
 		return false
 	}
 	return oplist[mp.queue[0].TokenString()]
 }
 
 
-func (mp *mainParser) startElement(etype *lexer.Tag) *parseElement {
+func (mp *mainParser) startElement(etype *Tag) *parseElement {
 
-	line, col := mp.queue[0].Position()
+	pos := mp.queue[0].FilePos()
+
 	comments := mp.queue[0].Comments()
 
 	ret := parseElement {
 		children: nil,
 		comments: comments,
 		elementType: etype,
-		line: line,
-		column: col,
-		file: "",
+		pos: pos,
 		token: nil,
 	}
 
@@ -259,8 +254,8 @@ func (mp *mainParser) startElement(etype *lexer.Tag) *parseElement {
 func (mp *mainParser) error(txt string) {
 
 	if !mp.resync {
-		line, col := mp.queue[0].Position()
-		output.Error(line, col, txt)
+		pos := mp.queue[0].FilePos()
+		output.Error(pos.Line, pos.Column, txt)
 		mp.resync = true
 	}
 }
@@ -270,7 +265,7 @@ func (mp *mainParser) GetElement() ParseElement {
 	return mp.parseFile()
 }
 
-func NewParser(lex *lexer.Lexer) Parser {
+func NewParser(lex *Lexer) Parser {
 
 	ret := &mainParser{
 		&commentMerger{ &tokenWrapper{ lex }, nil, 0 },
@@ -294,11 +289,11 @@ file:
 
 func (mp *mainParser) parseFile() ParseElement {
 
-	ret := mp.startElement(lexer.SOURCE_FILE)
+	ret := mp.startElement(SOURCE_FILE)
 
 	ret.addChild(mp.parseHeader())
 
-	for !mp.peek(0, lexer.EOF, "") {
+	for !mp.peek(0, EOF, "") {
 		ret.addChild(mp.parseFileDeclaration())
 		mp.checkProgress()
 	}
@@ -315,14 +310,14 @@ header:
 
 func (mp *mainParser) parseHeader() ParseElement {
 
-	mp.match(lexer.KEYWORD, "janus")
-	ret := mp.startElement(lexer.HEADER)
-	ret.addChild(mp.match(lexer.NUMBER, ""))
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	mp.match(KEYWORD, "janus")
+	ret := mp.startElement(HEADER)
+	ret.addChild(mp.match(NUMBER, ""))
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret.addChild(mp.parseHeaderOptions())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return ret
@@ -336,8 +331,8 @@ header_options:
 ******/
 
 func (mp *mainParser) parseHeaderOptions() ParseElement {
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseHeaderOption())
 		mp.checkProgress()
 	}
@@ -351,11 +346,11 @@ header_option:
 *****/
 
 func (mp *mainParser) parseHeaderOption() ParseElement {
-	ret := mp.startElement(lexer.ASSIGNMENT)
+	ret := mp.startElement(ASSIGNMENT)
 	ret.addChild(mp.parseExpressionDot())
-	mp.match(lexer.OPERATOR, "=")
+	mp.match(OPERATOR, "=")
 	ret.addChild(mp.parseExpression())
-	mp.match(lexer.PUNCTUATION, ";")
+	mp.match(PUNCTUATION, ";")
 	return ret
 }
 
@@ -374,42 +369,42 @@ file_declaration:
 
 func (mp *mainParser) parseFileDeclaration() ParseElement {
 
-	if mp.tryMatch(lexer.PUNCTUATION, ";") {
+	if mp.tryMatch(PUNCTUATION, ";") {
 		// empty statement
 		return nil
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "import") {
+	if mp.peek(0, KEYWORD, "import") {
 		return mp.parseImportStatement()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "struct") {
+	if mp.peek(0, KEYWORD, "struct") {
 		return mp.parseStructDeclaration()
 	}
-	if mp.peek(0, lexer.KEYWORD, "m_struct") {
+	if mp.peek(0, KEYWORD, "m_struct") {
 		return mp.parseStructDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "interface") {
+	if mp.peek(0, KEYWORD, "interface") {
 		return mp.parseInterfaceDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "method") {
+	if mp.peek(0, KEYWORD, "method") {
 		return mp.parseMethodDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "alias") {
+	if mp.peek(0, KEYWORD, "alias") {
 		return mp.parseAliasDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "operator") {
+	if mp.peek(0, KEYWORD, "operator") {
 		return mp.parseOperatorDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "def") {
+	if mp.peek(0, KEYWORD, "def") {
 		return mp.parseDefStatement()
 	}
-	if mp.peek(0, lexer.KEYWORD, "const") {
+	if mp.peek(0, KEYWORD, "const") {
 		return mp.parseDefStatement()
 	}
 
@@ -426,20 +421,20 @@ import_statement:
 
 func (mp *mainParser) parseImportStatement() ParseElement {
 
-	ret := mp.startElement(lexer.IMPORT)
-	mp.match(lexer.KEYWORD, "import")
+	ret := mp.startElement(IMPORT)
+	mp.match(KEYWORD, "import")
 
-	if mp.peek(0, lexer.OPERATOR, ".") {
-		ret.addChild(mp.match(lexer.OPERATOR, "."))
-		mp.match(lexer.OPERATOR, "=")
+	if mp.peek(0, OPERATOR, ".") {
+		ret.addChild(mp.match(OPERATOR, "."))
+		mp.match(OPERATOR, "=")
 		ret.addChild(mp.parseExpressionDot())
 	} else {
 		ret.addChild(mp.parseExpressionDot())
-		if mp.tryMatch(lexer.OPERATOR, "=") {
+		if mp.tryMatch(OPERATOR, "=") {
 			ret.addChild(mp.parseExpressionDot())
 		}
 	}
-	mp.match(lexer.PUNCTUATION, ";")
+	mp.match(PUNCTUATION, ";")
 	return ret
 }
 
@@ -451,18 +446,18 @@ struct_declaration:
 *****/
 
 func (mp *mainParser) parseStructDeclaration() ParseElement {
-	ret := mp.startElement(lexer.STRUCT_DEF)
+	ret := mp.startElement(STRUCT_DEF)
 
-	ret.addChild(mp.match(lexer.KEYWORD, ""))
+	ret.addChild(mp.match(KEYWORD, ""))
 	ret.addChild(mp.parseTypeName())
 
 	ret.addChild(mp.parseStructOptions())
 
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret.addChild(mp.parseStructContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 	return ret
 }
@@ -481,18 +476,18 @@ struct_options_:
 
 func (mp *mainParser) parseStructOptions() ParseElement {
 
-	ret := mp.startElement(lexer.LIST)
-	if mp.peek(0, lexer.PUNCTUATION, "{") {
+	ret := mp.startElement(LIST)
+	if mp.peek(0, PUNCTUATION, "{") {
 		return ret
 	}
-	if mp.peek(0, lexer.PUNCTUATION, ";") {
+	if mp.peek(0, PUNCTUATION, ";") {
 		return ret
 	}
 
 	for {
 		ret.addChild(mp.parseStructOption())
 
-		if !mp.tryMatch(lexer.PUNCTUATION, ",") {
+		if !mp.tryMatch(PUNCTUATION, ",") {
 			return ret
 		}
 
@@ -511,25 +506,25 @@ struct_option:
 
 func (mp *mainParser) parseStructOption() ParseElement {
 
-	if mp.tryMatch(lexer.KEYWORD, "extends") {
-		ret := mp.startElement(lexer.EXTENDS_DEF)
+	if mp.tryMatch(KEYWORD, "extends") {
+		ret := mp.startElement(EXTENDS_DEF)
 		ret.addChild(mp.parseType())
 		return ret
 	}
 
-	if mp.tryMatch(lexer.KEYWORD, "implements") {
-		ret := mp.startElement(lexer.IMPLEMENTS_DEF)
+	if mp.tryMatch(KEYWORD, "implements") {
+		ret := mp.startElement(IMPLEMENTS_DEF)
 		ret.addChild(mp.parseType())
 
-		if mp.tryMatch(lexer.KEYWORD, "alias") {
-			ret.addChild(mp.match(lexer.SYMBOL, ""))
+		if mp.tryMatch(KEYWORD, "alias") {
+			ret.addChild(mp.match(SYMBOL, ""))
 		}
 		return ret
 	}
 
 	/* FIXME do we want
-	if mp.tryMatch(lexer.KEYWORD, "size") {
-		ret := mp.startElement(lexer.SIZE_DEF)
+	if mp.tryMatch(KEYWORD, "size") {
+		ret := mp.startElement(SIZE_DEF)
 		ret.addChild(mp.parseExpression())
 		return ret
 	}
@@ -546,8 +541,8 @@ struct_content:
 ******/
 
 func (mp *mainParser) parseStructContent() ParseElement {
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseStructElement())
 		mp.checkProgress()
 	}
@@ -567,29 +562,29 @@ struct_element:
 
 func (mp *mainParser) parseStructElement() ParseElement {
 
-	if mp.tryMatch(lexer.KEYWORD, "def") {
-		el := mp.startElement(lexer.DEF)
-		el.addChild(mp.match(lexer.SYMBOL, ""))
-		if mp.peek(0, lexer.PUNCTUATION, "(") {
+	if mp.tryMatch(KEYWORD, "def") {
+		el := mp.startElement(DEF)
+		el.addChild(mp.match(SYMBOL, ""))
+		if mp.peek(0, PUNCTUATION, "(") {
 			el.addChild(mp.parseFunctionType())
 		} else {
 			el.addChild(mp.parseType())
 		}
-		if mp.tryMatch(lexer.PUNCTUATION, "{") {
+		if mp.tryMatch(PUNCTUATION, "{") {
 			el.addChild(mp.parseFunctionContent())
-			mp.match(lexer.PUNCTUATION, "}")
+			mp.match(PUNCTUATION, "}")
 		} else {
-			mp.match(lexer.PUNCTUATION, ";")
+			mp.match(PUNCTUATION, ";")
 		}
 
 		return el
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "extends") {
+	if mp.peek(0, KEYWORD, "extends") {
 		return mp.parseExtendsDeclaration()
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "implements") {
+	if mp.peek(0, KEYWORD, "implements") {
 		return mp.parseImplementsDeclaration()
 	}
 
@@ -606,15 +601,15 @@ extends_declaration:
 
 func (mp *mainParser) parseExtendsDeclaration() ParseElement {
 
-	mp.match(lexer.KEYWORD, "extends")
-	el := mp.startElement(lexer.EXTENDS_DEF)
+	mp.match(KEYWORD, "extends")
+	el := mp.startElement(EXTENDS_DEF)
 
 	el.addChild(mp.parseType())
-	if mp.peek(0, lexer.PUNCTUATION, "{") {
+	if mp.peek(0, PUNCTUATION, "{") {
 		el.addChild(mp.parseExtendsContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return el
@@ -629,8 +624,8 @@ extends_content:
 
 func (mp *mainParser) parseExtendsContent() ParseElement {
 
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseExtendsItem())
 		mp.checkProgress()
 	}
@@ -645,11 +640,11 @@ extends_item:
 
 func (mp *mainParser) parseExtendsItem() ParseElement {
 
-	ret := mp.startElement(lexer.EXTENDS_DEF)
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-	mp.match(lexer.OPERATOR, "=")
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-	mp.match(lexer.PUNCTUATION, ";")
+	ret := mp.startElement(EXTENDS_DEF)
+	ret.addChild(mp.match(SYMBOL, ""))
+	mp.match(OPERATOR, "=")
+	ret.addChild(mp.match(SYMBOL, ""))
+	mp.match(PUNCTUATION, ";")
 
 	return ret
 }
@@ -667,20 +662,20 @@ implements_declaration:
 
 func (mp *mainParser) parseImplementsDeclaration() ParseElement {
 
-	mp.match(lexer.KEYWORD, "implements")
-	el := mp.startElement(lexer.INTERFACE_MAP)
+	mp.match(KEYWORD, "implements")
+	el := mp.startElement(INTERFACE_MAP)
 
 	el.addChild(mp.parseType())
 
-	if mp.tryMatch(lexer.KEYWORD, "alias") {
-		el.addChild(mp.match(lexer.SYMBOL, ""))
+	if mp.tryMatch(KEYWORD, "alias") {
+		el.addChild(mp.match(SYMBOL, ""))
 	}
 
-	if mp.peek(0, lexer.PUNCTUATION, "{") {
+	if mp.peek(0, PUNCTUATION, "{") {
 		el.addChild(mp.parseImplementsContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return el
@@ -695,8 +690,8 @@ implements_content:
 
 func (mp *mainParser) parseImplementsContent() ParseElement {
 
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseImplementsItem())
 		mp.checkProgress()
 	}
@@ -711,11 +706,11 @@ implements_item:
 
 func (mp *mainParser) parseImplementsItem() ParseElement {
 
-	ret := mp.startElement(lexer.IMPLEMENTS_DEF)
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-	mp.match(lexer.OPERATOR, "=")
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-	mp.match(lexer.PUNCTUATION, ";")
+	ret := mp.startElement(IMPLEMENTS_DEF)
+	ret.addChild(mp.match(SYMBOL, ""))
+	mp.match(OPERATOR, "=")
+	ret.addChild(mp.match(SYMBOL, ""))
+	mp.match(PUNCTUATION, ";")
 
 	return ret
 }
@@ -728,11 +723,11 @@ type_name:
 *****/
 
 func (mp *mainParser) parseTypeName() ParseElement {
-	ret := mp.startElement(lexer.TYPE_NAME)
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
-	if mp.tryMatch(lexer.PUNCTUATION, "(") {
+	ret := mp.startElement(TYPE_NAME)
+	ret.addChild(mp.match(SYMBOL, ""))
+	if mp.tryMatch(PUNCTUATION, "(") {
 		ret.addChild(mp.parseParameterList())
-		mp.match(lexer.PUNCTUATION, ")")
+		mp.match(PUNCTUATION, ")")
 	}
 	return ret
 }
@@ -745,14 +740,14 @@ interface_declaration:
 
 func (mp *mainParser) parseInterfaceDeclaration() ParseElement {
 
-	ret := mp.startElement(lexer.INTERFACE)
+	ret := mp.startElement(INTERFACE)
 	
-	mp.match(lexer.KEYWORD, "interface")
+	mp.match(KEYWORD, "interface")
 	ret.addChild(mp.parseTypeName())
 	ret.addChild(mp.parseInterfaceOptions())
-	mp.match(lexer.PUNCTUATION, "{")
+	mp.match(PUNCTUATION, "{")
 	ret.addChild(mp.parseInterfaceContent())
-	mp.match(lexer.PUNCTUATION, "}")
+	mp.match(PUNCTUATION, "}")
 
 	return ret
 }
@@ -771,15 +766,15 @@ interface_options_:
 
 func (mp *mainParser) parseInterfaceOptions() ParseElement {
 
-	ret := mp.startElement(lexer.LIST)
-	if mp.peek(0, lexer.PUNCTUATION, "{") {
+	ret := mp.startElement(LIST)
+	if mp.peek(0, PUNCTUATION, "{") {
 		return ret
 	}
 
 	for {
 		ret.addChild(mp.parseInterfaceOption())
 
-		if !mp.tryMatch(lexer.PUNCTUATION, ",") {
+		if !mp.tryMatch(PUNCTUATION, ",") {
 			return ret
 		}
 
@@ -795,8 +790,8 @@ interface_option:
 
 func (mp *mainParser) parseInterfaceOption() ParseElement {
 
-	if mp.tryMatch(lexer.KEYWORD, "extends") {
-		ret := mp.startElement(lexer.EXTENDS_DEF)
+	if mp.tryMatch(KEYWORD, "extends") {
+		ret := mp.startElement(EXTENDS_DEF)
 		ret.addChild(mp.parseType())
 		return ret
 	}
@@ -812,8 +807,8 @@ interface_content:
 ******/
 
 func (mp *mainParser) parseInterfaceContent() ParseElement {
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseInterfaceElement())
 		mp.checkProgress()
 	}
@@ -830,19 +825,19 @@ interface_element:
 
 func (mp *mainParser) parseInterfaceElement() ParseElement {
 
-	if mp.tryMatch(lexer.KEYWORD, "def") {
-		el := mp.startElement(lexer.DEF)
-		el.addChild(mp.match(lexer.SYMBOL, ""))
-		if mp.peek(0, lexer.PUNCTUATION, "(") {
+	if mp.tryMatch(KEYWORD, "def") {
+		el := mp.startElement(DEF)
+		el.addChild(mp.match(SYMBOL, ""))
+		if mp.peek(0, PUNCTUATION, "(") {
 			el.addChild(mp.parseFunctionType())
 		} else {
 			el.addChild(mp.parseType())
 		}
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		return el
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "extends") {
+	if mp.peek(0, KEYWORD, "extends") {
 		return mp.parseExtendsDeclaration()
 	}
 
@@ -862,27 +857,27 @@ method_declaration:
 
 func (mp *mainParser) parseMethodDeclaration() ParseElement {
 
-	ret := mp.startElement(lexer.METHOD)
+	ret := mp.startElement(METHOD)
 
-	mp.match(lexer.KEYWORD, "method")
+	mp.match(KEYWORD, "method")
 
 	ret.addChild(mp.parseType())
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
+	ret.addChild(mp.match(SYMBOL, ""))
 
-	if mp.peek(0, lexer.PUNCTUATION, "(") {
+	if mp.peek(0, PUNCTUATION, "(") {
 		ret.addChild(mp.parseFunctionType())
 	} else {
 		ret.addChild(mp.parseType())
 	}
 
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
-	} else if mp.tryMatch(lexer.OPERATOR, "=") {
+		mp.match(PUNCTUATION, "}")
+	} else if mp.tryMatch(OPERATOR, "=") {
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return ret
@@ -896,12 +891,12 @@ alias_declaration:
 
 func (mp *mainParser) parseAliasDeclaration() ParseElement {
 
-	ret := mp.startElement(lexer.ALIAS_DEF)
+	ret := mp.startElement(ALIAS_DEF)
 
-	mp.match(lexer.KEYWORD, "alias")
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
+	mp.match(KEYWORD, "alias")
+	ret.addChild(mp.match(SYMBOL, ""))
 	ret.addChild(mp.parseType())
-	mp.match(lexer.PUNCTUATION, ";")
+	mp.match(PUNCTUATION, ";")
 
 	return ret
 }
@@ -922,23 +917,23 @@ func (mp *mainParser) parseOperatorDeclaration() ParseElement {
 	//FIXME can any operator be defined or is it a subset?
 	//      definitely as set up now "." and "=" should be forbidden
 
-	ret := mp.startElement(lexer.OPERATOR_DEF)
-	ret.addChild(mp.match(lexer.OPERATOR, ""))
+	ret := mp.startElement(OPERATOR_DEF)
+	ret.addChild(mp.match(OPERATOR, ""))
 
-	if mp.peek(0, lexer.PUNCTUATION, "(") {
+	if mp.peek(0, PUNCTUATION, "(") {
 		ret.addChild(mp.parseFunctionType())
 	} else {
 		ret.addChild(mp.parseType())
 	}
 
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
-	} else if mp.tryMatch(lexer.OPERATOR, "=") {
+		mp.match(PUNCTUATION, "}")
+	} else if mp.tryMatch(OPERATOR, "=") {
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	} else {
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return ret
@@ -963,29 +958,29 @@ def_or_const:
 
 func (mp *mainParser) parseDefStatement() ParseElement {
 
-	ret := mp.startElement(lexer.DEF)
+	ret := mp.startElement(DEF)
 
 	//def or const
-	ret.addChild(mp.match(lexer.KEYWORD, ""))
+	ret.addChild(mp.match(KEYWORD, ""))
 
-	ret.addChild(mp.match(lexer.SYMBOL, ""))
+	ret.addChild(mp.match(SYMBOL, ""))
 
-	if mp.peek(0, lexer.PUNCTUATION, "(") {
+	if mp.peek(0, PUNCTUATION, "(") {
 		ret.addChild(mp.parseFunctionType())
-	} else if !mp.peek(0, lexer.OPERATOR, "=") {
+	} else if !mp.peek(0, OPERATOR, "=") {
 		ret.addChild(mp.parseType())
 	} else {
-		ret.addChild(mp.startElement(lexer.EMPTY))
+		ret.addChild(mp.startElement(EMPTY))
 	}
 
-	if mp.peek(0, lexer.OPERATOR, "=") {
+	if mp.peek(0, OPERATOR, "=") {
 		ret.addChild(mp.parseInitializer())
-	} else if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	} else if mp.tryMatch(PUNCTUATION, "{") {
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 	} else {
-		ret.addChild(mp.startElement(lexer.EMPTY))
-		mp.match(lexer.PUNCTUATION, ";")
+		ret.addChild(mp.startElement(EMPTY))
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return ret
@@ -1002,17 +997,17 @@ initializer:
 func (mp *mainParser) parseInitializer() ParseElement {
 
 	var ret ParseElement = nil
-	mp.match(lexer.OPERATOR, "=")
+	mp.match(OPERATOR, "=")
 
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret = mp.parseMapContent()
-		mp.match(lexer.PUNCTUATION, "}")
-	} else if mp.tryMatch(lexer.PUNCTUATION, "[") {
+		mp.match(PUNCTUATION, "}")
+	} else if mp.tryMatch(PUNCTUATION, "[") {
 		ret = mp.parseListContent()
-		mp.match(lexer.PUNCTUATION, "]")
+		mp.match(PUNCTUATION, "]")
 	} else {
 		ret = mp.parseExpression()
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 	}
 
 	return ret
@@ -1027,9 +1022,9 @@ function_content:
 
 func (mp *mainParser) parseFunctionContent() ParseElement {
 
-	ret := mp.startElement(lexer.FUNCTION_CONTENT)
+	ret := mp.startElement(FUNCTION_CONTENT)
 
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
+	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseFunctionStatement())
 		mp.checkProgress()
 	}
@@ -1060,109 +1055,109 @@ function_statement:
 
 func (mp *mainParser) parseFunctionStatement() ParseElement {
 
-	if mp.tryMatch(lexer.PUNCTUATION, ";") {
+	if mp.tryMatch(PUNCTUATION, ";") {
 		//empty statement
 		return nil
 	}
 
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret := mp.parseFunctionContent()
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "def") {
+	if mp.peek(0, KEYWORD, "def") {
 		return mp.parseDefStatement()
 	}
-	if mp.peek(0, lexer.KEYWORD, "const") {
+	if mp.peek(0, KEYWORD, "const") {
 		return mp.parseDefStatement()
 	}
 
-	if mp.tryMatch(lexer.KEYWORD, "if") {
-		ret := mp.startElement(lexer.IF)
+	if mp.tryMatch(KEYWORD, "if") {
+		ret := mp.startElement(IF)
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, "{")
+		mp.match(PUNCTUATION, "{")
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 
-		if mp.peek(0, lexer.KEYWORD, "else") {
+		if mp.peek(0, KEYWORD, "else") {
 			ret.addChild(mp.parseElseStatement())
 		}
 
 		return ret
 	}
 
-	if mp.tryMatch(lexer.KEYWORD, "while") {
-		ret := mp.startElement(lexer.WHILE)
+	if mp.tryMatch(KEYWORD, "while") {
+		ret := mp.startElement(WHILE)
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, "{")
+		mp.match(PUNCTUATION, "{")
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 		return ret
 	}
 
-	if mp.tryMatch(lexer.KEYWORD, "for") {
-		ret := mp.startElement(lexer.FOR)
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
-		mp.match(lexer.OPERATOR, "=")
+	if mp.tryMatch(KEYWORD, "for") {
+		ret := mp.startElement(FOR)
+		ret.addChild(mp.match(SYMBOL, ""))
+		mp.match(OPERATOR, "=")
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, "{")
+		mp.match(PUNCTUATION, "{")
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "with") {
-		ret := mp.startElement(lexer.WITH)
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
-		mp.match(lexer.OPERATOR, "=")
+	if mp.peek(0, KEYWORD, "with") {
+		ret := mp.startElement(WITH)
+		ret.addChild(mp.match(SYMBOL, ""))
+		mp.match(OPERATOR, "=")
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, "{")
+		mp.match(PUNCTUATION, "{")
 		ret.addChild(mp.parseFunctionContent())
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "return") {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.peek(0, KEYWORD, "return") {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
-		if !mp.peek(0, lexer.PUNCTUATION, ";") {
+		if !mp.peek(0, PUNCTUATION, ";") {
 			ret.addChild(mp.parseExpression())
 		}
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "continue") {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.peek(0, KEYWORD, "continue") {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "break") {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.peek(0, KEYWORD, "break") {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
-		if !mp.peek(0, lexer.PUNCTUATION, ";") {
-			ret.addChild(mp.match(lexer.NUMBER, ""))
+		if !mp.peek(0, PUNCTUATION, ";") {
+			ret.addChild(mp.match(NUMBER, ""))
 		}
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "label") {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.peek(0, KEYWORD, "label") {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
-		mp.match(lexer.PUNCTUATION, ";")
+		ret.addChild(mp.match(SYMBOL, ""))
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, lexer.KEYWORD, "goto") {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.peek(0, KEYWORD, "goto") {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
-		ret.addChild(mp.match(lexer.SYMBOL, ""))
-		mp.match(lexer.PUNCTUATION, ";")
+		ret.addChild(mp.match(SYMBOL, ""))
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
@@ -1178,21 +1173,21 @@ else_statement:
 *****/
 
 func (mp *mainParser) parseElseStatement() ParseElement {
-	mp.match(lexer.KEYWORD, "else")
-	if mp.tryMatch(lexer.PUNCTUATION, "{") {
+	mp.match(KEYWORD, "else")
+	if mp.tryMatch(PUNCTUATION, "{") {
 		ret := mp.parseFunctionContent()
-		mp.match(lexer.PUNCTUATION, "}")
+		mp.match(PUNCTUATION, "}")
 		return ret
 	}
 
-	mp.match(lexer.KEYWORD, "if")
-	ret := mp.startElement(lexer.IF)
+	mp.match(KEYWORD, "if")
+	ret := mp.startElement(IF)
 	ret.addChild(mp.parseExpression())
-	mp.match(lexer.PUNCTUATION, "{")
+	mp.match(PUNCTUATION, "{")
 	ret.addChild(mp.parseFunctionContent())
-	mp.match(lexer.PUNCTUATION, "}")
+	mp.match(PUNCTUATION, "}")
 
-	if mp.peek(0, lexer.KEYWORD, "else") {
+	if mp.peek(0, KEYWORD, "else") {
 		ret.addChild(mp.parseElseStatement())
 	}
 
@@ -1210,22 +1205,22 @@ assignment_statement:
 func (mp *mainParser) parseAssignmentStatement() ParseElement {
 
 	lhs := mp.parseExpression()
-	if mp.peek(0, lexer.OPERATOR, "=") {
-		ret := mp.startElement(lexer.ASSIGNMENT)
+	if mp.peek(0, OPERATOR, "=") {
+		ret := mp.startElement(ASSIGNMENT)
 		ret.addChild(lhs)
 		ret.addChild(mp.parseInitializer())
 		return ret
 	}
 
-	if mp.tryOperator(lexer.AssignmentOperators) {
-		ret := mp.startElement(lexer.ASSIGNMENT)
+	if mp.tryOperator(AssignmentOperators) {
+		ret := mp.startElement(ASSIGNMENT)
 		ret.addChild(mp.consume())
 		ret.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	mp.match(lexer.PUNCTUATION, ";")
+	mp.match(PUNCTUATION, ";")
 	return lhs
 }
 
@@ -1238,8 +1233,8 @@ expression:
 
 func (mp *mainParser) parseExpression() ParseElement {
 	ret := mp.parseExpressionAnd()
-	for mp.tryOperator(lexer.OrOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(OrOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionAnd())
@@ -1257,8 +1252,8 @@ expression_and:
 
 func (mp *mainParser) parseExpressionAnd() ParseElement {
 	ret := mp.parseExpressionCompare()
-	for mp.tryOperator(lexer.AndOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(AndOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionCompare())
@@ -1276,8 +1271,8 @@ expression_compare:
 
 func (mp *mainParser) parseExpressionCompare() ParseElement {
 	ret := mp.parseExpressionAdd()
-	for mp.tryOperator(lexer.CompareOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(CompareOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionAdd())
@@ -1295,8 +1290,8 @@ expression_add:
 
 func (mp *mainParser) parseExpressionAdd() ParseElement {
 	ret := mp.parseExpressionMult()
-	for mp.tryOperator(lexer.AddOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(AddOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionMult())
@@ -1314,8 +1309,8 @@ expression_mult:
 
 func (mp *mainParser) parseExpressionMult() ParseElement {
 	ret := mp.parseExpressionExp()
-	for mp.tryOperator(lexer.MultOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(MultOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionExp())
@@ -1332,8 +1327,8 @@ expression_exp:
 
 func (mp *mainParser) parseExpressionExp() ParseElement {
 	ret := mp.parseExpressionPrefix()
-	for mp.tryOperator(lexer.ExpOperators) {
-		el := mp.startElement(lexer.EXPRESSION)
+	for mp.tryOperator(ExpOperators) {
+		el := mp.startElement(EXPRESSION)
 		el.addChild(mp.consume())
 		el.addChild(ret)
 		el.addChild(mp.parseExpressionPrefix())
@@ -1350,8 +1345,8 @@ expression_prefix:
 
 func (mp *mainParser) parseExpressionPrefix() ParseElement {
 
-	if mp.tryOperator(lexer.PrefixOperators) {
-		ret := mp.startElement(lexer.EXPRESSION)
+	if mp.tryOperator(PrefixOperators) {
+		ret := mp.startElement(EXPRESSION)
 		ret.addChild(mp.consume())
 		ret.addChild(mp.parseExpressionPrefix())
 		return ret
@@ -1379,46 +1374,46 @@ func (mp *mainParser) parseExpressionSuffix() ParseElement {
 
 	var ret ParseElement
 
-	if mp.peek(0, lexer.NUMBER, "") {
+	if mp.peek(0, NUMBER, "") {
 		ret = mp.consume()
-	} else if mp.peek(0, lexer.STRING, "") {
+	} else if mp.peek(0, STRING, "") {
 		ret = mp.consume()
-	} else if mp.peek(0, lexer.CHARACTER, "") {
+	} else if mp.peek(0, CHARACTER, "") {
 		ret = mp.consume()
-	} else if mp.peek(0, lexer.SYMBOL, "") {
+	} else if mp.peek(0, SYMBOL, "") {
 		ret = mp.consume()
-	} else if mp.tryMatch(lexer.KEYWORD, "function") {
+	} else if mp.tryMatch(KEYWORD, "function") {
 		ret = mp.parseFunctionType()
-	} else if mp.tryMatch(lexer.PUNCTUATION, "(") {
+	} else if mp.tryMatch(PUNCTUATION, "(") {
 		ret = mp.parseExpression()
-		mp.match(lexer.PUNCTUATION, ")")
+		mp.match(PUNCTUATION, ")")
 	} else {
 		mp.error("missing expression")
 	}
 
 
 	for {
-		if mp.tryOperator(lexer.SuffixOperators) {
-			el := mp.startElement(lexer.EXPRESSION)
+		if mp.tryOperator(SuffixOperators) {
+			el := mp.startElement(EXPRESSION)
 			el.addChild(mp.consume())
 			el.addChild(ret)
 			ret = el
-		} else if mp.tryMatch(lexer.PUNCTUATION, "[") {
-			el := mp.startElement(lexer.INDEX)
+		} else if mp.tryMatch(PUNCTUATION, "[") {
+			el := mp.startElement(INDEX)
 			el.addChild(ret)
 			el.addChild(mp.parseExpression())
-			mp.match(lexer.PUNCTUATION, "]")
+			mp.match(PUNCTUATION, "]")
 			ret = el
-		} else if mp.tryMatch(lexer.PUNCTUATION, "(") {
-			el := mp.startElement(lexer.CALL)
+		} else if mp.tryMatch(PUNCTUATION, "(") {
+			el := mp.startElement(CALL)
 			el.addChild(ret)
 			el.addChild(mp.parseListContent())
-			mp.match(lexer.PUNCTUATION, ")")
+			mp.match(PUNCTUATION, ")")
 			ret = el
-		} else if mp.tryMatch(lexer.OPERATOR, ".") {
-			el := mp.startElement(lexer.DOT_LIST)
+		} else if mp.tryMatch(OPERATOR, ".") {
+			el := mp.startElement(DOT_LIST)
 			el.addChild(ret)
-			el.addChild(mp.match(lexer.SYMBOL, ""))
+			el.addChild(mp.match(SYMBOL, ""))
 			ret = el
 		} else {
 			break
@@ -1437,12 +1432,12 @@ expression_dot:
 
 func (mp *mainParser) parseExpressionDot() ParseElement {
 
-	ret := mp.match(lexer.SYMBOL, "")
+	ret := mp.match(SYMBOL, "")
 
-	for mp.tryMatch(lexer.OPERATOR, ".") {
-		el := mp.startElement(lexer.DOT_LIST)
+	for mp.tryMatch(OPERATOR, ".") {
+		el := mp.startElement(DOT_LIST)
 		el.addChild(ret)
-		el.addChild(mp.match(lexer.SYMBOL, ""))
+		el.addChild(mp.match(SYMBOL, ""))
 		ret = el
 	}
 	return ret
@@ -1458,14 +1453,14 @@ type:
 
 func (mp *mainParser) parseType() ParseElement {
 
-	if mp.tryMatch(lexer.KEYWORD, "function") {
+	if mp.tryMatch(KEYWORD, "function") {
 		return mp.parseFunctionType()
 	} else {
-		ret := mp.startElement(lexer.TYPE)
+		ret := mp.startElement(TYPE)
 		ret.addChild(mp.parseExpressionDot())
-		if mp.tryMatch(lexer.PUNCTUATION, "(") {
+		if mp.tryMatch(PUNCTUATION, "(") {
 			ret.addChild(mp.parseListContent())
-			mp.match(lexer.PUNCTUATION, ")")
+			mp.match(PUNCTUATION, ")")
 		}
 		return ret
 	}
@@ -1480,11 +1475,11 @@ function_type:
 
 func (mp *mainParser) parseFunctionType() ParseElement {
 
-	ret:= mp.startElement(lexer.FUNCTION_TYPE)
-	mp.match(lexer.PUNCTUATION, "(")
+	ret:= mp.startElement(FUNCTION_TYPE)
+	mp.match(PUNCTUATION, "(")
 	ret.addChild(mp.parseParameterList())
-	mp.match(lexer.PUNCTUATION, ")")
-	if mp.tryMatch(lexer.OPERATOR, "->") {
+	mp.match(PUNCTUATION, ")")
+	if mp.tryMatch(OPERATOR, "->") {
 		ret.addChild(mp.parseType())
 	}
 	return ret
@@ -1504,17 +1499,17 @@ list_content_:
 
 func (mp *mainParser) parseListContent() ParseElement {
 	//FIXME supports optional final comma, not in grammar
-	ret := mp.startElement(lexer.LIST)
+	ret := mp.startElement(LIST)
 	for {
-		if mp.peek(0, lexer.PUNCTUATION, "]") {
+		if mp.peek(0, PUNCTUATION, "]") {
 			break
 		}
-		if mp.peek(0, lexer.PUNCTUATION, ")") {
+		if mp.peek(0, PUNCTUATION, ")") {
 			break
 		}
 
 		ret.addChild(mp.parseExpression());
-		if !mp.tryMatch(lexer.PUNCTUATION, ",") {
+		if !mp.tryMatch(PUNCTUATION, ",") {
 			break
 		}
 		mp.checkProgress()
@@ -1529,13 +1524,13 @@ map_content:
 *****/
 
 func (mp *mainParser) parseMapContent() ParseElement {
-	ret := mp.startElement(lexer.LIST)
-	for !mp.peek(0, lexer.PUNCTUATION, "}") {
-		el := mp.startElement(lexer.ASSIGNMENT)
+	ret := mp.startElement(LIST)
+	for !mp.peek(0, PUNCTUATION, "}") {
+		el := mp.startElement(ASSIGNMENT)
 		el.addChild(mp.parseExpression())
-		mp.match(lexer.OPERATOR, "=")
+		mp.match(OPERATOR, "=")
 		el.addChild(mp.parseExpression())
-		mp.match(lexer.PUNCTUATION, ";")
+		mp.match(PUNCTUATION, ";")
 		ret.addChild(el)
 		mp.checkProgress()
 	}
@@ -1560,19 +1555,19 @@ parameter_list_:
 
 func (mp *mainParser) parseParameterList() ParseElement {
 
-	ret := mp.startElement(lexer.PARAMETER_LIST)
-	for mp.peek(0, lexer.SYMBOL, "") {
-		el := mp.startElement(lexer.PARAMETER)
+	ret := mp.startElement(PARAMETER_LIST)
+	for mp.peek(0, SYMBOL, "") {
+		el := mp.startElement(PARAMETER)
 		ret.addChild(el)
-		el.addChild(mp.match(lexer.SYMBOL, ""))
+		el.addChild(mp.match(SYMBOL, ""))
 
-		if mp.tryMatch(lexer.OPERATOR, ">") {
+		if mp.tryMatch(OPERATOR, ">") {
 			//FIXME how to represent in the syntax tree?
 		}
 
 		el.addChild(mp.parseType())
 
-		if !mp.tryMatch(lexer.PUNCTUATION, ",") {
+		if !mp.tryMatch(PUNCTUATION, ",") {
 			break
 		}
 	}

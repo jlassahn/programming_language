@@ -2,7 +2,6 @@
 package symbols
 
 import (
-	"lexer"
 	"parser"
 )
 
@@ -36,11 +35,11 @@ func evaluateConstDotList(vals []string, ctx *EvalContext) DataValue {
 
 func DotListAsStrings(el parser.ParseElement) []string {
 
-	if el.ElementType() == lexer.SYMBOL {
+	if el.ElementType() == parser.SYMBOL {
 		return []string{ el.TokenString() }
 	}
 
-	if el.ElementType() != lexer.DOT_LIST {
+	if el.ElementType() != parser.DOT_LIST {
 		return nil
 	}
 

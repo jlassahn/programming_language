@@ -11,17 +11,17 @@ type SymbolEval struct {}
 func (*SymbolEval) EvaluateConstExpression(
 		el parser.ParseElement, ctx *EvalContext) DataValue {
 
-	line, col := el.Position()
+	pos := el.FilePos()
 	name := el.TokenString()
 	symbol := ctx.Symbols.Lookup(name)
 
 	if symbol == nil {
-		output.Error(line, col, "undefined symbol: "+name)
+		output.Error(pos.Line, pos.Column, "undefined symbol: "+name)
 		return nil
 	}
 
 	if !symbol.IsConst() {
-		output.Error(line, col, "symbol must be const: "+name)
+		output.Error(pos.Line, pos.Column, "symbol must be const: "+name)
 		return nil
 	}
 	return symbol.InitialValue()

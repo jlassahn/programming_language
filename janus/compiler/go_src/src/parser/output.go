@@ -8,8 +8,8 @@ import (
 
 func EmitElementTree(el ParseElement, depth int, cmt bool) {
 
-	line, col := el.Position()
-	fmt.Printf("(%3d, %2d) ", line, col)
+	pos := el.FilePos()
+	fmt.Printf("(%3d, %2d) ", pos.Line, pos.Column)
 
 	for i:=0; i<depth; i++ {
 		fmt.Print("\t")

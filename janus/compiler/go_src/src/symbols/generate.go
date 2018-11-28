@@ -2,7 +2,6 @@
 package symbols
 
 import (
-	"lexer"
 	"parser"
 	"output"
 	)
@@ -12,7 +11,8 @@ type GenerateNode struct {
 	GenerateLLVM func(parser.ParseElement, *SymbolTable, DataType, output.LLVMFile)
 }
 
-var Handlers = map[*lexer.Tag]GenerateNode {
-	lexer.SOURCE_FILE: {nil, nil} }
+var Handlers = map[*parser.Tag]GenerateNode {
+	parser.SOURCE_FILE: {nil, nil},
+}
 
 

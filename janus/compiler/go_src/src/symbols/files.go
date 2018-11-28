@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"path/filepath"
-	"lexer"
 	"parser"
 	"output"
 )
@@ -43,7 +42,7 @@ func (self *SourceFile) SetModuleByFileName() {
 	base := parts[0]
 	ext := parts[1]
 
-	if !lexer.IsValidIdentifier(base) {
+	if !parser.IsValidIdentifier(base) {
 		return
 	}
 
@@ -142,7 +141,7 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 		output.FatalError(0,0, "unable to open file "+name)
 	}
 
-	lex := lexer.MakeLexer(fp, name)
+	lex := parser.MakeLexer(fp, name)
 	ret.ParseTree = parser.NewParser(lex).GetElement()
 	fp.Close()
 
@@ -197,11 +196,11 @@ func ResolveImports(file_set *FileSet,
 
 		for _, el := range file.ParseTree.Children() {
 
-			if el.ElementType() != lexer.IMPORT {
+			if el.ElementType() != parser.IMPORT {
 				continue
 			}
 
-			line, col := el.Position()
+			pos := el.FilePos()
 
 			args := el.Children()
 
@@ -241,7 +240,7 @@ func ResolveImports(file_set *FileSet,
 
 				newFile := NewSourceFile()
 
-				lex := lexer.MakeLexer(fp, name)
+				lex := parser.MakeLexer(fp, name)
 				newFile.ParseTree = parser.NewParser(lex).GetElement()
 				fp.Close()
 
@@ -278,7 +277,7 @@ func ResolveImports(file_set *FileSet,
 				}
 				continue
 			} else {
-				output.Error(line, col, "no file found for import "+ToDotString(modname))
+				output.Error(pos.Line, pos.Column, "no file found for import "+ToDotString(modname))
 			}
 		}
 

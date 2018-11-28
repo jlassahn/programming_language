@@ -2,7 +2,6 @@
 package symbols
 
 import (
-	"lexer"
 	"parser"
 	"fmt"
 )
@@ -16,11 +15,11 @@ type EvalContext struct {
 	Symbols SymbolTable
 }
 
-var evaluators = map[lexer.Tag] Evaluator {
-	*lexer.NUMBER: &NumberEval {},
-	*lexer.SYMBOL: &SymbolEval {},
-	*lexer.DOT_LIST: &DotListEval {},
-	*lexer.EXPRESSION: &ExpressionEval {},
+var evaluators = map[parser.Tag] Evaluator {
+	*parser.NUMBER: &NumberEval {},
+	*parser.SYMBOL: &SymbolEval {},
+	*parser.DOT_LIST: &DotListEval {},
+	*parser.EXPRESSION: &ExpressionEval {},
 }
 
 func EvaluateConstExpression(

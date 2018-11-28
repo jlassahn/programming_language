@@ -3,7 +3,6 @@ package symbols
 
 import (
 	"fmt"
-	"lexer"
 	"parser"
 	"output"
 )
@@ -32,7 +31,7 @@ func InterpretHeaderOptions(file *SourceFile) {
 	}
 
 	header := file.ParseTree.Children()[0]
-	if header.ElementType() != lexer.HEADER {
+	if header.ElementType() != parser.HEADER {
 		return
 	}
 
@@ -85,8 +84,8 @@ func InterpretHeaderOptions(file *SourceFile) {
 		if val.DotName != nil {
 			file.Options.ModuleName = val.DotName
 		} else {
-			line,col := val.ParseTree.Position()
-			output.Error(line, col, "invalid value for module_name")
+			pos := val.ParseTree.FilePos()
+			output.Error(pos.Line, pos.Column, "invalid value for module_name")
 		}
 	}
 
@@ -97,8 +96,8 @@ func InterpretHeaderOptions(file *SourceFile) {
 
 	for k, v := range file.Options.ByName {
 		if !v.Recognized {
-			line,col := v.ParseTree.Position()
-			output.Warning(line, col, "unrecognized option: "+k)
+			pos := v.ParseTree.FilePos()
+			output.Warning(pos.Line, pos.Column, "unrecognized option: "+k)
 		}
 	}
 }

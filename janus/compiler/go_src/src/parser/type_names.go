@@ -1,5 +1,5 @@
 
-package lexer
+package parser
 
 type Tag struct { string }
 

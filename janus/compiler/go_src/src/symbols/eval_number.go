@@ -43,7 +43,7 @@ type NumberEval struct {}
 func (*NumberEval) EvaluateConstExpression(
 		el parser.ParseElement, ctx *EvalContext) DataValue {
 
-	line, col := el.Position()
+	pos := el.FilePos()
 	txt := el.TokenString()
 
 	//FIXME handle bignum values
@@ -78,7 +78,7 @@ func (*NumberEval) EvaluateConstExpression(
 		}
 
 		if digit >= base {
-			output.Error(line, col+i, "invalid character in numeric constant")
+			output.Error(pos.Line, pos.Column+i, "invalid character in numeric constant")
 			continue
 		}
 
@@ -112,7 +112,7 @@ func (*NumberEval) EvaluateConstExpression(
 			}
 
 			if digit >= base {
-				output.Error(line, col+i, "invalid character in numeric constant")
+				output.Error(pos.Line, pos.Column+i, "invalid character in numeric constant")
 				continue
 			}
 
@@ -120,7 +120,7 @@ func (*NumberEval) EvaluateConstExpression(
 			frac = frac + mult*float64(digit)
 		}
 		if mult == 1.0 {
-			output.Error(line, col+i, "missing digit after decimal point")
+			output.Error(pos.Line, pos.Column+i, "missing digit after decimal point")
 		}
 	}
 
@@ -136,7 +136,7 @@ func (*NumberEval) EvaluateConstExpression(
 
 	typeInfo := typeInfoFromTag[tag]
 	if typeInfo == nil {
-		output.Error(line, col, "invalid type specifier for number constant")
+		output.Error(pos.Line, pos.Column, "invalid type specifier for number constant")
 		return nil
 	}
 
@@ -148,20 +148,20 @@ func (*NumberEval) EvaluateConstExpression(
 
 		case CAT_SIGNED:
 			if is_float {
-				output.Error(line, col, "fractional part in integer constant")
+				output.Error(pos.Line, pos.Column, "fractional part in integer constant")
 				return nil
 			}
 			return &signedDV{typeInfo.dtype, int64(iv)}
 
 		case CAT_UNSIGNED:
 			if is_float {
-				output.Error(line, col, "fractional part in integer constant")
+				output.Error(pos.Line, pos.Column, "fractional part in integer constant")
 				return nil
 			}
 			return &unsignedDV{typeInfo.dtype, iv}
 
 		case CAT_BIGNUM:
-			output.Error(line, col, "FIXME large integer values not implemented")
+			output.Error(pos.Line, pos.Column, "FIXME large integer values not implemented")
 			return nil
 	}
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"parser"
-	"lexer"
 )
 
 
@@ -60,7 +59,7 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 
 		switch el.ElementType() {
 
-		case lexer.DEF:
+		case parser.DEF:
 			/*
 				KEYWORD def or const
 				SYMBOL name
