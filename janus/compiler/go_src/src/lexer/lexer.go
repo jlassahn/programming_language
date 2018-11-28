@@ -8,43 +8,60 @@ import (
 	"output"
 )
 
+type FilePosition struct {
+	Line int
+	Column int
+	File string
+}
+
 type Token struct {
 	Text []byte
 	TokenType *Tag
-	Line, Column int
+	Position FilePosition
 }
 
 func (tok *Token) String() string {
 	return fmt.Sprintf("(%d, %d) %s %s",
-		tok.Line, tok.Column,
+		tok.Position.Line, tok.Position.Column,
 		tok.TokenType.string,
 		string(tok.Text))
 }
 
 
-func new_token(txt []byte, tt *Tag) *Token {
+func newToken(txt []byte, tt *Tag) *Token {
 	return &Token {
-		txt,
-		tt,
-		0, 0 }
+		Text: txt,
+		TokenType: tt,
+		Position: FilePosition {
+			Line: 0,
+			Column: 0,
+			File: "",
+		},
+	}
+
 }
 
 type Lexer struct {
 	reader io.Reader
 	charbuf []byte
 	bufcount int
-	file_error error
-	line, column int
+	fileError error
+	line int
+	column int
+	filename string
 }
 
-func MakeLexer(src io.Reader) *Lexer {
+func MakeLexer(src io.Reader, filename string) *Lexer {
 
 	ret := &Lexer{
-		src,
-		make([]byte, 16),
-		0,
-		nil,
-		1, 1}
+		reader: src,
+		charbuf: make([]byte, 16),
+		bufcount: 0,
+		fileError: nil,
+		line: 1,
+		column: 1,
+		filename: filename,
+	}
 
 	ret.fill()
 	return ret
@@ -56,14 +73,14 @@ func (lex *Lexer) fill() {
 		return
 	}
 
-	if lex.file_error != nil {
+	if lex.fileError != nil {
 		return
 	}
 
 	n, err := lex.reader.Read(lex.charbuf[lex.bufcount:])
 	lex.bufcount += n
 	if err != nil {
-		lex.file_error = err
+		lex.fileError = err
 	}
 }
 
@@ -84,7 +101,7 @@ func (lex *Lexer) consume(n int) {
 	lex.fill()
 }
 
-func (lex *Lexer) is_eof() bool {
+func (lex *Lexer) isEOF() bool {
 	return lex.bufcount == 0
 }
 
@@ -92,143 +109,144 @@ func (lex *Lexer) match(x string) bool {
 	return bytes.HasPrefix(lex.charbuf, []byte(x))
 }
 
-func (lex *Lexer) match_byte(x byte) bool {
+func (lex *Lexer) matchByte(x byte) bool {
 	return lex.charbuf[0] == x
 }
 
-func is_space(x byte) bool {
+func isSpace(x byte) bool {
 	if x == ' ' || x == '\t' || x == 10 || x == 13 {
 		return true
 	}
 	return false
 }
 
-func is_digit(x byte) bool {
+func isDigit(x byte) bool {
 	return x >= '0' && x <= '9'
 }
 
-func is_number_char(x byte) bool {
+func isNumberChar(x byte) bool {
 	return ((x >= '0' && x <= '9') ||
 		(x >= 'a' && x <= 'z') ||
 		(x >= 'A' && x <= 'Z') ||
 		(x=='_') || (x =='.'))
 }
 
-func is_identifier_start(x byte) bool {
+func isIdentifierStart(x byte) bool {
 	return ((x >= 'a' && x <= 'z') ||
 		(x >= 'A' && x <= 'Z') ||
 		(x=='_') ||
 		(x >= 128))
 }
 
-func is_identifier(x byte) bool {
-	return is_digit(x) || is_identifier_start(x)
+func isIdentifier(x byte) bool {
+	return isDigit(x) || isIdentifierStart(x)
 }
 
-func (lex *Lexer) skip_space() {
-	for is_space(lex.charbuf[0]) {
+func (lex *Lexer) skipSpace() {
+	for isSpace(lex.charbuf[0]) {
 		lex.consume(1)
 	}
 }
 
 func (lex *Lexer)  NextToken() *Token {
 
-	lex.skip_space()
+	lex.skipSpace()
 
 	line := lex.line
 	col := lex.column
 
-	tok := lex.read_token()
+	tok := lex.readToken()
 
-	tok.Line = line
-	tok.Column = col
+	tok.Position.Line = line
+	tok.Position.Column = col
+	tok.Position.File = lex.filename
 
 	output.EmitToken(tok.String())
 	return tok
 }
 
-func (lex *Lexer) read_token() *Token {
+func (lex *Lexer) readToken() *Token {
 
-	if lex.is_eof() {
-		if lex.file_error != io.EOF {
-			output.FatalError(lex.line, lex.column, lex.file_error.Error())
+	if lex.isEOF() {
+		if lex.fileError != io.EOF {
+			output.FatalError(lex.line, lex.column, lex.fileError.Error())
 		}
-		return new_token([]byte("EOF"), EOF)
+		return newToken([]byte("EOF"), EOF)
 	}
 
 	if lex.match("#{") {
 		lex.consume(2)
-		return new_token([]byte("#{"), PUNCTUATION)
+		return newToken([]byte("#{"), PUNCTUATION)
 	}
 
 	for _, op := range Operators {
 		if lex.match(op) {
 			lex.consume(len(op))
-			return new_token([]byte(op), OPERATOR)
+			return newToken([]byte(op), OPERATOR)
 		}
 	}
 
-	if lex.match_byte('#') {
-		return lex.get_comment()
+	if lex.matchByte('#') {
+		return lex.getComment()
 	}
 
 	if lex.match("\"\"\"") {
-		return lex.get_long_string()
+		return lex.getLongString()
 	}
 
-	if lex.match_byte('"') {
-		return lex.get_string()
+	if lex.matchByte('"') {
+		return lex.getString()
 	}
 
-	if lex.match_byte('`') {
-		return lex.get_char()
+	if lex.matchByte('`') {
+		return lex.getChar()
 	}
 
-	if is_digit(lex.charbuf[0]) {
-		return lex.get_number()
+	if isDigit(lex.charbuf[0]) {
+		return lex.getNumber()
 	}
 
-	if is_identifier_start(lex.charbuf[0]) {
-		return lex.get_symbol()
+	if isIdentifierStart(lex.charbuf[0]) {
+		return lex.getSymbol()
 	}
 
 	ret := make([]byte, 1)
 	ret[0] = lex.charbuf[0]
 	lex.consume(1)
-	return new_token(ret, PUNCTUATION)
+	return newToken(ret, PUNCTUATION)
 }
 
-func (lex *Lexer) get_comment() *Token {
+func (lex *Lexer) getComment() *Token {
 
 	buf := make([]byte, 0)
 
 	for {
-		if lex.match_byte(10) {
+		if lex.matchByte(10) {
 			break
 		}
 
-		if lex.is_eof() {
+		if lex.isEOF() {
 			break
 		}
 		buf = append(buf, lex.charbuf[0])
 		lex.consume(1)
 	}
 
-	return new_token(buf, COMMENT)
+	return newToken(buf, COMMENT)
 }
 
-func (lex *Lexer) get_string() *Token {
+func (lex *Lexer) getString() *Token {
 	buf := make([]byte, 0)
 
 	lex.consume(1)
 
 	for {
-		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
+		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
 			output.FatalError(lex.line, lex.column,
 				"Newline in string constant")
 		}
 
-		if lex.match_byte('"') {
+		if lex.matchByte('"') {
 			lex.consume(1)
 			break
 		}
@@ -236,16 +254,16 @@ func (lex *Lexer) get_string() *Token {
 		lex.consume(1)
 	}
 
-	return new_token(buf, STRING)
+	return newToken(buf, STRING)
 }
 
-func (lex *Lexer) get_long_string() *Token {
+func (lex *Lexer) getLongString() *Token {
 	buf := make([]byte, 0)
 
 	lex.consume(3)
 
 	for {
-		if lex.is_eof() {
+		if lex.isEOF() {
 			output.FatalError(lex.line, lex.column, "EOF in string constant")
 		}
 
@@ -257,21 +275,21 @@ func (lex *Lexer) get_long_string() *Token {
 		lex.consume(1)
 	}
 
-	return new_token(buf, STRING)
+	return newToken(buf, STRING)
 }
 
-func (lex *Lexer) get_char() *Token {
+func (lex *Lexer) getChar() *Token {
 	buf := make([]byte, 0)
 
 	lex.consume(1)
 
 	for {
-		if lex.match_byte(10) || lex.match_byte(13) || lex.is_eof() {
+		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
 			output.FatalError(lex.line, lex.column,
 				"Newline in character constant")
 		}
 
-		if lex.match_byte('`') {
+		if lex.matchByte('`') {
 			lex.consume(1)
 			break
 		}
@@ -279,32 +297,32 @@ func (lex *Lexer) get_char() *Token {
 		lex.consume(1)
 	}
 
-	return new_token(buf, CHARACTER)
+	return newToken(buf, CHARACTER)
 }
 
-func (lex *Lexer) get_number() *Token {
+func (lex *Lexer) getNumber() *Token {
 	var buf []byte = nil
 
-	for is_number_char(lex.charbuf[0]) {
+	for isNumberChar(lex.charbuf[0]) {
 		buf = append(buf, lex.charbuf[0])
 		lex.consume(1)
 	}
 
-	return new_token(buf, NUMBER)
+	return newToken(buf, NUMBER)
 }
 
-func (lex *Lexer) get_symbol() *Token {
+func (lex *Lexer) getSymbol() *Token {
 	var buf []byte = nil
 
-	for is_identifier(lex.charbuf[0]) {
+	for isIdentifier(lex.charbuf[0]) {
 		buf = append(buf, lex.charbuf[0])
 		lex.consume(1)
 	}
 
 	if Keywords[string(buf)] {
-		return new_token(buf, KEYWORD)
+		return newToken(buf, KEYWORD)
 	} else {
-		return new_token(buf, SYMBOL)
+		return newToken(buf, SYMBOL)
 	}
 }
 
@@ -313,12 +331,12 @@ func IsValidIdentifier(name string) bool {
 		return false
 	}
 
-	if !is_identifier_start(name[0]) {
+	if !isIdentifierStart(name[0]) {
 		return false
 	}
 
 	for _,x := range([]byte(name)) {
-		if !is_identifier(x) {
+		if !isIdentifier(x) {
 			return false
 		}
 	}

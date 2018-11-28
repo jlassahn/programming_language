@@ -8,6 +8,7 @@ func (t *Tag) String() string {
 }
 
 var EOF = &Tag{"EOF"}
+var EMPTY = &Tag{"EMPTY"}
 var COMMENT = &Tag{"COMMENT"}
 var NUMBER = &Tag{"NUMBER"}
 var STRING = &Tag{"STRING"}

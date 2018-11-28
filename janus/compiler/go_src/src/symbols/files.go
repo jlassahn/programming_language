@@ -54,20 +54,24 @@ func (self *SourceFile) SetModuleByFileName() {
 }
 
 type Module struct {
+
+	Name string
+
 	Children map[string]*Module
 
 	FileList []*SourceFile
 
-	ExportedSymbols SymbolTable
-	LocalSymbols SymbolTable
+	ExportedSymbols *symbolTable
+	LocalSymbols *symbolTable
 }
 
-func NewModule() *Module {
+func NewModule(name string) *Module {
 	return &Module {
+		Name: name,
 		Children: map[string]*Module {},
 		FileList: nil,
-		ExportedSymbols: nil,
-		LocalSymbols: nil,
+		ExportedSymbols: NewSymbolTable(name, nil),
+		LocalSymbols: NewSymbolTable(name, nil),
 	}
 }
 
@@ -108,7 +112,7 @@ type FileSet struct {
 func NewFileSet() *FileSet {
 	return &FileSet {
 		FileList: nil,
-		RootModule: NewModule() }
+		RootModule: NewModule("@root") }
 }
 
 
@@ -138,7 +142,7 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 		output.FatalError(0,0, "unable to open file "+name)
 	}
 
-	lex := lexer.MakeLexer(fp)
+	lex := lexer.MakeLexer(fp, name)
 	ret.ParseTree = parser.NewParser(lex).GetElement()
 	fp.Close()
 
@@ -164,7 +168,7 @@ func (self *FileSet) AddFileToModules(file *SourceFile) {
 	for _,x := range path {
 		mod := baseMod.Children[x]
 		if mod == nil {
-			mod = NewModule()
+			mod = NewModule(x)
 			baseMod.Children[x] = mod
 		}
 
@@ -237,7 +241,7 @@ func ResolveImports(file_set *FileSet,
 
 				newFile := NewSourceFile()
 
-				lex := lexer.MakeLexer(fp)
+				lex := lexer.MakeLexer(fp, name)
 				newFile.ParseTree = parser.NewParser(lex).GetElement()
 				fp.Close()
 

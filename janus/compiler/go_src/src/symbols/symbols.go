@@ -39,6 +39,16 @@ type symbolTable struct {
 	Parent *symbolTable
 }
 
+func NewSymbolTable(name string, parent *symbolTable) *symbolTable {
+
+	return &symbolTable {
+		Name: name,
+		Symbols: map[string]Symbol {},
+		Operators: map[string]FunctionChoiceSymbol {},
+		Parent: parent,
+	}
+}
+
 func (self *symbolTable) Lookup(x string) Symbol {
 
 	ret := self.Symbols[x]
@@ -125,11 +135,6 @@ func (st *symbolTable) Emit() {
 }
 
 
-func ResolveGlobals(file_set *FileSet) {
-	//FIXME implement
-}
-
-
 //FIXME organize
 
 type baseSymbol struct {
@@ -184,12 +189,8 @@ func PredefinedSymbols() *symbolTable {
 //FIXME reorganize and correct
 func buildPredefinedSymbols() *symbolTable {
 
-	syms := &symbolTable {
-		Name: "PREDEFINED",
-		Symbols: map[string]Symbol {},
-		Operators: map[string]FunctionChoiceSymbol {},
-		Parent: nil,
-	}
+	syms := NewSymbolTable("PREDEFINED", nil)
+
 	syms.AddConst("True", BoolType, TrueValue)
 	syms.AddConst("False", BoolType, FalseValue)
 

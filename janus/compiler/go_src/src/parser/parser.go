@@ -25,6 +25,7 @@ type parseElement struct {
 	comments []ParseElement
 	elementType *lexer.Tag
 	line, column int
+	file string
 	token *lexer.Token
 }
 
@@ -74,11 +75,14 @@ func (tw *tokenWrapper) GetElement() ParseElement {
 	tok := tw.lex.NextToken()
 
 	ret := parseElement{
-		nil, nil,
-		tok.TokenType,
-		tok.Line,
-		tok.Column,
-		tok }
+		children: nil,
+		comments: nil,
+		elementType: tok.TokenType,
+		line: tok.Position.Line, //FIXME reference FilePosition instead
+		column: tok.Position.Column,
+		file: "",
+		token: tok,
+		}
 
 	return &ret
 }
@@ -104,11 +108,14 @@ func (cm *commentMerger) GetElement() ParseElement {
 				cm.comments = nil
 				line, col := el.Position()
 				return &parseElement {
-					el.Children(),
-					comments,   //FIXME merge existing comments
-					el.ElementType(),
-					line, col,
-					el.Token() }
+					children: el.Children(),
+					comments: comments,   //FIXME merge existing comments
+					elementType: el.ElementType(),
+					line: line,
+					column: col,
+					file: "",
+					token: el.Token(),
+				}
 			} else {
 				return el
 			}
@@ -123,11 +130,14 @@ func (cm *commentMerger) GetElement() ParseElement {
 				cm.comments = nil
 				line, col := el.Position()
 				return &parseElement {
-					el.Children(),
-					comments,   //FIXME merge existing comments
-					el.ElementType(),
-					line, col,
-					el.Token() }
+					children: el.Children(),
+					comments: comments,   //FIXME merge existing comments
+					elementType: el.ElementType(),
+					line: line,
+					column: col,
+					file: "",
+					token: el.Token(),
+				}
 			} else {
 				return el
 			}
@@ -234,11 +244,14 @@ func (mp *mainParser) startElement(etype *lexer.Tag) *parseElement {
 	comments := mp.queue[0].Comments()
 
 	ret := parseElement {
-		nil,
-		comments,
-		etype,
-		line, col,
-		nil }
+		children: nil,
+		comments: comments,
+		elementType: etype,
+		line: line,
+		column: col,
+		file: "",
+		token: nil,
+	}
 
 	return &ret
 }
@@ -961,6 +974,8 @@ func (mp *mainParser) parseDefStatement() ParseElement {
 		ret.addChild(mp.parseFunctionType())
 	} else if !mp.peek(0, lexer.OPERATOR, "=") {
 		ret.addChild(mp.parseType())
+	} else {
+		ret.addChild(mp.startElement(lexer.EMPTY))
 	}
 
 	if mp.peek(0, lexer.OPERATOR, "=") {
@@ -969,6 +984,7 @@ func (mp *mainParser) parseDefStatement() ParseElement {
 		ret.addChild(mp.parseFunctionContent())
 		mp.match(lexer.PUNCTUATION, "}")
 	} else {
+		ret.addChild(mp.startElement(lexer.EMPTY))
 		mp.match(lexer.PUNCTUATION, ";")
 	}
 
