@@ -3,7 +3,6 @@ package parser
 
 import (
 	"fmt"
-	"output"
 )
 
 type ParseElement interface {
@@ -101,7 +100,7 @@ func (cm *commentMerger) GetElement() ParseElement {
 		if el.ElementType() == EOF {
 			if cm.depth > 0 {
 				pos := cm.comments[0].FilePos()
-				output.FatalError(pos.Line, pos.Column, "EOF inside block comment")
+				FatalError(pos, "EOF inside block comment")
 			}
 			if cm.comments != nil {
 				comments := cm.comments
@@ -167,6 +166,10 @@ func (mp *mainParser) consume() ParseElement {
 	mp.queue[15] = mp.upstream.GetElement()
 	mp.progress = true
 
+	if ret.ElementType() == EOF {
+		FatalError(ret.FilePos(), "inernal error, unexpected EOF")
+	}
+
 	return ret
 }
 
@@ -205,15 +208,20 @@ func (mp *mainParser) match(etype *Tag, txt string) ParseElement {
 	}
 }
 
-func (mp *mainParser) checkProgress() {
+func (mp *mainParser) checkProgress() bool {
 	if mp.progress {
 		mp.progress = false
+		return true
+	} else if mp.peek(0, EOF, "") {
+		Error(mp.queue[0].FilePos(), "unexpected EOF")
+		return false
 	} else {
 		err := fmt.Sprintf("unexpected %s %s",
 			mp.queue[0].ElementType(),
 			mp.queue[0].TokenString())
 		mp.error(err)
 		mp.consume()
+		return true
 	}
 }
 
@@ -255,7 +263,7 @@ func (mp *mainParser) error(txt string) {
 
 	if !mp.resync {
 		pos := mp.queue[0].FilePos()
-		output.Error(pos.Line, pos.Column, txt)
+		Error(pos, txt)
 		mp.resync = true
 	}
 }
@@ -295,7 +303,7 @@ func (mp *mainParser) parseFile() ParseElement {
 
 	for !mp.peek(0, EOF, "") {
 		ret.addChild(mp.parseFileDeclaration())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 
 	return ret
@@ -334,7 +342,7 @@ func (mp *mainParser) parseHeaderOptions() ParseElement {
 	ret := mp.startElement(LIST)
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseHeaderOption())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -491,7 +499,9 @@ func (mp *mainParser) parseStructOptions() ParseElement {
 			return ret
 		}
 
-		mp.checkProgress()
+		if !mp.checkProgress() {
+			return ret
+		}
 	}
 }
 
@@ -544,7 +554,7 @@ func (mp *mainParser) parseStructContent() ParseElement {
 	ret := mp.startElement(LIST)
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseStructElement())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -627,7 +637,7 @@ func (mp *mainParser) parseExtendsContent() ParseElement {
 	ret := mp.startElement(LIST)
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseExtendsItem())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -693,7 +703,7 @@ func (mp *mainParser) parseImplementsContent() ParseElement {
 	ret := mp.startElement(LIST)
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseImplementsItem())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -778,7 +788,9 @@ func (mp *mainParser) parseInterfaceOptions() ParseElement {
 			return ret
 		}
 
-		mp.checkProgress()
+		if !mp.checkProgress() {
+			return ret
+		}
 	}
 }
 
@@ -810,7 +822,7 @@ func (mp *mainParser) parseInterfaceContent() ParseElement {
 	ret := mp.startElement(LIST)
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseInterfaceElement())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -1026,7 +1038,7 @@ func (mp *mainParser) parseFunctionContent() ParseElement {
 
 	for !mp.peek(0, PUNCTUATION, "}") {
 		ret.addChild(mp.parseFunctionStatement())
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 
 	return ret
@@ -1512,7 +1524,7 @@ func (mp *mainParser) parseListContent() ParseElement {
 		if !mp.tryMatch(PUNCTUATION, ",") {
 			break
 		}
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }
@@ -1532,7 +1544,7 @@ func (mp *mainParser) parseMapContent() ParseElement {
 		el.addChild(mp.parseExpression())
 		mp.match(PUNCTUATION, ";")
 		ret.addChild(el)
-		mp.checkProgress()
+		if !mp.checkProgress() { break }
 	}
 	return ret
 }

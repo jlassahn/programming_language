@@ -2,7 +2,6 @@
 package symbols
 
 import (
-	"output"
 	"parser"
 )
 
@@ -78,7 +77,7 @@ func (*NumberEval) EvaluateConstExpression(
 		}
 
 		if digit >= base {
-			output.Error(pos.Line, pos.Column+i, "invalid character in numeric constant")
+			parser.Error(pos, "invalid character in numeric constant")
 			continue
 		}
 
@@ -112,7 +111,7 @@ func (*NumberEval) EvaluateConstExpression(
 			}
 
 			if digit >= base {
-				output.Error(pos.Line, pos.Column+i, "invalid character in numeric constant")
+				parser.Error(pos, "invalid character in numeric constant")
 				continue
 			}
 
@@ -120,7 +119,7 @@ func (*NumberEval) EvaluateConstExpression(
 			frac = frac + mult*float64(digit)
 		}
 		if mult == 1.0 {
-			output.Error(pos.Line, pos.Column+i, "missing digit after decimal point")
+			parser.Error(pos, "missing digit after decimal point")
 		}
 	}
 
@@ -136,7 +135,7 @@ func (*NumberEval) EvaluateConstExpression(
 
 	typeInfo := typeInfoFromTag[tag]
 	if typeInfo == nil {
-		output.Error(pos.Line, pos.Column, "invalid type specifier for number constant")
+		parser.Error(pos, "invalid type specifier for number constant")
 		return nil
 	}
 
@@ -148,20 +147,20 @@ func (*NumberEval) EvaluateConstExpression(
 
 		case CAT_SIGNED:
 			if is_float {
-				output.Error(pos.Line, pos.Column, "fractional part in integer constant")
+				parser.Error(pos, "fractional part in integer constant")
 				return nil
 			}
 			return &signedDV{typeInfo.dtype, int64(iv)}
 
 		case CAT_UNSIGNED:
 			if is_float {
-				output.Error(pos.Line, pos.Column, "fractional part in integer constant")
+				parser.Error(pos, "fractional part in integer constant")
 				return nil
 			}
 			return &unsignedDV{typeInfo.dtype, iv}
 
 		case CAT_BIGNUM:
-			output.Error(pos.Line, pos.Column, "FIXME large integer values not implemented")
+			parser.Error(pos, "FIXME large integer values not implemented")
 			return nil
 	}
 

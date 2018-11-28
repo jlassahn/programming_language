@@ -8,7 +8,6 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
-	"output"
 	"parser"
 	"symbols"
 )
@@ -66,7 +65,7 @@ func parseArgs() *parameters {
 			flag := arg[1:]
 			_, ok := flags[flag]
 			if !ok {
-				output.FatalNoFile("unknown option: "+arg)
+				parser.CurrentLogger.FatalError("unknown options: %v", arg)
 				flags["help"] = true
 			}
 			flags[flag] = true
@@ -76,7 +75,7 @@ func parseArgs() *parameters {
 	}
 
 	if files == nil && !flags["help"] {
-		output.FatalNoFile("no source files specified")
+		parser.CurrentLogger.FatalError("no source files specified")
 	}
 
 	ret := &parameters {
@@ -109,7 +108,7 @@ func main() {
 	file_set := symbols.NewFileSet()
 
 	if args.Flags["show-tokens"] {
-		output.EnableTokens()
+		parser.EnableTokens()
 	}
 
 	for _, file := range args.Files {

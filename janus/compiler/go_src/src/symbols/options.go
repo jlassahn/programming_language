@@ -4,7 +4,6 @@ package symbols
 import (
 	"fmt"
 	"parser"
-	"output"
 )
 
 type HeaderOptions struct {
@@ -85,7 +84,7 @@ func InterpretHeaderOptions(file *SourceFile) {
 			file.Options.ModuleName = val.DotName
 		} else {
 			pos := val.ParseTree.FilePos()
-			output.Error(pos.Line, pos.Column, "invalid value for module_name")
+			parser.Error(pos, "invalid value for module_name")
 		}
 	}
 
@@ -97,7 +96,7 @@ func InterpretHeaderOptions(file *SourceFile) {
 	for k, v := range file.Options.ByName {
 		if !v.Recognized {
 			pos := v.ParseTree.FilePos()
-			output.Warning(pos.Line, pos.Column, "unrecognized option: "+k)
+			parser.Warning(pos, "unrecognized option: %v", k)
 		}
 	}
 }

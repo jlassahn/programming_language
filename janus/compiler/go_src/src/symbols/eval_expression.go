@@ -4,7 +4,6 @@ package symbols
 import (
 	"fmt"
 	"parser"
-	"output"
 )
 
 
@@ -18,7 +17,7 @@ func (*ExpressionEval) EvaluateConstExpression(
 	pos := opElement.FilePos()
 
 	if opElement.ElementType() != parser.OPERATOR {
-		output.Error(pos.Line, pos.Column, "FIXME not an operator: "+opName)
+		parser.Error(pos, "FIXME not an operator: %v", opName)
 		return nil
 	}
 
@@ -33,7 +32,7 @@ func (*ExpressionEval) EvaluateConstExpression(
 
 	opChoices := ctx.Symbols.LookupOperator(opName)
 	if opChoices == nil {
-		output.Error(pos.Line, pos.Column, "No definition for operator "+opName)
+		parser.Error(pos, "No definition for operator %v", opName)
 		//FIXME testing
 		ctx.Symbols.Emit()
 		return nil
@@ -41,14 +40,12 @@ func (*ExpressionEval) EvaluateConstExpression(
 
 	op := selectFunctionChoice(opChoices, args)
 	if op == nil {
-		output.Error(pos.Line, pos.Column,
-			"Operator "+opName+" can't take these parameters")
+		parser.Error(pos, "Operator %v can't take these parameters", opName)
 		return nil
 	}
 
 	if !op.IsConst() {
-		output.Error(pos.Line, pos.Column,
-			"Operator "+opName+" not const")
+		parser.Error(pos, "Operator %v not const", opName)
 		return nil
 	}
 

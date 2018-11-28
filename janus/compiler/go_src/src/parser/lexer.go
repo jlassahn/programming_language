@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"bytes"
-	"output"
 )
 
 type FilePosition struct {
@@ -46,11 +45,16 @@ type Lexer struct {
 	charbuf []byte
 	bufcount int
 	fileError error
-	line int
-	column int
-	filename string
+
+	pos FilePosition
+
+	//FIXME remove
+	//line int
+	//column int
+	//filename string
 }
 
+//FIXME NewLexer!
 func MakeLexer(src io.Reader, filename string) *Lexer {
 
 	ret := &Lexer{
@@ -58,9 +62,11 @@ func MakeLexer(src io.Reader, filename string) *Lexer {
 		charbuf: make([]byte, 16),
 		bufcount: 0,
 		fileError: nil,
-		line: 1,
-		column: 1,
-		filename: filename,
+		pos: FilePosition {
+			Line: 1,
+			Column: 1,
+			File: filename,
+		},
 	}
 
 	ret.fill()
@@ -88,10 +94,10 @@ func (lex *Lexer) consume(n int) {
 
 	for i:=0; i<n; i++ {
 		if lex.charbuf[0] == 10 {
-			lex.line ++
-			lex.column = 1
+			lex.pos.Line ++
+			lex.pos.Column = 1
 		} else {
-			lex.column ++
+			lex.pos.Column ++
 		}
 		copy(lex.charbuf[:15], lex.charbuf[1:16])
 		lex.charbuf[15] = 0
@@ -152,16 +158,22 @@ func (lex *Lexer)  NextToken() *Token {
 
 	lex.skipSpace()
 
+	/* FIXME remove
 	line := lex.line
 	col := lex.column
+	*/
 
+	pos := lex.pos
 	tok := lex.readToken()
+	tok.Position = pos
 
+	/* FIXME remove
 	tok.Position.Line = line
 	tok.Position.Column = col
 	tok.Position.File = lex.filename
+	*/
 
-	output.EmitToken(tok.String())
+	EmitToken(tok.String())
 	return tok
 }
 
@@ -169,7 +181,7 @@ func (lex *Lexer) readToken() *Token {
 
 	if lex.isEOF() {
 		if lex.fileError != io.EOF {
-			output.FatalError(lex.line, lex.column, lex.fileError.Error())
+			FatalError(&lex.pos, lex.fileError.Error())
 		}
 		return newToken([]byte("EOF"), EOF)
 	}
@@ -242,8 +254,7 @@ func (lex *Lexer) getString() *Token {
 
 	for {
 		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
-			output.FatalError(lex.line, lex.column,
-				"Newline in string constant")
+			FatalError(&lex.pos, "Newline in string constant")
 		}
 
 		if lex.matchByte('"') {
@@ -264,7 +275,7 @@ func (lex *Lexer) getLongString() *Token {
 
 	for {
 		if lex.isEOF() {
-			output.FatalError(lex.line, lex.column, "EOF in string constant")
+			FatalError(&lex.pos, "EOF in string constant")
 		}
 
 		if lex.match("\"\"\"") {
@@ -285,8 +296,7 @@ func (lex *Lexer) getChar() *Token {
 
 	for {
 		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
-			output.FatalError(lex.line, lex.column,
-				"Newline in character constant")
+			FatalError(&lex.pos, "Newline in character constant")
 		}
 
 		if lex.matchByte('`') {

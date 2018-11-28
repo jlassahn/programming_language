@@ -7,7 +7,6 @@ import (
 	"strings"
 	"path/filepath"
 	"parser"
-	"output"
 )
 
 
@@ -138,7 +137,7 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 
 	fp, err := os.Open(name)
 	if err != nil {
-		output.FatalError(0,0, "unable to open file "+name)
+		parser.CurrentLogger.FatalError("unable to open file %v", name)
 	}
 
 	lex := parser.MakeLexer(fp, name)
@@ -157,8 +156,8 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 func (self *FileSet) AddFileToModules(file *SourceFile) {
 
 	if len(file.Options.ModuleName) < 1 {
-		output.FatalError(0,0,
-			"can't infer a module name for file "+file.FileName)
+		parser.CurrentLogger.FatalError(
+			"can't infer a module name for file %v", file.FileName)
 	}
 
 	baseMod := self.RootModule
@@ -253,7 +252,8 @@ func ResolveImports(file_set *FileSet,
 				//FIXME more efficient compare
 				if ToDotString(newFile.Options.ModuleName) !=
 					ToDotString(modname) {
-					output.Error(0, 0, "module name doesn't match path")
+					parser.CurrentLogger.Error(
+						"module name doesn't match path for file %v", name)
 				}
 				file_set.FileList = append(file_set.FileList, newFile)
 				file_set.AddFileToModules(newFile)
@@ -277,7 +277,7 @@ func ResolveImports(file_set *FileSet,
 				}
 				continue
 			} else {
-				output.Error(pos.Line, pos.Column, "no file found for import "+ToDotString(modname))
+				parser.Error(pos, "no file found for import %v", ToDotString(modname))
 			}
 		}
 

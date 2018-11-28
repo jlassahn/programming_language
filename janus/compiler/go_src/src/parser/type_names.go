@@ -50,6 +50,8 @@ var IMPLEMENTS_DEF = &Tag{"IMPLEMENTS_DEF"} //FIXME INTERFACE_MAP
 var ALIAS_DEF = &Tag{"ALIAS_DEF"}
 
 
+//FIXME Operators... can be package local
+
 //FIXME stuff that can be defined by the "operator" syntax should be an
 //      Operator, other stuff should be Punctuation?
 //FIXME complete list

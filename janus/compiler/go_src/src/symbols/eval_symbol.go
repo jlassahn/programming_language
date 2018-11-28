@@ -3,7 +3,6 @@ package symbols
 
 import (
 	"parser"
-	"output"
 )
 
 
@@ -16,12 +15,12 @@ func (*SymbolEval) EvaluateConstExpression(
 	symbol := ctx.Symbols.Lookup(name)
 
 	if symbol == nil {
-		output.Error(pos.Line, pos.Column, "undefined symbol: "+name)
+		parser.Error(pos, "undefined symbol: %v", name)
 		return nil
 	}
 
 	if !symbol.IsConst() {
-		output.Error(pos.Line, pos.Column, "symbol must be const: "+name)
+		parser.Error(pos, "symbol must be const: %v", name)
 		return nil
 	}
 	return symbol.InitialValue()
