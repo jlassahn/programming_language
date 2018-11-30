@@ -123,3 +123,29 @@ func (self *boolDV) AsBool() bool {
 	return self.value
 }
 
+
+type NamespaceDataValue interface {
+	DataValue
+	AsSymbolTable() *symbolTable
+}
+
+type namespaceDV struct {
+	value *symbolTable
+}
+
+func (self *namespaceDV) Type() DataType {
+	return NamespaceType
+}
+
+func (self *namespaceDV) ValueAsString() string {
+	return self.value.Name
+}
+
+func (self *namespaceDV) String() string {
+	return DataValueString(self)
+}
+
+func (self *namespaceDV) AsSymbolTable() *symbolTable {
+	return self.value
+}
+

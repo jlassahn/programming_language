@@ -54,7 +54,7 @@ def SetGlobal(x Float64);
 # example.jsrc
 janus 1.0;
 
-import example;
+import . = example;
 
 def global_variable Float64 = 0.0;
 

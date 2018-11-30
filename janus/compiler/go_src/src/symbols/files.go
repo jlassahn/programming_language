@@ -21,6 +21,7 @@ type SourceFile struct {
 	ParseTree parser.ParseElement
 	Options HeaderOptions
 	Imports []*ImportLink
+	FileSymbols *symbolTable
 }
 
 func NewSourceFile() *SourceFile {
@@ -68,8 +69,8 @@ func NewModule(name string) *Module {
 		Name: name,
 		Children: map[string]*Module {},
 		FileList: nil,
-		ExportedSymbols: NewSymbolTable(name, nil),
-		LocalSymbols: NewSymbolTable(name, nil),
+		ExportedSymbols: NewSymbolTable(name+"(EXPORTED)", nil),
+		LocalSymbols: NewSymbolTable(name+"(LOCAL)", nil),
 	}
 }
 
@@ -99,6 +100,15 @@ func (self *Module) EmitModuleTree(depth int) {
 
 }
 
+func (self *Module) EmitModuleSymbols() {
+	self.LocalSymbols.Emit()
+	self.ExportedSymbols.Emit()
+
+	for _,x := range self.Children {
+		x.EmitModuleSymbols()
+	}
+
+}
 
 
 type FileSet struct {
@@ -134,6 +144,8 @@ func (self *FileSet) LookupModule(path []string) *Module {
 func (fs *FileSet) AddByFileName(name string) *SourceFile {
 
 	ret := NewSourceFile()
+
+	ret.FileSymbols = NewSymbolTable(name, PredefinedSymbols())
 
 	fp, err := os.Open(name)
 	if err != nil {
@@ -180,6 +192,10 @@ func (self *FileSet) EmitModuleTree() {
 	self.RootModule.EmitModuleTree(0)
 }
 
+func (self *FileSet) EmitModuleSymbols() {
+	self.RootModule.EmitModuleSymbols()
+}
+
 func ResolveImports(file_set *FileSet,
 	interfacePaths []string,
 	sourcePaths[] string,
@@ -203,10 +219,10 @@ func ResolveImports(file_set *FileSet,
 
 			args := el.Children()
 
-			modname := DotListAsStrings(args[0])
+			modname := DotListAsStrings(args[1])
 			impname := modname
-			if len(args) == 2 {
-				modname = DotListAsStrings(args[1])
+			if args[0].ElementType() != parser.EMPTY {
+				impname = DotListAsStrings(args[0])
 			}
 
 			if showImports {
@@ -238,6 +254,7 @@ func ResolveImports(file_set *FileSet,
 				}
 
 				newFile := NewSourceFile()
+				newFile.FileSymbols = NewSymbolTable(name, PredefinedSymbols())
 
 				lex := parser.MakeLexer(fp, name)
 				newFile.ParseTree = parser.NewParser(lex).GetElement()

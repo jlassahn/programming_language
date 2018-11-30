@@ -8,11 +8,14 @@ import (
 )
 
 
+type uninitDeclaration struct {
+	parseTree parser.ParseElement
+	file *SourceFile
+}
+
 type uninitializedSymbol struct {
 	name string
-	isConst bool
-	typeParseTrees []parser.ParseElement
-	valueParseTrees []parser.ParseElement //functions can have multiple
+	declarations []*uninitDeclaration
 	needs *uninitializedSymbol
 	initialized Symbol
 }
@@ -20,7 +23,7 @@ type uninitializedSymbol struct {
 func (self *uninitializedSymbol) Name() string { return self.name; }
 func (self *uninitializedSymbol) Type() DataType { return nil; }
 func (self *uninitializedSymbol) InitialValue() DataValue { return nil; }
-func (self *uninitializedSymbol) IsConst() bool { return self.isConst; }
+func (self *uninitializedSymbol) IsConst() bool { return false }
 
 func (self *uninitializedSymbol) String() string {
 	return self.name + ":uninitialized"
@@ -30,9 +33,17 @@ func ResolveGlobals(fileSet *FileSet) {
 	//FIXME implement
 
 	//fill module symbol tables with uninitializedSymbol
+	//fill file symbol tables with symbols defined in that file
 	findSymbolsForModule(fileSet.RootModule)
 
-	//copy symbols from module symbol tables to file tables based on imports
+	//FIXME
+	fileSet.EmitModuleSymbols()
+
+	//copy imported symbols from module symbol tables to file tables
+	for _,file := range fileSet.FileList {
+		resolveImportedSymbols(file, fileSet)
+	}
+
 	//evaluate types and initial values, storing in intiialized subsymbol
 	//    symbol table Lookup knows about uninitialized symbols
 	//    follows link to initialized if it exists
@@ -69,6 +80,11 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 			name := el.Children()[1].TokenString()
 			sym := getSymbol(name, file, mod)
 
+			dec := &uninitDeclaration {
+				parseTree: el,
+				file: file,
+			}
+			sym.declarations = append(sym.declarations, dec)
 			fmt.Printf("    def for %v %p\n", name, sym)
 
 		//FIXME implement
@@ -84,12 +100,32 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 	}
 }
 
+func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
+	//FIXME implement
+	fmt.Printf("FIXME resolve imports for file %v\n", file.FileName)
+	//FIXME create namespaceDV for each import node
+}
+
 func getSymbol(name string, file *SourceFile,
 	mod *Module) *uninitializedSymbol {
 
-	//FIXME  create or find in locals, move to ExportedSymbols if needed
-	//sym := mod.LocalSymbols.Symbols[name].(*uninitializedSymbol)
+	if mod.LocalSymbols.Symbols[name] == nil {
+		sym := &uninitializedSymbol {
+			name: name,
+			declarations: nil,
+			needs: nil,
+			initialized: nil,
+		}
+		mod.LocalSymbols.Symbols[name] = sym
+	}
 
-	return nil
+	sym := mod.LocalSymbols.Symbols[name].(*uninitializedSymbol)
+	if file.Options.ExportSymbols {
+		mod.ExportedSymbols.Symbols[name] = sym
+	}
+
+	file.FileSymbols.Symbols[name] = sym
+
+	return sym
 }
 

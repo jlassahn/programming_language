@@ -1,7 +1,9 @@
 (  2,  1) [SOURCE_FILE] 
 (  2,  7) 	[HEADER] 
 (  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
 (  4,  1) 	[IMPORT] 
+(  4, 10) 		[EMPTY] 
 (  4,  8) 		[SYMBOL] io
 (  6,  1) 	[DEF] 
 (  6,  1) 		[KEYWORD] def

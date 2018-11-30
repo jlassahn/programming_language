@@ -325,6 +325,7 @@ func (mp *mainParser) parseHeader() ParseElement {
 		ret.addChild(mp.parseHeaderOptions())
 		mp.match(PUNCTUATION, "}")
 	} else {
+		ret.addChild(mp.startElement(LIST))
 		mp.match(PUNCTUATION, ";")
 	}
 
@@ -437,10 +438,17 @@ func (mp *mainParser) parseImportStatement() ParseElement {
 		mp.match(OPERATOR, "=")
 		ret.addChild(mp.parseExpressionDot())
 	} else {
-		ret.addChild(mp.parseExpressionDot())
+		var localName ParseElement
+		var modName ParseElement
+		modName = mp.parseExpressionDot()
 		if mp.tryMatch(OPERATOR, "=") {
-			ret.addChild(mp.parseExpressionDot())
+			localName = modName
+			modName = mp.parseExpressionDot()
+		} else {
+			localName = mp.startElement(EMPTY)
 		}
+		ret.addChild(localName)
+		ret.addChild(modName)
 	}
 	mp.match(PUNCTUATION, ";")
 	return ret

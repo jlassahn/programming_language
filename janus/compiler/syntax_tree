@@ -4,8 +4,8 @@ SOURCE_FILE
 	(global statements)
 
 global statements
-	IMPORT       [module] [local_name?]
-	DEF          [symbol] [type?] [value?]
+	IMPORT       [local name] [module]
+	DEF          [def or const] [symbol] [type] [value]
 	STRUCT_DEF   [struct content list] # FIXME distinguish m_struct from struct
 	INTERFACE    [interface content list]
 	METHOD       [struct type] [symbol] [symbol type] [content or alias?]
