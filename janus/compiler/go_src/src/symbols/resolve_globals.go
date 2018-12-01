@@ -30,19 +30,24 @@ func (self *uninitializedSymbol) String() string {
 }
 
 func ResolveGlobals(fileSet *FileSet) {
-	//FIXME implement
+
+	//create namespaces for imports in file symbol tables
+	//FIXME this could happen earlier, when the imports are first parsed
+
+	for _,file := range fileSet.FileList {
+		addImportNamespaces(file)
+	}
 
 	//fill module symbol tables with uninitializedSymbol
 	//fill file symbol tables with symbols defined in that file
 	findSymbolsForModule(fileSet.RootModule)
 
-	//FIXME
-	fileSet.EmitModuleSymbols()
-
 	//copy imported symbols from module symbol tables to file tables
 	for _,file := range fileSet.FileList {
 		resolveImportedSymbols(file, fileSet)
 	}
+
+	//FIXME implement
 
 	//evaluate types and initial values, storing in intiialized subsymbol
 	//    symbol table Lookup knows about uninitialized symbols
@@ -79,6 +84,11 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 			*/
 			name := el.Children()[1].TokenString()
 			sym := getSymbol(name, file, mod)
+			if sym == nil {
+				parser.Error(el.FilePos(),
+					"symbol %v collides with import name", name)
+				continue
+			}
 
 			dec := &uninitDeclaration {
 				parseTree: el,
@@ -101,9 +111,75 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 }
 
 func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
-	//FIXME implement
+
 	fmt.Printf("FIXME resolve imports for file %v\n", file.FileName)
-	//FIXME create namespaceDV for each import node
+
+	for _,imp := range file.Imports {
+
+		mod := imp.ModuleData
+
+		table := file.FileSymbols
+
+		// operators always import into the main file table
+
+		fmt.Printf("FIXME importing operators from %v\n", table.Name)
+		for key,value := range mod.ExportedSymbols.Operators {
+			fmt.Printf("  importing %v %v\n", key, value)
+			if table.Operators[key] == nil {
+				table.Operators[key] = value
+			} else {
+				parser.CurrentLogger.Error("operator import collision %v %v",
+					ToDotString(imp.ImportName), key)
+			}
+		}
+
+		// find the table for the module namespace
+		for _,name := range imp.ImportName {
+			sym := table.Symbols[name]
+			table = sym.InitialValue().(NamespaceDataValue).AsSymbolTable()
+		}
+
+		// import symbols into the module namespace
+		fmt.Printf("FIXME importing symbols from %v\n", table.Name)
+		for key,value := range mod.ExportedSymbols.Symbols {
+			fmt.Printf("  importing %v %v\n", key, value)
+			if table.Symbols[key] == nil {
+				table.Symbols[key] = value
+			} else {
+				parser.CurrentLogger.Error("import collision %v.%v",
+					ToDotString(imp.ImportName), key)
+			}
+		}
+
+	}
+}
+
+func addImportNamespaces(file *SourceFile) {
+
+	for _,imp := range file.Imports {
+		table := file.FileSymbols
+		for _,name := range imp.ImportName {
+			if table.Symbols[name] == nil {
+
+				//FIXME better table name
+				newTable := NewSymbolTable(name, nil)
+
+				val := &namespaceDV {
+					value: newTable,
+				}
+
+				table.Symbols[name] = &baseSymbol {
+					name: name,
+					dtype: NamespaceType,
+					initialValue: val,
+					isConst: true,
+				}
+			}
+
+			sym := table.Symbols[name]
+			table = sym.InitialValue().(NamespaceDataValue).AsSymbolTable()
+		}
+	}
 }
 
 func getSymbol(name string, file *SourceFile,
@@ -124,7 +200,13 @@ func getSymbol(name string, file *SourceFile,
 		mod.ExportedSymbols.Symbols[name] = sym
 	}
 
-	file.FileSymbols.Symbols[name] = sym
+	if file.FileSymbols.Symbols[name] == nil {
+		file.FileSymbols.Symbols[name] = sym
+	}
+
+	if file.FileSymbols.Symbols[name] != sym {
+		return nil
+	}
 
 	return sym
 }

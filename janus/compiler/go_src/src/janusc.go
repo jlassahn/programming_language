@@ -31,6 +31,7 @@ Options:
  -show-header : print the janus header options to stdout
  -show-modules: print included source files and module names
  -show-imports: print files found through import statements
+ -show-globals: print file scope symbol tables
 
  -name *      : set the name of the output file
  -source *    : add directory to source search path
@@ -59,6 +60,7 @@ func parseArgs() *parameters {
 		"show-header": false,
 		"show-modules": false,
 		"show-imports": false,
+		"show-globals": false,
 		"parse-only": false,
 	}
 
@@ -158,18 +160,18 @@ func main() {
 		fmt.Println(interfacePaths)
 	}
 
-	file_set := symbols.NewFileSet()
+	fileSet := symbols.NewFileSet()
 
 	if args.Flags["show-tokens"] {
 		parser.EnableTokens()
 	}
 
 	for _, file := range args.Files {
-		file_set.AddByFileName(file)
+		fileSet.AddByFileName(file)
 	}
 
 	if args.Flags["show-parse"] {
-		for _, file := range file_set.FileList {
+		for _, file := range fileSet.FileList {
 			parser.EmitParseTree(file.ParseTree)
 		}
 	}
@@ -178,29 +180,42 @@ func main() {
 		return
 	}
 
-	for _, file := range file_set.FileList {
+	for _, file := range fileSet.FileList {
 		symbols.InterpretHeaderOptions(file)
 	}
 
 	if args.Flags["show-header"] {
-		for _, file := range file_set.FileList {
+		for _, file := range fileSet.FileList {
 			file.Options.Emit()
 		}
 	}
 
-	for _, file := range file_set.FileList {
-		file_set.AddFileToModules(file)
+	for _, file := range fileSet.FileList {
+		fileSet.AddFileToModules(file)
 	}
 
 
-	symbols.ResolveImports(file_set, interfacePaths, sourcePaths,
+	symbols.ResolveImports(fileSet, interfacePaths, sourcePaths,
 		args.Flags["show-imports"])
 
 	if args.Flags["show-modules"] {
-		file_set.EmitModuleTree()
+		fileSet.EmitModuleTree()
 	}
 
-	symbols.ResolveGlobals(file_set)
+	symbols.ResolveGlobals(fileSet)
+
+	if args.Flags["show-globals"] {
+
+		fmt.Printf("MODULE SYMBOLS\n")
+
+		fileSet.EmitModuleSymbols()
+
+		fmt.Printf("FILE  SYMBOLS\n")
+
+		for _,file := range fileSet.FileList {
+			file.EmitGlobals()
+		}
+	}
 
 	//FIXME resolve global symbols
 	//  pass 1, create symbol table entries for all files without types

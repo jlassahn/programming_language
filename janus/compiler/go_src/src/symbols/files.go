@@ -52,6 +52,10 @@ func (self *SourceFile) SetModuleByFileName() {
 	}
 }
 
+func (self *SourceFile) EmitGlobals() {
+	self.FileSymbols.Emit()
+}
+
 type Module struct {
 
 	Name string
@@ -193,7 +197,9 @@ func (self *FileSet) EmitModuleTree() {
 }
 
 func (self *FileSet) EmitModuleSymbols() {
-	self.RootModule.EmitModuleSymbols()
+	for _,x := range self.RootModule.Children {
+		x.EmitModuleSymbols()
+	}
 }
 
 func ResolveImports(file_set *FileSet,

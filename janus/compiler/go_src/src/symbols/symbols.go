@@ -109,25 +109,34 @@ func (self *symbolTable) AddOperator(
 func (st *symbolTable) Emit() {
 
 	for st != nil {
-		fmt.Printf("----%s---\n", st.Name)
-		fmt.Printf("Symbols:\n")
+		fmt.Printf("  Symbol Table: %v\n", st.Name)
+		fmt.Printf("    Symbols:\n")
 		for k, v := range st.Symbols {
-			fmt.Printf("  %v %v = %v\n",
+			fmt.Printf("      %v %v = %v\n",
 				k,
 				v.Type(),
 				v.InitialValue())
 		}
 
-		fmt.Printf("Operators:\n")
+		fmt.Printf("    Operators:\n")
 		for k, v := range st.Operators {
-			fmt.Printf("  %v %v\n",
+			fmt.Printf("      %v %v\n",
 				k,
 				v.Type())
 			for _, op := range v.Choices() {
-				fmt.Printf("    %v = %v\n",
+				fmt.Printf("        %v = %v\n",
 					op.Type(),
 					op.InitialValue())
 			}
+		}
+		fmt.Printf("\n")
+
+		for _,v := range st.Symbols {
+			if v.Type() != NamespaceType {
+				continue
+			}
+
+			v.InitialValue().(NamespaceDataValue).AsSymbolTable().Emit()
 		}
 
 		st = st.Parent
