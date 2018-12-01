@@ -31,6 +31,13 @@ causes the compiler to look for these files:
 It looks for these under a set of base directories which depend on how
 the compiler is configured, but typically includes the current directory.
 
+Normally these symbols are named using the full module name.  If that is not
+convenient, the module name can be overridden.  For example doing
+`import handlers = experimental.web_handlers;` makes a symbol normally named
+`experimental.web_handlers.BaseHandler` instead be `handlers.BaseHandler`.
+Doing `import . = experimental.web_handlers` causes all the symbols in that
+module to be visible with _no_ module name prefix at all.
+
 Symbols declared in files ending in .janus are externally visible to
 programs which import the .janus file.  Symbols from files ending in .jsrc
 are local to the source file.  For reusable code, it is good style

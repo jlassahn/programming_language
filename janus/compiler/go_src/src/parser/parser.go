@@ -1516,6 +1516,9 @@ list_content_:
 	| list_content_ ',' expression
 	;
 *****/
+/* FIXME list_content and map_content should support nested lists and maps */
+/* FIXME nested lists mean we can't use list_content for type and function
+         params, need a new syntax element */
 
 func (mp *mainParser) parseListContent() ParseElement {
 	//FIXME supports optional final comma, not in grammar

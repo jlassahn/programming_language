@@ -324,6 +324,9 @@ function_type:
 	| '(' parameter_list ')' "->" type
 	;
 
+/* FIXME list_content and map_content should support nested lists and maps */
+/* FIXME nested lists mean we can't use list_content for type and function
+         params, need a new syntax element */
 list_content:
 	/* empty */
 	| list_content_

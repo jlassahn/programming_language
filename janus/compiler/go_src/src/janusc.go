@@ -25,32 +25,35 @@ Options:
 
  -parse-only  : stop after parsing the source files
 
+ -show-paths  : print the search paths used by the compiler
  -show-tokens : print the tokenized files to stdout
  -show-parse  : print a parse tree to stdout
  -show-header : print the janus header options to stdout
  -show-modules: print included source files and module names
  -show-imports: print files found through import statements
 
+ -name *      : set the name of the output file
+ -source *    : add directory to source search path
+ -interface * : add directour to interface search path
 
   FIXME cross-reference generator, showing imports
   FIXME dump symbol tables
-  FIXME search path
 `) }
 
 type parameters struct {
 	Files []string
 	Flags map[string]bool
+	StringOpts map[string]string
+	ListOpts map[string] []string
 }
 
-//FIXME support args with values like
-//  -name outfile.exe
-//
 func parseArgs() *parameters {
 
 	var files []string
 	var flags = map[string]bool {
 		"help": false,
 		"lib": false,
+		"show-paths": false,
 		"show-tokens": false,
 		"show-parse": false,
 		"show-header": false,
@@ -59,19 +62,62 @@ func parseArgs() *parameters {
 		"parse-only": false,
 	}
 
-	for _, arg := range os.Args[1:] {
+	var stringOpts = map[string]string {
+		"name": "",
+	}
 
-		if arg[0] == '-' {
-			flag := arg[1:]
-			_, ok := flags[flag]
-			if !ok {
-				parser.CurrentLogger.FatalError("unknown options: %v", arg)
-				flags["help"] = true
-			}
-			flags[flag] = true
-		} else {
+	var listOpts  = map[string] []string {
+		"interface": nil,
+		"source": nil,
+	}
+
+	args := os.Args[1:]
+
+	for i:=0; i<len(args); i++ {
+		arg := args[i]
+
+		if arg[0] != '-' {
 			files = append(files, arg)
+			continue
 		}
+
+		opt := arg[1:]
+		_, ok := flags[opt]
+		if ok {
+			flags[opt] = true
+			continue
+		}
+
+		_, ok = stringOpts[opt]
+		if ok {
+			i ++
+			if len(args) > i {
+				val := args[i]
+				if stringOpts[opt] == ""{
+					stringOpts[opt] = val
+				} else {
+					parser.CurrentLogger.FatalError(
+						"option %v can only be used once", arg)
+				}
+				continue
+			} else {
+				parser.CurrentLogger.FatalError("missing parameter: %v", arg)
+			}
+		}
+
+		_, ok = listOpts[opt]
+		if ok {
+			i ++
+			if len(args) > i {
+				val := args[i]
+				listOpts[opt] = append(listOpts[opt], val)
+				continue
+			} else {
+				parser.CurrentLogger.FatalError("missing parameter: %v", arg)
+			}
+		}
+
+		parser.CurrentLogger.FatalError("unknown option: %v", arg)
 	}
 
 	if files == nil && !flags["help"] {
@@ -79,8 +125,10 @@ func parseArgs() *parameters {
 	}
 
 	ret := &parameters {
-		files,
-		flags,
+		Files: files,
+		Flags: flags,
+		StringOpts: stringOpts,
+		ListOpts: listOpts,
 	}
 
 	return ret
@@ -94,16 +142,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	sourcePaths := append(
-		filepath.SplitList(os.Getenv("JANUS_SOURCE_PATH")),
-		".",
-		"./source")
+	sourcePaths := args.ListOpts["source"]
+	sourcePaths = append(sourcePaths,
+		filepath.SplitList(os.Getenv("JANUS_SOURCE_PATH"))...)
+	sourcePaths = append(sourcePaths, ".", "./source")
 
-	interfacePaths := append(
-		filepath.SplitList(os.Getenv("JANUS_INTERFACE_PATH")),
-		".",
-		"./interfaces")
+	interfacePaths := args.ListOpts["interface"]
+	interfacePaths = append(interfacePaths,
+		filepath.SplitList(os.Getenv("JANUS_INTERFACE_PATH"))...)
+	interfacePaths = append(interfacePaths, ".", "./interfaces")
 
+	if args.Flags["show-paths"] {
+		//FIXME clean up
+		fmt.Println(sourcePaths)
+		fmt.Println(interfacePaths)
+	}
 
 	file_set := symbols.NewFileSet()
 
