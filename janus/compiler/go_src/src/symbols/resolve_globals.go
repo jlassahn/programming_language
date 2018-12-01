@@ -47,12 +47,15 @@ func ResolveGlobals(fileSet *FileSet) {
 		resolveImportedSymbols(file, fileSet)
 	}
 
-	//FIXME implement
-
+	
 	//evaluate types and initial values, storing in intiialized subsymbol
 	//    symbol table Lookup knows about uninitialized symbols
 	//    follows link to initialized if it exists
 	//    propagates evaluation if not
+
+	resolveSymbolValues(fileSet.RootModule, fileSet)
+
+	//FIXME implement
 	//replace all uninitialized Symbols with initialized in all symbol tables
 
 }
@@ -209,5 +212,25 @@ func getSymbol(name string, file *SourceFile,
 	}
 
 	return sym
+}
+
+func resolveSymbolValues(mod *Module, fileSet *FileSet) {
+
+	for _,x := range mod.Children {
+		resolveSymbolValues(x, fileSet)
+	}
+
+	//FIXME struct content definitions in local tables shouldn't
+	//      leak into exported tables.
+	//      each file can see a different subset of the struct's
+	//      members, methods, size and extensions
+	//FIXME CType variables have similar problems.
+	/* FIXME implement
+	for key, value :=  mod.ExportedSymbols.Symbols {
+	}
+	*/
+
+	//self.LocalSymbols.Emit()
+	//self.ExportedSymbols.Emit()
 }
 
