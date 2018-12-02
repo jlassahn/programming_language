@@ -2,8 +2,7 @@
 package symbols
 
 import (
-	"fmt"
-
+	"output"
 	"parser"
 )
 
@@ -62,9 +61,9 @@ func ResolveGlobals(fileSet *FileSet) {
 
 func findSymbolsForModule(mod *Module) {
 
-	fmt.Printf("searching module: %v\n", mod.Name)
+	output.FIXMEDebug("searching module: %v", mod.Name)
 	for _, file := range mod.FileList {
-		fmt.Printf("  searching file: %v\n", file.FileName)
+		output.FIXMEDebug("  searching file: %v", file.FileName)
 		findSymbolsForFile(file, mod)
 	}
 
@@ -98,7 +97,7 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 				file: file,
 			}
 			sym.declarations = append(sym.declarations, dec)
-			fmt.Printf("    def for %v %p\n", name, sym)
+			output.FIXMEDebug("    def for %v %p", name, sym)
 
 		//FIXME implement
 		//struct
@@ -115,7 +114,7 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 
 func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
 
-	fmt.Printf("FIXME resolve imports for file %v\n", file.FileName)
+	output.FIXMEDebug("resolve imports for file %v", file.FileName)
 
 	for _,imp := range file.Imports {
 
@@ -125,13 +124,13 @@ func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
 
 		// operators always import into the main file table
 
-		fmt.Printf("FIXME importing operators from %v\n", table.Name)
+		output.FIXMEDebug("importing operators from %v", table.Name)
 		for key,value := range mod.ExportedSymbols.Operators {
-			fmt.Printf("  importing %v %v\n", key, value)
+			output.FIXMEDebug("  importing %v %v", key, value)
 			if table.Operators[key] == nil {
 				table.Operators[key] = value
 			} else {
-				parser.CurrentLogger.Error("operator import collision %v %v",
+				output.Error("operator import collision %v %v",
 					ToDotString(imp.ImportName), key)
 			}
 		}
@@ -143,13 +142,13 @@ func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
 		}
 
 		// import symbols into the module namespace
-		fmt.Printf("FIXME importing symbols from %v\n", table.Name)
+		output.FIXMEDebug("importing symbols from %v", table.Name)
 		for key,value := range mod.ExportedSymbols.Symbols {
-			fmt.Printf("  importing %v %v\n", key, value)
+			output.FIXMEDebug("  importing %v %v", key, value)
 			if table.Symbols[key] == nil {
 				table.Symbols[key] = value
 			} else {
-				parser.CurrentLogger.Error("import collision %v.%v",
+				output.Error("import collision %v.%v",
 					ToDotString(imp.ImportName), key)
 			}
 		}
@@ -228,6 +227,34 @@ func resolveSymbolValues(mod *Module, fileSet *FileSet) {
 	/* FIXME implement
 	for key, value :=  mod.ExportedSymbols.Symbols {
 	}
+	*/
+
+	/* rules for global type and value resolution:
+	   const values can only depend on other const values (not variables)
+	   consts can't have circular dependencies, even the obscure cases
+	     where consts could resolve because each only requires partial
+	     info about the other are forbidden.
+	   the type of a variable can only depend on consts
+	   a variable with implicit type can ony be initialized by
+	     consts or function declarations
+	  the only non-const initializers allowed for data are
+	     references to data values
+	     references to struct members of data values
+	     maybe references to functions or methods?
+	  variable initializers can form cyclic references, always safe
+	     because initializers only reference types, never other initializers.
+	  types are a kind of const value (they're of data type CType)
+
+	  ways in which normal function declarations are like const declarations:
+	     can't be written to, only initialized
+	     can be used as an initializer with implicit type
+	  ways they're different:
+	     can't assign one to a const
+	     can make a reference to one
+
+	  const function declarations can be _called_ from const initializers.
+	  const functions _can_ have references
+
 	*/
 
 	//self.LocalSymbols.Emit()

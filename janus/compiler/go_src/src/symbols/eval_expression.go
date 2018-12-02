@@ -2,7 +2,7 @@
 package symbols
 
 import (
-	"fmt"
+	"output"
 	"parser"
 )
 
@@ -25,7 +25,7 @@ func (*ExpressionEval) EvaluateConstExpression(
 	for i, x := range(children[1:]) {
 		args[i] = EvaluateConstExpression(x, ctx)
 		if args[i] == nil {
-			fmt.Printf("FIXME args not available\n")
+			output.FIXMEDebug("FIXME args not available")
 			return nil
 		}
 	}

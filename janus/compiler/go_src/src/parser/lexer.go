@@ -181,7 +181,7 @@ func (lex *Lexer) readToken() *Token {
 
 	if lex.isEOF() {
 		if lex.fileError != io.EOF {
-			FatalError(&lex.pos, lex.fileError.Error())
+			Error(&lex.pos, lex.fileError.Error())
 		}
 		return newToken([]byte("EOF"), EOF)
 	}
@@ -254,7 +254,8 @@ func (lex *Lexer) getString() *Token {
 
 	for {
 		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
-			FatalError(&lex.pos, "Newline in string constant")
+			Error(&lex.pos, "Newline in string constant")
+			break
 		}
 
 		if lex.matchByte('"') {
@@ -275,7 +276,8 @@ func (lex *Lexer) getLongString() *Token {
 
 	for {
 		if lex.isEOF() {
-			FatalError(&lex.pos, "EOF in string constant")
+			Error(&lex.pos, "EOF in string constant")
+			break
 		}
 
 		if lex.match("\"\"\"") {
@@ -296,7 +298,8 @@ func (lex *Lexer) getChar() *Token {
 
 	for {
 		if lex.matchByte(10) || lex.matchByte(13) || lex.isEOF() {
-			FatalError(&lex.pos, "Newline in character constant")
+			Error(&lex.pos, "Newline in character constant")
+			break
 		}
 
 		if lex.matchByte('`') {

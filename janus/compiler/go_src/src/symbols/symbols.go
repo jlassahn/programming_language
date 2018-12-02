@@ -3,6 +3,8 @@ package symbols
 
 import (
 	"fmt"
+
+	"output"
 )
 
 //FIXME better ways to look up polymorphic functions
@@ -109,27 +111,27 @@ func (self *symbolTable) AddOperator(
 func (st *symbolTable) Emit() {
 
 	for st != nil {
-		fmt.Printf("  Symbol Table: %v\n", st.Name)
-		fmt.Printf("    Symbols:\n")
+		output.Emit("  Symbol Table: %v", st.Name)
+		output.Emit("    Symbols:")
 		for k, v := range st.Symbols {
-			fmt.Printf("      %v %v = %v\n",
+			output.Emit("      %v %v = %v",
 				k,
 				v.Type(),
 				v.InitialValue())
 		}
 
-		fmt.Printf("    Operators:\n")
+		output.Emit("    Operators:")
 		for k, v := range st.Operators {
-			fmt.Printf("      %v %v\n",
+			output.Emit("      %v %v",
 				k,
 				v.Type())
 			for _, op := range v.Choices() {
-				fmt.Printf("        %v = %v\n",
+				output.Emit("        %v = %v",
 					op.Type(),
 					op.InitialValue())
 			}
 		}
-		fmt.Printf("\n")
+		output.Emit("")
 
 		for _,v := range st.Symbols {
 			if v.Type() != NamespaceType {

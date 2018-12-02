@@ -2,7 +2,7 @@
 package symbols
 
 import (
-	"fmt"
+	"output"
 	"parser"
 )
 
@@ -103,11 +103,13 @@ func InterpretHeaderOptions(file *SourceFile) {
 
 func (self *HeaderOptions) Emit() {
 
+	output.Emit("Header:")
+	output.Emit("  Version: %v", self.Version)
 	for k, v := range self.ByName {
 		if v.DotName == nil {
-			fmt.Printf("option [%v] = [%v]\n", k, v.Value)
+			output.Emit("  option [%v] = [%v]", k, v.Value)
 		} else {
-			fmt.Printf("option [%v] = [%v]\n", k, v.DotName)
+			output.Emit("  option [%v] = [%v]", k, v.DotName)
 		}
 	}
 }

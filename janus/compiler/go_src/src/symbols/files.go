@@ -3,9 +3,10 @@ package symbols
 
 import (
 	"os"
-	"fmt"
 	"strings"
 	"path/filepath"
+
+	"output"
 	"parser"
 )
 
@@ -81,10 +82,7 @@ func NewModule(name string) *Module {
 func (self *Module) EmitModuleTree(depth int) {
 	for _, x := range self.FileList {
 
-		for i:=0; i<depth; i++ {
-			fmt.Print("\t")
-		}
-		fmt.Printf("file: %v exported: %v\n",
+		output.EmitIndented(depth, "file: %v exported: %v",
 			x.FileName, x.Options.ExportSymbols)
 	}
 
@@ -94,10 +92,7 @@ func (self *Module) EmitModuleTree(depth int) {
 	}
 
 	for _,k := range keys {
-		for i:=0; i<depth; i++ {
-			fmt.Print("\t")
-		}
-		fmt.Printf("%v:\n", k)
+		output.EmitIndented(depth, "%v:", k)
 
 		self.Children[k].EmitModuleTree(depth + 1)
 	}
@@ -153,7 +148,8 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 
 	fp, err := os.Open(name)
 	if err != nil {
-		parser.CurrentLogger.FatalError("unable to open file %v", name)
+		output.Error("unable to open file %v", name)
+		return nil
 	}
 
 	lex := parser.MakeLexer(fp, name)
@@ -172,8 +168,8 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 func (self *FileSet) AddFileToModules(file *SourceFile) {
 
 	if len(file.Options.ModuleName) < 1 {
-		parser.CurrentLogger.FatalError(
-			"can't infer a module name for file %v", file.FileName)
+		output.Error("can't infer a module name for file %v", file.FileName)
+		return
 	}
 
 	baseMod := self.RootModule
@@ -232,7 +228,7 @@ func ResolveImports(file_set *FileSet,
 			}
 
 			if showImports {
-				fmt.Printf("file %v importing %v as %v\n",
+				output.Emit("file %v importing %v as %v",
 					file.FileName, ToDotString(modname), ToDotString(impname))
 			}
 
@@ -246,7 +242,8 @@ func ResolveImports(file_set *FileSet,
 				file.Imports = append(file.Imports, link)
 
 				if showImports {
-					fmt.Printf("   - %v already imported\n", ToDotString(modname))
+					output.Emit("   - %v already imported",
+						ToDotString(modname))
 				}
 				continue
 			}
@@ -275,14 +272,14 @@ func ResolveImports(file_set *FileSet,
 				//FIXME more efficient compare
 				if ToDotString(newFile.Options.ModuleName) !=
 					ToDotString(modname) {
-					parser.CurrentLogger.Error(
+					output.Error(
 						"module name doesn't match path for file %v", name)
 				}
 				file_set.FileList = append(file_set.FileList, newFile)
 				file_set.AddFileToModules(newFile)
 
 				if showImports {
-					fmt.Printf("   - found file %v\n", name)
+					output.Emit("   - found file %v", name)
 				}
 			}
 
@@ -296,7 +293,7 @@ func ResolveImports(file_set *FileSet,
 				file.Imports = append(file.Imports, link)
 
 				if showImports {
-					fmt.Printf("   - module %v done\n", ToDotString(modname))
+					output.Emit("   - module %v done", ToDotString(modname))
 				}
 				continue
 			} else {

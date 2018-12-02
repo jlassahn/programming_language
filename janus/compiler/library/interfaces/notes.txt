@@ -1,0 +1,46 @@
+
+Things we need
+
+File IO
+
+Network IO
+
+Memory management, garbage collector control
+
+Math
+
+reflection and type inspection?
+exceptions?
+
+unsafe pointer and type conversion
+
+Process args, return value, environment variables, executable path
+
+Time
+
+Threads, synchronization, locks etc
+
+Process control, IPC, forking
+
+dynamic libraries
+
+debugger interface, profiling, code coverage, etc
+
+builtin compiler??? IDE support tools??? code rewriting tools???
+
+Unix specific stuff, signals, syscalls, etc
+
+data structures?  Containers, file-like memory, searching, sorting, etc?
+
+formatted IO, Unicode text processing
+logging
+
+GUI
+Sound
+Graphics
+Keyboard, mouse and screen IO
+
+cryptography
+communication protocols, HTTP, TLS, etc
+common data formats, XML, JSON, Base64, etc
+regular expressions

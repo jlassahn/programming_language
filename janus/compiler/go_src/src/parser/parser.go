@@ -100,7 +100,7 @@ func (cm *commentMerger) GetElement() ParseElement {
 		if el.ElementType() == EOF {
 			if cm.depth > 0 {
 				pos := cm.comments[0].FilePos()
-				FatalError(pos, "EOF inside block comment")
+				Error(pos, "EOF inside block comment")
 			}
 			if cm.comments != nil {
 				comments := cm.comments
@@ -259,6 +259,7 @@ func (mp *mainParser) startElement(etype *Tag) *parseElement {
 	return &ret
 }
 
+//FIXME make error take variable format args
 func (mp *mainParser) error(txt string) {
 
 	if !mp.resync {

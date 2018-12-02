@@ -2,8 +2,8 @@
 package symbols
 
 import (
+	"output"
 	"parser"
-	"fmt"
 )
 
 
@@ -28,7 +28,7 @@ func EvaluateConstExpression(
 	eval := evaluators[*el.ElementType()]
 	if eval == nil {
 		//FIXME implement
-		fmt.Printf("no evaluator for %v\n", el.ElementType())
+		output.FIXMEDebug("no evaluator for %v\n", el.ElementType())
 		parser.EmitParseTree(el)
 		ctx.Symbols.Emit()
 		return nil
