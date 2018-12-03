@@ -8,13 +8,20 @@ Network IO
 Memory management, garbage collector control
 
 Math
+	NaN and Infinity handling
 
 reflection and type inspection?
+	CTypeOf(x) DynamicTypeOf(x) LengthOf(MArray)
+	ReturnTypeOf(func)  ParameterTypeOf(func, int)
+
 exceptions?
 
 unsafe pointer and type conversion
+	get address, member offset
 
 Process args, return value, environment variables, executable path
+
+assertions and annotations
 
 Time
 
@@ -33,6 +40,9 @@ Unix specific stuff, signals, syscalls, etc
 data structures?  Containers, file-like memory, searching, sorting, etc?
 
 formatted IO, Unicode text processing
+	ASCII character types, Unicode character types
+	Locale, language, text and number fomatting, etc
+
 logging
 
 GUI
@@ -44,3 +54,5 @@ cryptography
 communication protocols, HTTP, TLS, etc
 common data formats, XML, JSON, Base64, etc
 regular expressions
+
+

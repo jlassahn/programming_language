@@ -1,0 +1,49 @@
+
+janus 1.0
+{
+	module_name = math;
+	export_symbols = True;
+}
+
+# FIXME follow general math convention and make these lowercase, or
+#       follow language convention and make them mixed case?
+
+const ACos(x >Real64) -> Real64;
+const ASin(x >Real64) -> Real64;
+const ATan(x >Real64) -> Real64;
+const ATan2(x >Real64, y >Real64) -> Real64;
+const Cos(x >Real64) -> Real64;
+const Sin(x >Real64) -> Real64;
+const Tan(x >Real64) -> Real64;
+const CosH(x >Real64) -> Real64;
+const SinH(x >Real64) -> Real64;
+const TanH(x >Real64) -> Real64;
+const Exp(x >Real64) -> Real64;
+const Pow(x >Real64, y >Real64) -> Real64; # FIXME same as ^ operator
+const Ln(x >Real64) -> Real64;
+const Log10(x >Real64) -> Real64;
+const Sqrt(x >Real64) -> Real64;
+
+const Abs(x Real64) -> Real64;
+const Abs(x Real32) -> Real32;
+
+const Ceil(x >Real64) -> Int64;
+const Floor(x >Real64) -> Int64;
+const RoundNearest(x >Real64) -> Int64;
+const RoundZero(x >Real64) -> Int64;
+
+# floating point manipulation
+# frexp Real64 value  -> Real64 mantissa and Int exponent
+# ldexp is the inverse of frexp
+#  modf
+
+#  IEEE 754 floating point manipulation
+const Infinity Real64;
+# -Infinity is the negative verion
+
+const Sign(Real64 x) -> Bool; # True means negative
+const IsNAN(Real64 x) -> Bool;
+const IsSignalingNAN(Real64 x) -> Bool;
+const GetNAN(Real64 x) -> Int64;
+const MakeNAN(Bool sign, Bool signaling, Int64 val) -> Real64;
+

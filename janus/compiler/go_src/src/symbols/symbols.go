@@ -202,6 +202,8 @@ func buildPredefinedSymbols() *symbolTable {
 
 	syms := NewSymbolTable("PREDEFINED", nil)
 
+	syms.Symbols["__system"] = buildInternalSymbols()
+
 	syms.AddConst("True", BoolType, TrueValue)
 	syms.AddConst("False", BoolType, FalseValue)
 
@@ -232,5 +234,22 @@ func buildPredefinedSymbols() *symbolTable {
 	true, IntrinsicDivReal64)
 
 	return syms
+}
+
+func buildInternalSymbols() *baseSymbol {
+
+	name := "PREDEFINED:__system"
+	newTable := NewSymbolTable(name, nil)
+
+	val := &namespaceDV {
+		value: newTable,
+	}
+
+	return &baseSymbol {
+		name: name,
+		dtype: NamespaceType,
+		initialValue: val,
+		isConst: true,
+	}
 }
 
