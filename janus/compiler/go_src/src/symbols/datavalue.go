@@ -3,6 +3,8 @@ package symbols
 
 import (
 	"fmt"
+
+	"parser"
 )
 
 type DataValue interface {
@@ -147,5 +149,63 @@ func (self *namespaceDV) String() string {
 
 func (self *namespaceDV) AsSymbolTable() *symbolTable {
 	return self.value
+}
+
+type TypeDataValue interface {
+	DataValue
+	AsDataType() DataType
+}
+
+type typeDV struct {
+	dtype DataType
+	value DataType
+}
+
+func (self *typeDV) Type() DataType {
+	return self.dtype
+}
+
+func (self *typeDV) ValueAsString() string {
+	return self.value.String()
+}
+
+func (self *typeDV) String() string {
+	return DataValueString(self)
+}
+
+func (self *typeDV) AsDataType() DataType {
+	return self.value
+}
+
+type CodeDataValue interface {
+	DataValue
+	AsParseElement() parser.ParseElement
+	AsSourceFile() *SourceFile
+}
+
+type codeDV struct {
+	dtype DataType
+	element parser.ParseElement
+	file *SourceFile
+}
+
+func (self *codeDV) Type() DataType {
+	return self.dtype
+}
+
+func (self *codeDV) ValueAsString() string {
+	return self.element.ElementType().String()
+}
+
+func (self *codeDV) String() string {
+	return DataValueString(self)
+}
+
+func (self *codeDV) AsParseElement() parser.ParseElement {
+	return self.element
+}
+
+func (self *codeDV) AsSourceFile() *SourceFile {
+	return self.file
 }
 

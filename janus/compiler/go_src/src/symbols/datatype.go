@@ -5,10 +5,13 @@ import (
 )
 
 type Tag struct { string }
+func (self Tag) String() string {
+	return self.string
+}
 
 type DTypeParameter struct {
 	Number int64
-	dtype DataType
+	DType DataType
 }
 
 type DataType interface {

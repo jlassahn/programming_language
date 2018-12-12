@@ -13,6 +13,8 @@ type Evaluator interface {
 
 type EvalContext struct {
 	Symbols SymbolTable
+	SymbolPreprocessor func(Symbol)Symbol
+	CycleDetectSymbol *uninitializedSymbol
 }
 
 var evaluators = map[parser.Tag] Evaluator {
@@ -20,6 +22,8 @@ var evaluators = map[parser.Tag] Evaluator {
 	*parser.SYMBOL: &SymbolEval {},
 	*parser.DOT_LIST: &DotListEval {},
 	*parser.EXPRESSION: &ExpressionEval {},
+	*parser.FUNCTION_TYPE: &FunctionTypeEval {},
+	*parser.TYPE: &TypeEval {},
 }
 
 func EvaluateConstExpression(

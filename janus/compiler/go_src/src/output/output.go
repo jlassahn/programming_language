@@ -3,6 +3,7 @@ package output
 
 import (
 	"os"
+	"io"
 	"fmt"
 )
 
@@ -14,10 +15,28 @@ type ErrorLogger interface {
 	Emit(msg string, arg ...interface{})
 }
 
-
-type LLVMFile struct {
-	//FIXME implement
+type ObjectFile interface {
+	EmitComment(msg string, args ...interface{})
+	Emit(msg string, args ...interface{})
 }
+
+type objectFile struct {
+	fp io.Writer
+}
+
+func NewObjectFile(writer io.Writer) ObjectFile {
+	return &objectFile { writer }
+}
+
+func (self *objectFile) EmitComment(msg string, args ...interface{}) {
+	fmt.Fprintf(self.fp, "; " + msg + "\n", args...)
+}
+
+func (self *objectFile) Emit(msg string, args ...interface{}) {
+	fmt.Fprintf(self.fp, msg + "\n", args...)
+}
+
+
 
 var CurrentLogger ErrorLogger = DefaultLogger{}
 var ErrorCount int
@@ -30,7 +49,7 @@ func (self NilLogger) Warning(msg string, arg ...interface{}) { }
 func (self NilLogger) Info(msg string, arg ...interface{}) { }
 func (self NilLogger) Emit(msg string, arg ...interface{}) { }
 
-type DefaultLogger struct { }
+type DefaultLogger struct {}
 
 func (self DefaultLogger) FatalError(msg string, args ...interface{}) {
 	fmt.Printf("FATAL " + msg + "\n", args...)

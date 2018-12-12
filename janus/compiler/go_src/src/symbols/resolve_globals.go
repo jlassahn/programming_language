@@ -23,6 +23,8 @@ func (self *uninitializedSymbol) Name() string { return self.name; }
 func (self *uninitializedSymbol) Type() DataType { return nil; }
 func (self *uninitializedSymbol) InitialValue() DataValue { return nil; }
 func (self *uninitializedSymbol) IsConst() bool { return false }
+func (self *uninitializedSymbol) SetGenVal(val interface{}) { }
+func (self *uninitializedSymbol) GetGenVal() interface{} { return nil }
 
 func (self *uninitializedSymbol) String() string {
 	return self.name + ":uninitialized"
@@ -47,15 +49,15 @@ func ResolveGlobals(fileSet *FileSet) {
 	}
 
 	
-	//evaluate types and initial values, storing in intiialized subsymbol
+	//evaluate types and initial values, storing in initialized subsymbol
 	//    symbol table Lookup knows about uninitialized symbols
 	//    follows link to initialized if it exists
 	//    propagates evaluation if not
 
-	resolveSymbolValues(fileSet.RootModule, fileSet)
-
-	//FIXME implement
-	//replace all uninitialized Symbols with initialized in all symbol tables
+	resolveConstValues(fileSet.RootModule, fileSet)
+	resolveVariableTypes(fileSet.RootModule, fileSet)
+	replaceUninitialized(fileSet)
+	resolveVariableValues(fileSet.RootModule, fileSet)
 
 }
 
@@ -213,51 +215,237 @@ func getSymbol(name string, file *SourceFile,
 	return sym
 }
 
-func resolveSymbolValues(mod *Module, fileSet *FileSet) {
+/* 
+rules for global type and value resolution:
+const values can only depend on other const values (not variables)
+consts can't have circular dependencies, even the obscure cases
+	where consts could resolve because each only requires partial
+	info about the other are forbidden.
+the type of a variable can only depend on consts
+a variable with implicit type has its type based on const values
+	and the types of other variables, but not the values of variables.
+variables with implicit types can't have circular dependencies with
+	each other.
+the only non-const initializers allowed for data are
+	references to data values
+	references to struct members of data values
+	maybe references to functions or methods?
+variable initializers can form cyclic references, always safe
+	because initializers only reference types, never other initializers.
+types are a kind of const value (they're of data type CType)
 
+ways in which normal function declarations are like const declarations:
+	can't be written to, only initialized
+	can be used as an initializer with implicit type
+ways they're different:
+	can't assign one to a const
+	can make a reference to one
+
+const function declarations can be _called_ from const initializers.
+	const functions _can_ have references
+*/
+
+//FIXME struct content definitions in local tables shouldn't
+//      leak into exported tables.
+//      each file can see a different subset of the struct's
+//      members, methods, size and extensions
+
+func resolveConstValues(mod *Module, fileSet *FileSet) {
+
+	output.FIXMEDebug("resolveConstValues for %v", mod.Name)
 	for _,x := range mod.Children {
-		resolveSymbolValues(x, fileSet)
+		resolveConstValues(x, fileSet)
 	}
 
-	//FIXME struct content definitions in local tables shouldn't
-	//      leak into exported tables.
-	//      each file can see a different subset of the struct's
-	//      members, methods, size and extensions
-	//FIXME CType variables have similar problems.
-	/* FIXME implement
-	for key, value :=  mod.ExportedSymbols.Symbols {
+	for _,value := range mod.ExportedSymbols.Symbols {
+		resolveConstValue(value)
 	}
-	*/
+	// FIXME mod.LocalSymbols.Symbols
+	// FIXME operators?
+}
 
-	/* rules for global type and value resolution:
-	   const values can only depend on other const values (not variables)
-	   consts can't have circular dependencies, even the obscure cases
-	     where consts could resolve because each only requires partial
-	     info about the other are forbidden.
-	   the type of a variable can only depend on consts
-	   a variable with implicit type can ony be initialized by
-	     consts or function declarations
-	  the only non-const initializers allowed for data are
-	     references to data values
-	     references to struct members of data values
-	     maybe references to functions or methods?
-	  variable initializers can form cyclic references, always safe
-	     because initializers only reference types, never other initializers.
-	  types are a kind of const value (they're of data type CType)
+func resolveConstValue(value Symbol) Symbol {
+	return nil
+}
 
-	  ways in which normal function declarations are like const declarations:
-	     can't be written to, only initialized
-	     can be used as an initializer with implicit type
-	  ways they're different:
-	     can't assign one to a const
-	     can make a reference to one
+func resolveVariableTypes(mod *Module, fileSet *FileSet) {
 
-	  const function declarations can be _called_ from const initializers.
-	  const functions _can_ have references
+	output.FIXMEDebug("resolveVariableTypes for %v", mod.Name)
+	for _,x := range mod.Children {
+		resolveVariableTypes(x, fileSet)
+	}
 
-	*/
+	for _,value := range mod.ExportedSymbols.Symbols {
+		resolveVariableType(value)
+	}
+	// FIXME mod.LocalSymbols.Symbols
+	// FIXME operators?
+}
 
-	//self.LocalSymbols.Emit()
-	//self.ExportedSymbols.Emit()
+//FIXME does this need a cycle resolver?  All consts should be finished
+//      already, and types can't depend on variables
+func resolveVariableType(value Symbol) Symbol {
+
+	output.FIXMEDebug("resolveVariableType %v", value)
+	uninit, ok := value.(*uninitializedSymbol)
+	if !ok {
+		output.FIXMEDebug("value %v already finalized", value)
+		return value
+	}
+
+	if uninit.needs != nil {
+		output.Error("definition loop")
+		x := uninit.needs
+		for {
+			if x == nil { break }
+			if x == uninit { break }
+			output.Error("  definition %v -> %v", x.name, x.needs.name)
+			x = x.needs
+		}
+		return nil
+	}
+
+	if uninit.initialized != nil {
+		output.FIXMEDebug("value %v already resolved", value)
+		return uninit.initialized
+	}
+
+	elType := uninit.declarations[0].parseTree.ElementType()
+	for _,dec := range uninit.declarations {
+		if dec.parseTree.ElementType() != elType {
+			parser.Error(dec.parseTree.FilePos(),
+				"declaration mismatch with %v",
+				uninit.declarations[0].parseTree.FilePos())
+			return nil
+		}
+	}
+
+	var sym Symbol
+	switch elType {
+
+	case parser.DEF:
+		for _,dec := range uninit.declarations {
+			el := dec.parseTree
+			file := dec.file
+			output.FIXMEDebug("initializing %v %v", file.FileName, el)
+			//FIXME is string compare the right thing here?
+			isConst := (el.Children()[0].TokenString() == "const")
+			typeTree := el.Children()[2]
+			valTree := el.Children()[3]
+
+			output.FIXMEDebug("  symbol %v %v %v", isConst, typeTree, valTree)
+
+			//FIXME include unitialized resolver and current symbol in ctx
+			ctx := &EvalContext {
+				Symbols: file.FileSymbols,
+				SymbolPreprocessor: resolveVariableType,
+				CycleDetectSymbol: uninit,
+			}
+
+			symTypeVal := EvaluateConstExpression(typeTree, ctx)
+			if symTypeVal == nil {
+				parser.Error(typeTree.FilePos(), "unknown data type")
+				return nil
+			}
+			//FIXME function types include the parameter names
+			//      have to make the names consistent!
+			//      have to use the names in the actual definition.
+			symType := symTypeVal.(TypeDataValue).AsDataType()
+			output.FIXMEDebug("  symType %v", symType)
+
+			dval := &codeDV {
+				dtype: CodeType,
+				element: valTree,
+				file: file,
+			}
+
+			if sym == nil {
+				if symType.Base() == FUNCTION_TYPE {
+					sym = &functionChoiceSymbol {
+						name: uninit.Name(),
+						choices: []Symbol {
+							&baseSymbol {
+								name: uninit.Name(),
+								dtype: symType,
+								initialValue: dval,
+								isConst: isConst,
+								genVal: nil,
+							},
+						},
+					}
+				} else {
+					output.FIXMEDebug("NOT A FUNCTION")
+				}
+
+			} else {
+				output.FatalError("FIXME merge multiple defs of symbol")
+			}
+		}
+
+	//FIXME implement
+	//struct
+	//interface
+	//method (can be handled in a second pass unless we allow const methods)
+	//alias
+	//operator
+
+	default:
+		parser.FatalError(
+			uninit.declarations[0].parseTree.FilePos(),
+			"Unhandled element: %v", elType)
+	}
+
+	uninit.initialized = sym
+	return sym
+}
+
+func resolveVariableValues(mod *Module, fileSet *FileSet) {
+
+	output.FIXMEDebug("resolveVariableValues for %v", mod.Name)
+	for _,x := range mod.Children {
+		resolveVariableValues(x, fileSet)
+	}
+	 //FIXME do something
+}
+
+func replaceUninitialized(fileSet *FileSet) {
+	replaceUninitializedInModule(fileSet.RootModule)
+
+	for _,file := range fileSet.FileList {
+		replaceUninitializedInMap(file.FileSymbols.Symbols)
+		// FIXME operators?
+	}
+}
+
+func replaceUninitializedInModule(mod *Module) {
+
+	output.FIXMEDebug("replaceUninitialized for %v", mod.Name)
+	for _,x := range mod.Children {
+		replaceUninitializedInModule(x)
+	}
+	replaceUninitializedInMap(mod.ExportedSymbols.Symbols)
+	replaceUninitializedInMap(mod.LocalSymbols.Symbols)
+	// FIXME operators?
+}
+
+func replaceUninitializedInMap(syms map[string]Symbol) {
+
+	replace := map[string]Symbol {}
+
+	for key,value := range syms {
+		uninit, ok := value.(*uninitializedSymbol)
+		if !ok {
+			continue
+		}
+		if uninit.initialized == nil {
+			output.FatalError("symbol %v remains uninitialized", key)
+			continue
+		}
+		replace[key] = uninit.initialized
+	}
+
+	for key,value := range replace {
+		syms[key] = value
+	}
 }
 

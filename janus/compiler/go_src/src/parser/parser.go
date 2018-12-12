@@ -1502,6 +1502,8 @@ func (mp *mainParser) parseFunctionType() ParseElement {
 	mp.match(PUNCTUATION, ")")
 	if mp.tryMatch(OPERATOR, "->") {
 		ret.addChild(mp.parseType())
+	} else {
+		ret.addChild(mp.startElement(EMPTY))
 	}
 	return ret
 }

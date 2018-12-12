@@ -60,6 +60,7 @@ func (self *SourceFile) EmitGlobals() {
 type Module struct {
 
 	Name string
+	Parent *Module
 
 	Children map[string]*Module
 
@@ -69,9 +70,11 @@ type Module struct {
 	LocalSymbols *symbolTable
 }
 
-func NewModule(name string) *Module {
+func NewModule(name string, parent *Module) *Module {
+
 	return &Module {
 		Name: name,
+		Parent : parent,
 		Children: map[string]*Module {},
 		FileList: nil,
 		ExportedSymbols: NewSymbolTable(name+"(EXPORTED)", nil),
@@ -109,6 +112,18 @@ func (self *Module) EmitModuleSymbols() {
 
 }
 
+func (self *Module) GetModuleList() []*Module {
+
+	var ret []*Module
+
+	for _,k := range SortedKeys(self.Children) {
+		mod := self.Children[k]
+		ret = append(ret, mod.GetModuleList()...)
+	}
+	ret = append(ret, self)
+	return ret
+}
+
 
 type FileSet struct {
 	FileList []*SourceFile
@@ -119,7 +134,7 @@ type FileSet struct {
 func NewFileSet() *FileSet {
 	return &FileSet {
 		FileList: nil,
-		RootModule: NewModule("@root") }
+		RootModule: NewModule("@root", nil) }
 }
 
 
@@ -178,7 +193,7 @@ func (self *FileSet) AddFileToModules(file *SourceFile) {
 	for _,x := range path {
 		mod := baseMod.Children[x]
 		if mod == nil {
-			mod = NewModule(x)
+			mod = NewModule(x, baseMod)
 			baseMod.Children[x] = mod
 		}
 

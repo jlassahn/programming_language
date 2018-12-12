@@ -21,13 +21,15 @@ func (*ExpressionEval) EvaluateConstExpression(
 		return nil
 	}
 
-	args := make([]DataValue, len(children) -1)
+	args := make([]DataValue, len(children) - 1)
+	argTypes := make([]DataType, len(children) - 1)
 	for i, x := range(children[1:]) {
 		args[i] = EvaluateConstExpression(x, ctx)
 		if args[i] == nil {
 			output.FIXMEDebug("FIXME args not available")
 			return nil
 		}
+		argTypes[i] = args[i].Type()
 	}
 
 	opChoices := ctx.Symbols.LookupOperator(opName)
@@ -38,7 +40,7 @@ func (*ExpressionEval) EvaluateConstExpression(
 		return nil
 	}
 
-	op := selectFunctionChoice(opChoices, args)
+	op := SelectFunctionChoice(opChoices, argTypes)
 	if op == nil {
 		parser.Error(pos, "Operator %v can't take these parameters", opName)
 		return nil
@@ -57,10 +59,11 @@ func doConstOp(op Symbol,
 
 	val := op.InitialValue()
 
-	return val.(CodeDataValue).EvaluateConst(op, args)
+	return val.(FunctionDataValue).EvaluateConst(op, args)
 }
 
-func selectFunctionChoice(op FunctionChoiceSymbol, args []DataValue) Symbol {
+//FIXME where should this live?
+func SelectFunctionChoice(op FunctionChoiceSymbol, args []DataType) Symbol {
 
 	for _,choice := range op.Choices() {
 
@@ -76,7 +79,7 @@ func selectFunctionChoice(op FunctionChoiceSymbol, args []DataValue) Symbol {
 }
 
 
-func CanConvertArgs(args []DataValue, params []FunctionParameter) bool {
+func CanConvertArgs(args []DataType, params []FunctionParameter) bool {
 
 	if len(args) != len(params) {
 		return false
@@ -86,11 +89,11 @@ func CanConvertArgs(args []DataValue, params []FunctionParameter) bool {
 		arg := args[i]
 
 		if param.AutoConvert {
-			if !CanConvert(arg.Type(), param.DType) {
+			if !CanConvert(arg, param.DType) {
 				return false
 			}
 		} else {
-			if !TypeMatches(arg.Type(), param.DType) {
+			if !TypeMatches(arg, param.DType) {
 				return false
 			}
 		}

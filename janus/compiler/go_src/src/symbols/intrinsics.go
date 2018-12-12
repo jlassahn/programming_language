@@ -2,14 +2,18 @@
 package symbols
 
 import (
-	"fmt"
 )
 
-type CodeDataValue interface {
+type FunctionDataValue interface {
 	EvaluateConst(op Symbol, args []DataValue) DataValue
 }
 
+type IntrinsicDataValue interface {
+	ValueAsString() string
+}
+
 type intrinsicDV struct {
+	name string
 	fnEvalConst func (op Symbol, args []DataValue) DataValue
 }
 
@@ -18,7 +22,7 @@ func (self *intrinsicDV) Type() DataType {
 }
 
 func (self *intrinsicDV) ValueAsString() string {
-	return fmt.Sprintf("@%p", self)
+	return self.name
 }
 
 func (self *intrinsicDV) String() string {
@@ -33,6 +37,8 @@ func (self *intrinsicDV) EvaluateConst(
 
 var IntrinsicAddInt64 = &intrinsicDV {
 
+	name: "add_Int64",
+
 	fnEvalConst: func (op Symbol, args []DataValue) DataValue {
 
 		a := args[0].(*signedDV).AsSigned64()
@@ -45,6 +51,8 @@ var IntrinsicAddInt64 = &intrinsicDV {
 }
 
 var IntrinsicDivReal64 = &intrinsicDV {
+
+	name: "div_Real64",
 
 	fnEvalConst: func (op Symbol, args []DataValue) DataValue {
 

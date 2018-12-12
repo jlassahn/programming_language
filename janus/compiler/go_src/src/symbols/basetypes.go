@@ -12,6 +12,9 @@ var FUNCTIONCHOICE_TYPE = &Tag{"FUNCTIONCHOICE"}
 var FUNCTION_TYPE = &Tag{"FUNCTION"}
 var INTRINSIC_TYPE = &Tag{"INTRINSIC"}
 var CODE_TYPE = &Tag{"CODE"}
+var LABEL_TYPE = &Tag{"LABEL"}
+
+var CTYPE_TYPE = &Tag{"CTYPE"}
 
 var BOOL_TYPE = &Tag{"BOOL"}
 
@@ -36,6 +39,9 @@ var NamespaceType = &simpleDT{*NAMESPACE_TYPE}
 var FunctionChoiceType = &simpleDT{*FUNCTIONCHOICE_TYPE}
 var IntrinsicType = &simpleDT{*INTRINSIC_TYPE}
 var CodeType = &simpleDT{*CODE_TYPE}
+var LabelType = &simpleDT{*LABEL_TYPE}
+
+var CTypeType = &simpleDT{*CTYPE_TYPE}
 
 var BoolType = &simpleDT{*BOOL_TYPE}
 

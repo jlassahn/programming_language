@@ -7,6 +7,6 @@ all:
 	go build go_src/src/janusc.go
 
 test:
-	go test -v -coverpkg driver,output,parser,symbols  -coverprofile=coverage.out driver
+	go test -v -coverpkg driver,output,parser,symbols,generator  -coverprofile=coverage.out driver
 	go tool cover -html=coverage.out -o coverage.html
 

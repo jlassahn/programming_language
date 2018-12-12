@@ -5,11 +5,14 @@
 package driver
 
 import (
+	"os"
+	"strings"
 	"path/filepath"
 
 	"output"
 	"parser"
 	"symbols"
+	"generator"
 )
 
 
@@ -105,19 +108,26 @@ func Compile(argsIn []string, envIn map[string]string) int {
 		EmitGlobals(fileSet)
 	}
 
-	//FIXME resolve global symbols
-	//  pass 1, create symbol table entries for all files without types
-	//  pass 2, resolve types
-	//  FIXME lots of weird corner cases here, type can be
-	//        an explicit type (which might be defined in another file)
-	//        the default type of an initializer (which might be a const expr)
-	//        a constant of type CType?
-	//  so pass 2 is probably a graph walk which visits expressions as needed
-	//  and detects cycles.
-
 	if output.ErrorCount > 0 {
 		return 1
 	}
+
+	name := args.StringOpts["name"]
+	if name == "" {
+		name = filepath.Base(args.Files[0])
+		name = strings.Split(name, ".")[0]
+		name = name + ".ll" //FIXME LLVM specific
+	}
+
+	fp, err := os.Create(name)
+	if err != nil {
+		output.Error("can't create output file %v: %v", name, err)
+		return 1
+	}
+
+	outfile := output.NewObjectFile(fp)
+	generator.GenerateCode(fileSet, outfile)
+
 	return 0
 }
 

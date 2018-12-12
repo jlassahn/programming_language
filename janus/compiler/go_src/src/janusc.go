@@ -11,6 +11,8 @@ import (
 
 func main() {
 
+	//fmt.Println(runtime.GOOS) //darwin, freebsd, linux, windows, ...
+
 	args := os.Args[1:]
 
 	envList := os.Environ()

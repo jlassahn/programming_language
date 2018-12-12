@@ -14,6 +14,8 @@ type Symbol interface {
 	Type() DataType
 	InitialValue() DataValue
 	IsConst() bool
+	SetGenVal(val interface{})
+	GetGenVal() interface{}
 }
 
 type FunctionChoiceSymbol interface {
@@ -29,6 +31,7 @@ type SymbolTable interface {
 	Emit()
 
 	AddConst(name string, dtype DataType, val DataValue) error
+	AddVar(name string, dtype DataType) (Symbol, error)
 
 	AddOperator(name string, retType DataType, params []FunctionParameter,
 		isConst bool, impl DataValue) error
@@ -77,6 +80,7 @@ func (self *symbolTable) LookupOperator(x string) FunctionChoiceSymbol {
 	return self.Parent.LookupOperator(x)
 }
 
+//FIXME return (Symbol, error)
 func (self *symbolTable) AddConst(
 	name string, dtype DataType, val DataValue) error {
 
@@ -84,8 +88,19 @@ func (self *symbolTable) AddConst(
 		return fmt.Errorf("redefinition of symbol %v", name)
 	}
 
-	self.Symbols[name] = &baseSymbol { name, dtype, val, true }
+	self.Symbols[name] = &baseSymbol { name, dtype, val, true, nil }
 	return nil
+}
+
+func (self *symbolTable) AddVar(name string, dtype DataType) (Symbol, error) {
+
+	if self.Symbols[name] != nil {
+		return nil, fmt.Errorf("redefinition of symbol %v", name)
+	}
+
+	sym := &baseSymbol { name, dtype, nil, false, nil }
+	self.Symbols[name] = sym
+	return sym, nil
 }
 
 func (self *symbolTable) AddOperator(
@@ -104,6 +119,7 @@ func (self *symbolTable) AddOperator(
 			&functionDT {retType, params, false},
 			impl,
 			isConst,
+			nil,
 		})
 
 }
@@ -113,11 +129,23 @@ func (st *symbolTable) Emit() {
 	for st != nil {
 		output.Emit("  Symbol Table: %v", st.Name)
 		output.Emit("    Symbols:")
-		for k, v := range st.Symbols {
-			output.Emit("      %v %v = %v",
-				k,
-				v.Type(),
-				v.InitialValue())
+		for _,k := range SortedKeys(st.Symbols) {
+			v := st.Symbols[k]
+			if v.Type() == FunctionChoiceType {
+				output.Emit("      %v %v",
+					k,
+					v.Type())
+				for _, op := range v.(FunctionChoiceSymbol).Choices() {
+					output.Emit("        %v = %v",
+						op.Type(),
+						op.InitialValue())
+				}
+			} else {
+				output.Emit("      %v %v = %v",
+					k,
+					v.Type(),
+					v.InitialValue())
+			}
 		}
 
 		output.Emit("    Operators:")
@@ -153,12 +181,15 @@ type baseSymbol struct {
 	dtype DataType
 	initialValue DataValue
 	isConst bool
+	genVal interface{}
 }
 
-func (self *baseSymbol) Name() string { return self.name; }
-func (self *baseSymbol) Type() DataType { return self.dtype; }
-func (self *baseSymbol) InitialValue() DataValue { return self.initialValue; }
-func (self *baseSymbol) IsConst() bool { return self.isConst; }
+func (self *baseSymbol) Name() string { return self.name }
+func (self *baseSymbol) Type() DataType { return self.dtype }
+func (self *baseSymbol) InitialValue() DataValue { return self.initialValue }
+func (self *baseSymbol) IsConst() bool { return self.isConst }
+func (self *baseSymbol) SetGenVal(val interface{}) { self.genVal = val }
+func (self *baseSymbol) GetGenVal() interface{} { return self.genVal }
 
 func (self *baseSymbol) String() string {
 	return self.name + ":" + self.dtype.String()
@@ -175,6 +206,8 @@ func (self *functionChoiceSymbol) Type() DataType { return FunctionChoiceType; }
 func (self *functionChoiceSymbol) InitialValue() DataValue { return nil; }
 func (self *functionChoiceSymbol) IsConst() bool { return true; }
 func (self *functionChoiceSymbol) Choices() []Symbol { return self.choices; }
+func (self *functionChoiceSymbol) SetGenVal(val interface{}) { }
+func (self *functionChoiceSymbol) GetGenVal() interface{} { return nil }
 
 func (self *functionChoiceSymbol) Add(x Symbol) error {
 	//FIXME
@@ -207,6 +240,10 @@ func buildPredefinedSymbols() *symbolTable {
 	syms.AddConst("True", BoolType, TrueValue)
 	syms.AddConst("False", BoolType, FalseValue)
 
+	syms.AddConst("CType", CTypeType, &typeDV{CTypeType, CTypeType})
+	syms.AddConst("Bool", CTypeType, &typeDV{CTypeType, BoolType})
+	syms.AddConst("Int32", CTypeType, &typeDV{CTypeType, Int32Type})
+
 	syms.AddOperator("+", Real64Type, []FunctionParameter {
 		{"a", Real64Type, false},
 		{"b", Real64Type, true},
@@ -216,6 +253,12 @@ func buildPredefinedSymbols() *symbolTable {
 	syms.AddOperator("+", Int64Type, []FunctionParameter {
 		{"a", Int64Type, false},
 		{"b", Int64Type, true},
+	},
+	true, IntrinsicAddInt64)
+
+	syms.AddOperator("+", Int32Type, []FunctionParameter {
+		{"a", Int32Type, false},
+		{"b", Int32Type, true},
 	},
 	true, IntrinsicAddInt64)
 
