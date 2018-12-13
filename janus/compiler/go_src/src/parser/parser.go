@@ -1150,34 +1150,32 @@ func (mp *mainParser) parseFunctionStatement() ParseElement {
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "continue") {
-		ret := mp.startElement(EXPRESSION)
-		ret.addChild(mp.consume())
+	if mp.tryMatch(KEYWORD, "continue") {
+		ret := mp.startElement(CONTINUE)
 		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "break") {
-		ret := mp.startElement(EXPRESSION)
-		ret.addChild(mp.consume())
+	if mp.tryMatch(KEYWORD, "break") {
+		ret := mp.startElement(BREAK)
 		if !mp.peek(0, PUNCTUATION, ";") {
 			ret.addChild(mp.match(NUMBER, ""))
+		} else {
+			ret.addChild(mp.startElement(EMPTY))
 		}
 		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "label") {
-		ret := mp.startElement(EXPRESSION)
-		ret.addChild(mp.consume())
+	if mp.tryMatch(KEYWORD, "label") {
+		ret := mp.startElement(LABEL)
 		ret.addChild(mp.match(SYMBOL, ""))
 		mp.match(PUNCTUATION, ";")
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "goto") {
-		ret := mp.startElement(EXPRESSION)
-		ret.addChild(mp.consume())
+	if mp.tryMatch(KEYWORD, "goto") {
+		ret := mp.startElement(GOTO)
 		ret.addChild(mp.match(SYMBOL, ""))
 		mp.match(PUNCTUATION, ";")
 		return ret
