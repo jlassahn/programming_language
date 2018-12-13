@@ -25,6 +25,5 @@
 (  8,  5) 					[SYMBOL] print
 (  8, 11) 				[LIST] 
 (  8, 11) 					[STRING] Hello, World`lf`
-(  9,  2) 			[EXPRESSION] 
-(  9,  2) 				[KEYWORD] return
+(  9,  9) 			[RETURN] 
 (  9,  9) 				[NUMBER] 0

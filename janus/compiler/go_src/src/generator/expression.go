@@ -16,6 +16,7 @@ var handlers = map[*parser.Tag] ExpressionGenerator {
 	parser.EXPRESSION: genExpression,
 	parser.NUMBER: genNumber,
 	parser.SYMBOL: genSymbol,
+	parser.RETURN: genReturn,
 }
 
 // indirect call to GenerateExpression, to avoid a circular dependency
@@ -59,15 +60,6 @@ func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
 
 	if opElement.ElementType() == parser.OPERATOR {
 		return genOperator(fp, genFunc, ctx, opElement, args)
-	}
-
-	//FIXME fake, keywords should be handled differently in parser!
-	if opElement.ElementType() == parser.KEYWORD {
-		if opElement.TokenString() == "return" {
-			genFunc.AddBody("\tret %v %v",
-				args[0].LLVMType(),
-				args[0].LLVMVal())
-		}
 	}
 
 	//FIXME implement
@@ -158,6 +150,25 @@ func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
 	}
 
 	output.FIXMEDebug("NO VALUE FOUND")
+	return nil
+}
+
+func genReturn(fp GeneratedFile, genFunc GeneratedFunction,
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
+
+	argEl := el.Children()[0]
+
+	//FIXME type checking -- expression type must match function type
+	if argEl.ElementType() == parser.EMPTY {
+		genFunc.AddBody("\tret void")
+		return nil
+	}
+
+	arg := loopHandler(fp, genFunc, ctx, argEl)
+
+	genFunc.AddBody("\tret %v %v",
+		arg.LLVMType(),
+		arg.LLVMVal())
 	return nil
 }
 

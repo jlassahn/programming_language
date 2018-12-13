@@ -41,6 +41,7 @@ var IF = &Tag{"IF"}
 var WHILE = &Tag{"WHILE"}
 var FOR = &Tag{"FOR"}
 var WITH = &Tag{"WITH"}
+var RETURN = &Tag{"RETURN"}
 var INTERFACE = &Tag{"INTERFACE"}
 var METHOD = &Tag{"METHOD"}
 var OPERATOR_DEF = &Tag{"OPERATOR_DEF"}

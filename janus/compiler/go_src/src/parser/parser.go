@@ -1128,7 +1128,7 @@ func (mp *mainParser) parseFunctionStatement() ParseElement {
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "with") {
+	if mp.tryMatch(KEYWORD, "with") {
 		ret := mp.startElement(WITH)
 		ret.addChild(mp.match(SYMBOL, ""))
 		mp.match(OPERATOR, "=")
@@ -1139,11 +1139,12 @@ func (mp *mainParser) parseFunctionStatement() ParseElement {
 		return ret
 	}
 
-	if mp.peek(0, KEYWORD, "return") {
-		ret := mp.startElement(EXPRESSION)
-		ret.addChild(mp.consume())
+	if mp.tryMatch(KEYWORD, "return") {
+		ret := mp.startElement(RETURN)
 		if !mp.peek(0, PUNCTUATION, ";") {
 			ret.addChild(mp.parseExpression())
+		} else {
+			ret.addChild(mp.startElement(EMPTY))
 		}
 		mp.match(PUNCTUATION, ";")
 		return ret
