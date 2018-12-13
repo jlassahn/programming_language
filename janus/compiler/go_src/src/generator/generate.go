@@ -9,117 +9,91 @@ import (
 	"symbols"
 )
 
-//FIXME add methods to Generated... so we don't have to keep saying
-// MakeLLVMType(self.Result().Type())
-
-type GeneratedTag interface {
+type Result interface {
 	ID() int
 	Type() symbols.DataType
-	String() string
-}
-
-type GeneratedStatement interface {
-	Result() GeneratedTag
 	IsConst() bool
 	ConstVal() symbols.DataValue
 	String() string
+	LLVMType() string
+	LLVMVal() string
 }
 
 type GeneratedFunction interface {
 	Emit(file GeneratedFile)
 	SetReturnType(dtype symbols.DataType)
-	AddParameter(name string, dtype symbols.DataType) GeneratedStatement
+	AddParameter(name string, dtype symbols.DataType) Result
 	AddPrologue(x string, args ...interface{})
 	AddBody(x string, args ...interface{})
-}
-
-type GeneratedGlobalDef interface {
 }
 
 type GeneratedFile interface {
 	OutFile() output.ObjectFile
 	EmitComment(msg string, args ...interface{})
 	Emit(msg string, args ...interface{})
-	MakeTag(tagOut *generatedTag, dtype symbols.DataType, name string)
+	MakeResult() *result
 }
 
-
-type generatedTag struct {
+type result struct {
 	id int
 	name string
 	dtype symbols.DataType
-}
-
-func (self *generatedTag) ID() int {
-	return self.id
-}
-
-func (self *generatedTag) Type() symbols.DataType {
-	return self.dtype
-}
-
-func (self *generatedTag) String() string {
-	return fmt.Sprintf("%%%s_%d", self.name, self.id)
-}
-
-type generatedStatement struct {
-	tag generatedTag
 	isConst bool
 	constVal symbols.DataValue
 }
 
-func NewTempVal(fp GeneratedFile, dtype symbols.DataType) *generatedStatement {
+func NewTempVal(fp GeneratedFile, dtype symbols.DataType) Result {
 
-	ret := &generatedStatement { }
-	fp.MakeTag(&ret.tag, dtype, "tmp")
-
-	return ret
-}
-
-func NewNamedVal(fp GeneratedFile, dtype symbols.DataType, name string) *generatedStatement {
-
-	ret := &generatedStatement { }
-	fp.MakeTag(&ret.tag, dtype, name)
+	ret := fp.MakeResult()
+	ret.dtype = dtype
+	ret.name = "tmp"
+	ret.isConst = false
+	ret.constVal = nil
 
 	return ret
 }
 
-func (self *generatedStatement) String() string {
+func NewNamedVal(fp GeneratedFile, dtype symbols.DataType, name string) Result {
+
+	ret := fp.MakeResult()
+	ret.dtype = dtype
+	ret.name = name
+	ret.isConst = false
+	ret.constVal = nil
+
+	return ret
+}
+
+func NewDataVal(dval symbols.DataValue) Result {
+
+	ret := &result { }
+	ret.dtype = dval.Type()
+	ret.name = "INVALID"
+	ret.isConst = true
+	ret.constVal = dval
+
+	return ret
+}
+
+
+func (self *result) String() string { return self.LLVMVal() }
+func (self *result) ID() int { return self.id }
+func (self *result) Type() symbols.DataType { return self.dtype }
+func (self *result) IsConst() bool { return self.isConst }
+func (self *result) ConstVal() symbols.DataValue { return  self.constVal }
+
+func (self *result) LLVMType() string {
+	return MakeLLVMType(self.dtype)
+}
+
+func (self *result) LLVMVal() string {
 	if self.isConst {
-		return self.constVal.String()
+		return MakeLLVMConst(self.constVal)
 	} else {
-		return self.tag.String()
+		return fmt.Sprintf("%%%s_%d", self.name, self.id)
 	}
 }
-func (self *generatedStatement) Result() GeneratedTag { return &self.tag }
-func (self *generatedStatement) IsConst() bool { return self.isConst }
-func (self *generatedStatement) ConstVal() symbols.DataValue { return  self.constVal }
 
-type generatedParam struct {
-	tag generatedTag
-	index int
-}
-
-func NewGeneratedParam(fp GeneratedFile, i int, dtype symbols.DataType,
-	name string) GeneratedStatement {
-
-	ret := &generatedParam { }
-	fp.MakeTag(&ret.tag, dtype, name)
-	ret.index = i
-
-	return ret
-}
-
-func (self *generatedParam) String() string {
-	return fmt.Sprintf("parameter(%v)", self.tag.name)
-}
-
-func (self *generatedParam) Result() GeneratedTag {
-	return &self.tag
-}
-
-func (self *generatedParam) IsConst() bool { return false }
-func (self *generatedParam) ConstVal() symbols.DataValue { return nil }
 
 type generatedFile struct {
 	outFile output.ObjectFile
@@ -130,6 +104,7 @@ func NewGeneratedFile(outFile output.ObjectFile) GeneratedFile {
 
 	return &generatedFile {
 		outFile: outFile,
+		nextID: 0,
 	}
 }
 
@@ -145,19 +120,20 @@ func (self *generatedFile) Emit(msg string, args ...interface{}) {
 	self.outFile.Emit(msg, args...)
 }
 
-func (self *generatedFile) MakeTag(tagOut *generatedTag, dtype symbols.DataType, name string) {
+func (self *generatedFile) MakeResult() *result {
 
-	tagOut.id = self.nextID
+	ret := &result { }
+	ret.id = self.nextID
 	self.nextID ++
-	tagOut.name = name
-	tagOut.dtype = dtype
+
+	return ret
 }
 
 type generatedFunction struct {
 	fp GeneratedFile
 	name string
 	returnType symbols.DataType
-	params []GeneratedStatement
+	params []Result
 	prologue []string
 	body []string
 }
@@ -180,7 +156,7 @@ func (self *generatedFunction) Emit(fp GeneratedFile) {
 		if i==len(self.params)-1 {
 			term = ""
 		}
-		fp.Emit("\t%v%v", MakeLLVMType(param.Result().Type()), term)
+		fp.Emit("\t%v%v", param.LLVMType(), term)
 	}
 	fp.Emit(") {")
 
@@ -210,7 +186,7 @@ func (self *generatedFunction) SetReturnType(dtype symbols.DataType) {
 	self.returnType = dtype
 }
 
-func (self *generatedFunction) AddParameter(name string, dtype symbols.DataType) GeneratedStatement {
+func (self *generatedFunction) AddParameter(name string, dtype symbols.DataType) Result {
 
 	ret := NewNamedVal(self.fp, dtype, name)
 	self.params = append(self.params, ret)
@@ -299,16 +275,16 @@ func GenerateFunction(
 		sym, err := ctx.Symbols.AddVar(param.Name, param.DType)
 		if err != nil {
 			parser.Error(el.FilePos(), "%v", err)
-			return 
+			return
 		}
 		sym.SetGenVal(genParam)
 
-		genFunc.AddPrologue("\t%v = alloca %v", genParam.String(),
-			MakeLLVMType(genParam.Result().Type()))
+		genFunc.AddPrologue("\t%v = alloca %v", genParam.LLVMVal(),
+			genParam.LLVMType())
 		genFunc.AddBody("\tstore %v %%%d, %v* %v",
-			MakeLLVMType(genParam.Result().Type()), i,
-			MakeLLVMType(genParam.Result().Type()),
-			genParam.Result().String())
+			genParam.LLVMType(), i,
+			genParam.LLVMType(),
+			genParam.LLVMVal())
 	}
 	genFunc.SetReturnType(dtype.ReturnType())
 
@@ -378,6 +354,53 @@ func MakeTypeName(dtype symbols.DataType) string {
 }
 
 func MakeLLVMType(dtype symbols.DataType) string {
-	return "i32" //FIXME fake
+	switch dtype {
+	case symbols.BoolType: return "i1"
+	case symbols.Int8Type: return "i8"
+	case symbols.Int16Type: return "i16"
+	case symbols.Int32Type: return "i32"
+	case symbols.Int64Type: return "i64"
+	case symbols.UInt8Type: return "i8"
+	case symbols.UInt16Type: return "i16"
+	case symbols.UInt32Type: return "i32"
+	case symbols.UInt64Type: return "i64"
+	case symbols.Real32Type: return "float"
+	case symbols.Real64Type: return "double"
+
+	//case symbols.IntegerType:
+	}
+
+	output.FatalError("Unimplemented constant type: %v", dtype)
+	return "INVALID"
+}
+
+func MakeLLVMConst(val symbols.DataValue) string {
+
+	switch val.Type() {
+	case symbols.BoolType:
+		if val == symbols.TrueValue {
+			return "true"
+		} else {
+			return "false"
+		}
+
+	case symbols.Int8Type: return val.ValueAsString()
+	case symbols.Int16Type: return val.ValueAsString()
+	case symbols.Int32Type: return val.ValueAsString()
+	case symbols.Int64Type: return val.ValueAsString()
+	case symbols.UInt8Type: return val.ValueAsString()
+	case symbols.UInt16Type: return val.ValueAsString()
+	case symbols.UInt32Type: return val.ValueAsString()
+	case symbols.UInt64Type: return val.ValueAsString()
+
+	//FIXME implement
+	//case symbols.Real32Type:
+	//case symbols.Real64Type:
+
+	//case symbols.IntegerType:
+	}
+
+	output.FatalError("Unimplemented constant type: %v", val)
+	return "INVALID"
 }
 

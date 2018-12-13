@@ -10,10 +10,11 @@ import (
 )
 
 type ExpressionGenerator func(fp GeneratedFile, genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement) GeneratedStatement
+	ctx *symbols.EvalContext, el parser.ParseElement) Result
 
 var handlers = map[*parser.Tag] ExpressionGenerator {
 	parser.EXPRESSION: genExpression,
+	parser.NUMBER: genNumber,
 	parser.SYMBOL: genSymbol,
 }
 
@@ -23,7 +24,7 @@ var loopHandler ExpressionGenerator
 
 
 func GenerateExpression(fp GeneratedFile, genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement) GeneratedStatement {
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	output.FIXMEDebug("GenerateExpression: %v", el)
 
@@ -40,13 +41,13 @@ func GenerateExpression(fp GeneratedFile, genFunc GeneratedFunction,
 
 
 func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement) GeneratedStatement {
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	children := el.Children()
 	opElement := children[0]
 	opName := opElement.TokenString()
 
-	args := make([]GeneratedStatement, len(children) - 1)
+	args := make([]Result, len(children) - 1)
 	for i, x := range(children[1:]) {
 		args[i] = loopHandler(fp, genFunc, ctx, x)
 		if args[i] == nil {
@@ -64,8 +65,8 @@ func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
 	if opElement.ElementType() == parser.KEYWORD {
 		if opElement.TokenString() == "return" {
 			genFunc.AddBody("\tret %v %v",
-				MakeLLVMType(args[0].Result().Type()),
-				args[0].String())
+				args[0].LLVMType(),
+				args[0].LLVMVal())
 		}
 	}
 
@@ -76,14 +77,14 @@ func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
 
 func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement,
-	args []GeneratedStatement) GeneratedStatement {
+	args []Result) Result {
 
 	opName := el.TokenString()
 	pos := el.FilePos()
 
 	argTypes := make([]symbols.DataType, len(args))
 	for i,x := range args {
-		argTypes[i] = x.Result().Type()
+		argTypes[i] = x.Type()
 	}
 
 	//FIXME make this a reusable function
@@ -136,22 +137,22 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 }
 
 func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement) GeneratedStatement {
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	sym := ctx.Symbols.Lookup(el.TokenString())
 	output.FIXMEDebug("looking up %v %v", el.TokenString(), sym)
 
-	src, ok := sym.GetGenVal().(GeneratedStatement)
+	src, ok := sym.GetGenVal().(Result)
 	if ok {
 		output.FIXMEDebug("found value %v", src)
 
 		ret := NewTempVal(fp, sym.Type())
 
 		genFunc.AddBody("\t%v = load %v, %v* %v",
-			ret.Result().String(),
-			MakeLLVMType(ret.Result().Type()),
-			MakeLLVMType(src.Result().Type()),
-			src.Result().String())
+			ret.LLVMVal(),
+			ret.LLVMType(),
+			src.LLVMType(),
+			src.LLVMVal())
 
 		return ret
 	}
@@ -160,15 +161,25 @@ func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
 	return nil
 }
 
-func MakeIntrinsicOp(ret GeneratedStatement, opName string,
-	args []GeneratedStatement) string {
+func genNumber(fp GeneratedFile, genFunc GeneratedFunction,
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
+
+	dv := symbols.EvaluateConstExpression(el, ctx)
+	if dv == nil {
+		return nil
+	}
+	return NewDataVal(dv)
+}
+
+func MakeIntrinsicOp(ret Result, opName string,
+	args []Result) string {
 
 	s := fmt.Sprintf("\t%v = %v %v %v, %v",
-		ret.Result().String(),
+		ret.LLVMVal(),
 		LLVMOperator[opName],
-		MakeLLVMType(args[0].Result().Type()),
-		args[0].String(),
-		args[1].String())
+		args[0].LLVMType(),
+		args[0].LLVMVal(),
+		args[1].LLVMVal())
 
 	output.FIXMEDebug("%v", s)
 	return s

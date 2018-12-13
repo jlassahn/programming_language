@@ -33,6 +33,8 @@ func Compile(argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
+	//FIXME add library directory relative to compiler executable
+	//FIXME normalize and deduplicate paths
 	sourcePaths := args.ListOpts["source"]
 	sourcePaths = append(sourcePaths,
 		filepath.SplitList(envIn["JANUS_SOURCE_PATH"])...)
@@ -112,25 +114,45 @@ func Compile(argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
+	// FIXME stop here for -imports-only ??
+
 	name := args.StringOpts["name"]
 	if name == "" {
 		name = filepath.Base(args.Files[0])
 		name = strings.Split(name, ".")[0]
-		name = name + ".ll" //FIXME LLVM specific
 	}
+	llvmName := name + ".ll"
+	asmName := name + ".s"
 
-	fp, err := os.Create(name)
-	if err != nil {
-		output.Error("can't create output file %v: %v", name, err)
+	generateCode(llvmName, fileSet)
+	if output.ErrorCount > 0 {
 		return 1
 	}
 
-	outfile := output.NewObjectFile(fp)
-	generator.GenerateCode(fileSet, outfile)
+	runLLVM(llvmName, asmName)
+	if output.ErrorCount > 0 {
+		return 1
+	}
+
+	runAssembleLink(asmName, name)
+	if output.ErrorCount > 0 {
+		return 1
+	}
 
 	return 0
 }
 
+func generateCode(llvmName string, fileSet *symbols.FileSet) {
+
+	fp, err := os.Create(llvmName)
+	if err != nil {
+		output.Error("can't create output file %v: %v", llvmName, err)
+		return
+	}
+	outfile := output.NewObjectFile(fp)
+	generator.GenerateCode(fileSet, outfile)
+	fp.Close()
+}
 
 /* FIXME sequence for compile
 
