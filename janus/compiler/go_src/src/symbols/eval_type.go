@@ -6,11 +6,9 @@ import (
 )
 
 
-type TypeEval struct {}
-func (*TypeEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+func evalType(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	//FIXME is this always right?
-	return EvaluateConstExpression(el.Children()[0], ctx)
+	return loopHandler(el.Children()[0], ctx)
 }
 

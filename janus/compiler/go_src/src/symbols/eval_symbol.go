@@ -6,9 +6,8 @@ import (
 )
 
 
-type SymbolEval struct {}
-func (*SymbolEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+
+func evalSymbol(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	pos := el.FilePos()
 	name := el.TokenString()

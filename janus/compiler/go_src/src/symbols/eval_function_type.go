@@ -7,9 +7,8 @@ import (
 )
 
 
-type FunctionTypeEval struct {}
-func (*FunctionTypeEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+
+func evalFunctionType(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	paramList := el.Children()[0]
 	retType := el.Children()[1]
@@ -27,7 +26,7 @@ func (*FunctionTypeEval) EvaluateConstExpression(
 			return nil
 		}
 
-		dtypeExp := EvaluateConstExpression(paramType, ctx)
+		dtypeExp := loopHandler(paramType, ctx)
 		if dtypeExp == nil {
 			parser.Error(paramName.FilePos(), "unknown data type")
 			return nil
@@ -51,7 +50,7 @@ func (*FunctionTypeEval) EvaluateConstExpression(
 	if retType.ElementType() == parser.EMPTY {
 		dtypeExp = &typeDV{CTypeType, VoidType}
 	} else {
-		dtypeExp = EvaluateConstExpression(retType, ctx)
+		dtypeExp = loopHandler(retType, ctx)
 	}
 
 	if dtypeExp == nil {

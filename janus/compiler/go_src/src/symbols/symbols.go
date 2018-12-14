@@ -254,19 +254,19 @@ func buildPredefinedSymbols() *symbolTable {
 		{"a", Int64Type, false},
 		{"b", Int64Type, true},
 	},
-	true, IntrinsicAddInt64)
+	true, &intrinsicDV{"add_Int64"} )
 
 	syms.AddOperator("+", Int32Type, []FunctionParameter {
 		{"a", Int32Type, false},
 		{"b", Int32Type, true},
 	},
-	true, IntrinsicAddInt64)
+	true, &intrinsicDV{"add_Int64"})
 
 	syms.AddOperator("/", Real64Type, []FunctionParameter {
 		{"a", Real64Type, false},
 		{"b", Real64Type, true},
 	},
-	true, IntrinsicDivReal64)
+	true, &intrinsicDV{"div_Real64"})
 
 	//FIXME should  be Int64, >Real64
 	//FIXME should have other IntXXX versions
@@ -274,7 +274,7 @@ func buildPredefinedSymbols() *symbolTable {
 		{"a", Int64Type, false},
 		{"b", Int64Type, true},
 	},
-	true, IntrinsicDivReal64)
+	true, &intrinsicDV{"div_Real64"})
 
 	return syms
 }

@@ -10,6 +10,7 @@ import (
 type FilePosition struct {
 	Line int
 	Column int
+//FIXME use a file description interface instead of filename
 	File string
 }
 
@@ -55,6 +56,8 @@ type Lexer struct {
 }
 
 //FIXME NewLexer!
+//FIXME use a file description interface instead of filename
+
 func MakeLexer(src io.Reader, filename string) *Lexer {
 
 	ret := &Lexer{

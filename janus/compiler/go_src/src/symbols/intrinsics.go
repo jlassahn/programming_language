@@ -2,10 +2,23 @@
 package symbols
 
 import (
+	"output"
 )
 
-type FunctionDataValue interface {
-	EvaluateConst(op Symbol, args []DataValue) DataValue
+func EvaluateIntrinsic(opName string, args []DataValue) DataValue {
+
+	fn := intrinsics[opName]
+	if fn == nil {
+		output.FatalError("Unimplemented intrinsic: %v", opName)
+		return nil
+	}
+
+	return fn(opName, args)
+}
+
+var intrinsics = map[string] func(name string, args []DataValue) DataValue {
+	"add_Int64": intrinsicAddInt64,
+	"div_Real64": intrinsicDivReal64,
 }
 
 type IntrinsicDataValue interface {
@@ -14,7 +27,6 @@ type IntrinsicDataValue interface {
 
 type intrinsicDV struct {
 	name string
-	fnEvalConst func (op Symbol, args []DataValue) DataValue
 }
 
 func (self *intrinsicDV) Type() DataType {
@@ -29,52 +41,33 @@ func (self *intrinsicDV) String() string {
 	return DataValueString(self)
 }
 
-func (self *intrinsicDV) EvaluateConst(
-	op Symbol, args []DataValue) DataValue {
-	return self.fnEvalConst(op, args)
+func intrinsicAddInt64(op string, args []DataValue) DataValue {
+
+	a := args[0].(*signedDV).AsSigned64()
+	b := args[1].(*signedDV).AsSigned64()
+
+	return &signedDV{Int64Type, a+b}
 }
 
+//FIXME should be real args, with conversions
+func intrinsicDivReal64(op string, args []DataValue) DataValue {
 
-var IntrinsicAddInt64 = &intrinsicDV {
+	var a float64
+	switch args[0].(type) {
+		case *signedDV:
+			a = float64(args[0].(*signedDV).AsSigned64())
+		case *realDV:
+			a = args[0].(*realDV).AsReal64()
+	}
 
-	name: "add_Int64",
+	var b float64
+	switch args[1].(type) {
+		case *signedDV:
+			b = float64(args[1].(*signedDV).AsSigned64())
+		case *realDV:
+			b = args[1].(*realDV).AsReal64()
+	}
 
-	fnEvalConst: func (op Symbol, args []DataValue) DataValue {
-
-		a := args[0].(*signedDV).AsSigned64()
-		b := args[1].(*signedDV).AsSigned64()
-
-		return &signedDV{Int64Type, a+b}
-	} ,
-
-	/* fnGenerate: func (op Symbol, args []DataValue) { } */
-}
-
-var IntrinsicDivReal64 = &intrinsicDV {
-
-	name: "div_Real64",
-
-	fnEvalConst: func (op Symbol, args []DataValue) DataValue {
-
-		var a float64
-		switch args[0].(type) {
-			case *signedDV:
-				a = float64(args[0].(*signedDV).AsSigned64())
-			case *realDV:
-				a = args[0].(*realDV).AsReal64()
-		}
-
-		var b float64
-		switch args[1].(type) {
-			case *signedDV:
-				b = float64(args[1].(*signedDV).AsSigned64())
-			case *realDV:
-				b = args[1].(*realDV).AsReal64()
-		}
-
-		return &realDV{Real64Type, a/b}
-	} ,
-
-	/* fnGenerate: func (op Symbol, args []DataValue) { } */
+	return &realDV{Real64Type, a/b}
 }
 

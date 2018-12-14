@@ -7,9 +7,8 @@ import (
 )
 
 
-type Evaluator interface {
-	EvaluateConstExpression(el parser.ParseElement, ctx *EvalContext) DataValue
-}
+type ConstEvaluator func(el parser.ParseElement, ctx *EvalContext) DataValue
+
 
 type EvalContext struct {
 	Symbols SymbolTable
@@ -17,19 +16,26 @@ type EvalContext struct {
 	CycleDetectSymbol *uninitializedSymbol
 }
 
-var evaluators = map[parser.Tag] Evaluator {
-	*parser.NUMBER: &NumberEval {},
-	*parser.SYMBOL: &SymbolEval {},
-	*parser.DOT_LIST: &DotListEval {},
-	*parser.EXPRESSION: &ExpressionEval {},
-	*parser.FUNCTION_TYPE: &FunctionTypeEval {},
-	*parser.TYPE: &TypeEval {},
+var handlers = map[*parser.Tag] ConstEvaluator {
+	parser.NUMBER: evalNumber,
+	parser.SYMBOL: evalSymbol,
+	parser.DOT_LIST: evalDotList,
+	parser.EXPRESSION: evalExpression,
+	parser.FUNCTION_TYPE: evalFunctionType,
+	parser.TYPE: evalType,
 }
+
+
+// indirect call to EvalConstExpression, to avoid a circular dependency
+var loopHandler ConstEvaluator
 
 func EvaluateConstExpression(
 	el parser.ParseElement, ctx *EvalContext) DataValue {
 
-	eval := evaluators[*el.ElementType()]
+	loopHandler = EvaluateConstExpression
+
+	//eval := evaluators[*el.ElementType()]
+	eval := handlers[el.ElementType()]
 	if eval == nil {
 		//FIXME implement
 		output.FIXMEDebug("no evaluator for %v\n", el.ElementType())
@@ -37,7 +43,7 @@ func EvaluateConstExpression(
 		ctx.Symbols.Emit()
 		return nil
 	} else {
-		return eval.EvaluateConstExpression(el, ctx)
+		return eval(el, ctx)
 	}
 }
 

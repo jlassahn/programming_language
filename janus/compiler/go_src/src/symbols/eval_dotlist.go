@@ -6,9 +6,7 @@ import (
 )
 
 
-type DotListEval struct {}
-func (*DotListEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+func evalDotList(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	vals := DotListAsStrings(el)
 	if vals == nil {

@@ -7,10 +7,15 @@ import (
 )
 
 
+// FIXME store file info in the parse tree as a generic interface
+
 type uninitDeclaration struct {
 	parseTree parser.ParseElement
 	file *SourceFile
 }
+
+//FIXME cleaner organization???
+//FIXME do we actually want to keep declarations in the final symbols?
 
 type uninitializedSymbol struct {
 	name string
@@ -344,7 +349,7 @@ func resolveVariableType(value Symbol) Symbol {
 
 			symTypeVal := EvaluateConstExpression(typeTree, ctx)
 			if symTypeVal == nil {
-				parser.Error(typeTree.FilePos(), "unknown data type")
+				parser.Error(typeTree.FilePos(), "unknown data type in expr")
 				return nil
 			}
 			//FIXME function types include the parameter names
@@ -438,7 +443,8 @@ func replaceUninitializedInMap(syms map[string]Symbol) {
 			continue
 		}
 		if uninit.initialized == nil {
-			output.FatalError("symbol %v remains uninitialized", key)
+			//FIXME is error here always redundant?
+			output.Error("symbol %v remains uninitialized", key)
 			continue
 		}
 		replace[key] = uninit.initialized

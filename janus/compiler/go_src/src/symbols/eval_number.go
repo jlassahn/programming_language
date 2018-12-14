@@ -38,9 +38,8 @@ var typeInfoFromTag = map[string] *typeInfo {
 
 }
 
-type NumberEval struct {}
-func (*NumberEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+
+func evalNumber(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	pos := el.FilePos()
 	txt := el.TokenString()

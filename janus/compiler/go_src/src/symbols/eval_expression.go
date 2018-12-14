@@ -7,9 +7,7 @@ import (
 )
 
 
-type ExpressionEval struct {}
-func (*ExpressionEval) EvaluateConstExpression(
-		el parser.ParseElement, ctx *EvalContext) DataValue {
+func evalExpression(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	children := el.Children()
 	opElement := children[0]
@@ -24,7 +22,7 @@ func (*ExpressionEval) EvaluateConstExpression(
 	args := make([]DataValue, len(children) - 1)
 	argTypes := make([]DataType, len(children) - 1)
 	for i, x := range(children[1:]) {
-		args[i] = EvaluateConstExpression(x, ctx)
+		args[i] = loopHandler(x, ctx)
 		if args[i] == nil {
 			output.FIXMEDebug("FIXME args not available")
 			return nil
@@ -57,9 +55,9 @@ func (*ExpressionEval) EvaluateConstExpression(
 func doConstOp(op Symbol,
 	args []DataValue, ctx *EvalContext) DataValue {
 
-	val := op.InitialValue()
-
-	return val.(FunctionDataValue).EvaluateConst(op, args)
+	//FIXME check if this is really an intrinsic
+	opName := op.InitialValue().(IntrinsicDataValue).ValueAsString()
+	return EvaluateIntrinsic(opName, args)
 }
 
 //FIXME where should this live?
