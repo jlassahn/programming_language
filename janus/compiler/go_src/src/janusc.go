@@ -4,6 +4,7 @@ package main
 import (
 	"os"
 	"strings"
+	"path/filepath"
 
 	"driver"
 )
@@ -12,6 +13,8 @@ import (
 func main() {
 
 	//fmt.Println(runtime.GOOS) //darwin, freebsd, linux, windows, ...
+
+	basePath := filepath.Dir(os.Args[0])
 
 	args := os.Args[1:]
 
@@ -22,7 +25,7 @@ func main() {
 		env[toks[0]] = toks[1]
 	}
 
-	ret := driver.Compile(args, env)
+	ret := driver.Compile(basePath, args, env)
 
 	os.Exit(ret)
 }

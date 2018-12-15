@@ -29,6 +29,10 @@ func NewSourceFile() *SourceFile {
 	return &SourceFile { }
 }
 
+func (self *SourceFile) Name() string {
+	return self.FileName
+}
+
 func (self *SourceFile) SetModuleByFileName() {
 
 	filename := filepath.Base(self.FileName)
@@ -158,6 +162,7 @@ func (self *FileSet) LookupModule(path []string) *Module {
 func (fs *FileSet) AddByFileName(name string) *SourceFile {
 
 	ret := NewSourceFile()
+	ret.FileName = name
 
 	ret.FileSymbols = NewSymbolTable(name, PredefinedSymbols())
 
@@ -167,12 +172,11 @@ func (fs *FileSet) AddByFileName(name string) *SourceFile {
 		return nil
 	}
 
-	lex := parser.MakeLexer(fp, name)
+	lex := parser.NewLexer(fp, ret)
 	ret.ParseTree = parser.NewParser(lex).GetElement()
 	fp.Close()
 
 
-	ret.FileName = name
 	fs.FileList = append(fs.FileList, ret)
 
 	ret.SetModuleByFileName()  //might get overwritten by header options
@@ -272,13 +276,14 @@ func ResolveImports(file_set *FileSet,
 				}
 
 				newFile := NewSourceFile()
+				newFile.FileName = name
+
 				newFile.FileSymbols = NewSymbolTable(name, PredefinedSymbols())
 
-				lex := parser.MakeLexer(fp, name)
+				lex := parser.NewLexer(fp, newFile)
 				newFile.ParseTree = parser.NewParser(lex).GetElement()
 				fp.Close()
 
-				newFile.FileName = name
 				newFile.SetModuleByFileName() //FIXME only set ExportSymbols
 				newFile.Options.ModuleName = modname
 

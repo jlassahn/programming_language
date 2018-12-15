@@ -8,7 +8,7 @@ import (
 
 
 // FIXME store file info in the parse tree as a generic interface
-
+// FIXME use parseTree,FilePos().File.(SourceFile) instead of passing file
 type uninitDeclaration struct {
 	parseTree parser.ParseElement
 	file *SourceFile

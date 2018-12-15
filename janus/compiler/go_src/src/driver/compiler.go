@@ -23,7 +23,7 @@ type parameters struct {
 	ListOpts map[string] []string
 }
 
-func Compile(argsIn []string, envIn map[string]string) int {
+func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 
 	output.ErrorCount = 0
 
@@ -33,17 +33,19 @@ func Compile(argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
-	//FIXME add library directory relative to compiler executable
-	//FIXME normalize and deduplicate paths
 	sourcePaths := args.ListOpts["source"]
 	sourcePaths = append(sourcePaths,
 		filepath.SplitList(envIn["JANUS_SOURCE_PATH"])...)
-	sourcePaths = append(sourcePaths, ".", "./source")
+	sourcePaths = append(sourcePaths, ".", "./source",
+		filepath.Join(basePath, "library", "source"))
+	sourcePaths = normalize(sourcePaths)
 
 	interfacePaths := args.ListOpts["interface"]
 	interfacePaths = append(interfacePaths,
 		filepath.SplitList(envIn["JANUS_INTERFACE_PATH"])...)
-	interfacePaths = append(interfacePaths, ".", "./interfaces")
+	interfacePaths = append(interfacePaths, ".", "./interfaces",
+		filepath.Join(basePath, "library", "interfaces"))
+	interfacePaths = normalize(interfacePaths)
 
 	if args.Flags["show-paths"] {
 		EmitPaths(sourcePaths, interfacePaths)
@@ -154,20 +156,27 @@ func generateCode(llvmName string, fileSet *symbols.FileSet) {
 	fp.Close()
 }
 
-/* FIXME sequence for compile
+func normalize(paths []string) []string {
 
-Load all files:
-	* load files from the command line
-	* recursively for all imports
-		* only load files that haven't already been loaded
-		* load interface file
-		* load library file
-		* load source file
+	var ret []string
 
-Generate global symbol tables for all files
-	* can't resolve all types since imports haven't been mapped...
-Map imoprts into symbol tables
-*/
+	dups := map[string]bool { }
+
+	for _,x := range paths {
+		x = filepath.Clean(x)
+		full, err := filepath.Abs(x)
+		if err == nil {
+			if dups[full] {
+				continue
+			}
+			dups[full] = true
+		}
+		ret = append(ret, x)
+	}
+
+	return ret
+}
+
 
 func EmitPaths(sourcePaths []string, interfacePaths []string) {
 	output.Emit("Source Search Paths:")

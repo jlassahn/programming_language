@@ -54,7 +54,7 @@ func EmitToken(x string) {
 
 
 func posTag(pos *FilePosition) string {
-	return fmt.Sprintf("%v:%v,%v: ", pos.File, pos.Line, pos.Column)
+	return fmt.Sprintf("%v:%v,%v: ", pos.File.Name(), pos.Line, pos.Column)
 }
 
 func FatalError(pos *FilePosition, msg string, args ...interface{}) {

@@ -51,7 +51,8 @@ func runParseTest(t *testing.T, name string) {
 	logger.warns.Reset()
 	logger.info.Reset()
 
-	ret := Compile(args, nil)
+	basePath := "."
+	ret := Compile(basePath, args, nil)
 
 	if ret != 0 {
 		t.Errorf("compiler returned failure")

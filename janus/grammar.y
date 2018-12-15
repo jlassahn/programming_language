@@ -181,6 +181,7 @@ interface_element:
 	| extends_declaration
 	;
 
+//FIXME should be METHOD type_name ...
 method_declaration:
 	METHOD type SYMBOL_TOKEN function_type '{' function_content '}'
 	| METHOD type SYMBOL_TOKEN function_type '=' expression ';'
@@ -190,6 +191,7 @@ method_declaration:
 	| METHOD type SYMBOL_TOKEN type ';'
 	;
 
+//FIXME maybe type_name instead of SYMBOL_TOKEN??
 alias_declaration:
 	ALIAS SYMBOL_TOKEN type ';'
 	;

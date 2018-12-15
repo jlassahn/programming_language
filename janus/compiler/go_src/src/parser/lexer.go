@@ -7,11 +7,14 @@ import (
 	"bytes"
 )
 
+type SourceFile interface {
+	Name() string
+}
+
 type FilePosition struct {
 	Line int
 	Column int
-//FIXME use a file description interface instead of filename
-	File string
+	File SourceFile
 }
 
 type Token struct {
@@ -35,7 +38,7 @@ func newToken(txt []byte, tt *Tag) *Token {
 		Position: FilePosition {
 			Line: 0,
 			Column: 0,
-			File: "",
+			File: nil,
 		},
 	}
 
@@ -48,17 +51,9 @@ type Lexer struct {
 	fileError error
 
 	pos FilePosition
-
-	//FIXME remove
-	//line int
-	//column int
-	//filename string
 }
 
-//FIXME NewLexer!
-//FIXME use a file description interface instead of filename
-
-func MakeLexer(src io.Reader, filename string) *Lexer {
+func NewLexer(src io.Reader, file SourceFile) *Lexer {
 
 	ret := &Lexer{
 		reader: src,
@@ -68,7 +63,7 @@ func MakeLexer(src io.Reader, filename string) *Lexer {
 		pos: FilePosition {
 			Line: 1,
 			Column: 1,
-			File: filename,
+			File: file,
 		},
 	}
 
@@ -161,20 +156,9 @@ func (lex *Lexer)  NextToken() *Token {
 
 	lex.skipSpace()
 
-	/* FIXME remove
-	line := lex.line
-	col := lex.column
-	*/
-
 	pos := lex.pos
 	tok := lex.readToken()
 	tok.Position = pos
-
-	/* FIXME remove
-	tok.Position.Line = line
-	tok.Position.Column = col
-	tok.Position.File = lex.filename
-	*/
 
 	EmitToken(tok.String())
 	return tok
