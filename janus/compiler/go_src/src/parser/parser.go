@@ -1360,7 +1360,7 @@ func (mp *mainParser) parseExpressionExp() ParseElement {
 /*****
 expression_prefix:
 	expression_suffix
-	| PREFIX_OP expression_prefix   // "!"
+	| PREFIX_OP expression_prefix   // "!"  "-"  "+"
 *****/
 
 func (mp *mainParser) parseExpressionPrefix() ParseElement {

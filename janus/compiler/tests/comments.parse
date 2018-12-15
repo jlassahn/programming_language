@@ -1,0 +1,96 @@
+(  2,  1) [SOURCE_FILE] 
+(  2,  7) 	[HEADER] 
+(  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
+( 22,  1) 	[DEF] 
+(  5,  1) 		* [COMMENT] # single line comments run to the next LF
+(  6,  1) 		* [PUNCTUATION] #{
+(  6,  4) 		* [SYMBOL] this
+(  6,  9) 		* [SYMBOL] is
+(  6, 12) 		* [SYMBOL] a
+(  7,  1) 		* [SYMBOL] multiline
+(  7, 11) 		* [SYMBOL] comment
+(  7, 19) 		* [PUNCTUATION] }
+(  8,  1) 		* [COMMENT] # { this is a single line comment
+(  9,  1) 		* [COMMENT] # #{ this is also a single line comment
+( 11,  1) 		* [PUNCTUATION] #{
+( 12,  2) 		* [SYMBOL] this
+( 12,  7) 		* [SYMBOL] is
+( 12, 10) 		* [SYMBOL] a
+( 12, 12) 		* [SYMBOL] multiline
+( 12, 22) 		* [SYMBOL] comment
+( 13,  1) 		* [PUNCTUATION] }
+( 15,  1) 		* [PUNCTUATION] #{
+( 16,  2) 		* [STRING] }
+( 17,  2) 		* [SYMBOL] stuff
+( 17,  8) 		* [SYMBOL] in
+( 17, 11) 		* [SYMBOL] quotes
+( 17, 18) 		* [SYMBOL] do
+( 17, 21) 		* [SYMBOL] not
+( 17, 25) 		* [SYMBOL] end
+( 17, 29) 		* [SYMBOL] comments
+( 18,  2) 		* [PUNCTUATION] '
+( 18,  3) 		* [COMMENT] #'
+( 19,  2) 		* [COMMENT] #} single line comments can't end multiline comments
+( 20,  1) 		* [PUNCTUATION] }
+( 22,  1) 		[KEYWORD] def
+(  5,  1) 			* [COMMENT] # single line comments run to the next LF
+(  6,  1) 			* [PUNCTUATION] #{
+(  6,  4) 			* [SYMBOL] this
+(  6,  9) 			* [SYMBOL] is
+(  6, 12) 			* [SYMBOL] a
+(  7,  1) 			* [SYMBOL] multiline
+(  7, 11) 			* [SYMBOL] comment
+(  7, 19) 			* [PUNCTUATION] }
+(  8,  1) 			* [COMMENT] # { this is a single line comment
+(  9,  1) 			* [COMMENT] # #{ this is also a single line comment
+( 11,  1) 			* [PUNCTUATION] #{
+( 12,  2) 			* [SYMBOL] this
+( 12,  7) 			* [SYMBOL] is
+( 12, 10) 			* [SYMBOL] a
+( 12, 12) 			* [SYMBOL] multiline
+( 12, 22) 			* [SYMBOL] comment
+( 13,  1) 			* [PUNCTUATION] }
+( 15,  1) 			* [PUNCTUATION] #{
+( 16,  2) 			* [STRING] }
+( 17,  2) 			* [SYMBOL] stuff
+( 17,  8) 			* [SYMBOL] in
+( 17, 11) 			* [SYMBOL] quotes
+( 17, 18) 			* [SYMBOL] do
+( 17, 21) 			* [SYMBOL] not
+( 17, 25) 			* [SYMBOL] end
+( 17, 29) 			* [SYMBOL] comments
+( 18,  2) 			* [PUNCTUATION] '
+( 18,  3) 			* [COMMENT] #'
+( 19,  2) 			* [COMMENT] #} single line comments can't end multiline comments
+( 20,  1) 			* [PUNCTUATION] }
+( 22,  5) 		[SYMBOL] func
+( 22,  9) 		[FUNCTION_TYPE] 
+( 22, 36) 			[PARAMETER_LIST] 
+( 22, 11) 				* [PUNCTUATION] #{
+( 22, 13) 				* [SYMBOL] deleted_arg
+( 22, 25) 				* [SYMBOL] Integer
+( 22, 32) 				* [PUNCTUATION] ,
+( 22, 34) 				* [PUNCTUATION] }
+( 22, 36) 				[PARAMETER] 
+( 22, 11) 					* [PUNCTUATION] #{
+( 22, 13) 					* [SYMBOL] deleted_arg
+( 22, 25) 					* [SYMBOL] Integer
+( 22, 32) 					* [PUNCTUATION] ,
+( 22, 34) 					* [PUNCTUATION] }
+( 22, 36) 					[SYMBOL] arg2
+( 22, 11) 						* [PUNCTUATION] #{
+( 22, 13) 						* [SYMBOL] deleted_arg
+( 22, 25) 						* [SYMBOL] Integer
+( 22, 32) 						* [PUNCTUATION] ,
+( 22, 34) 						* [PUNCTUATION] }
+( 22, 41) 					[TYPE] 
+( 22, 41) 						[SYMBOL] String
+( 22, 52) 			[TYPE] 
+( 22, 52) 				[SYMBOL] Void
+( 24,  2) 		[FUNCTION_CONTENT] 
+( 24,  2) 			[DEF] 
+( 24,  2) 				[KEYWORD] def
+( 24,  6) 				[SYMBOL] x
+( 24,  8) 				[EMPTY] 
+( 24, 10) 				[STRING] # not a comment

@@ -107,7 +107,8 @@ var Operators = []string {
 	">",
 	"<",
 	":",
-	"." }
+	".",
+}
 
 
 var AssignmentOperators = map[string]bool {
@@ -126,14 +127,17 @@ var AssignmentOperators = map[string]bool {
 	"/=": true,
 	"&=": true,
 	"|=": true,
-	"=": true }
+	"=": true,
+}
 
 var OrOperators = map[string]bool {
 	"|": true,
-	"^|": true }
+	"^|": true,
+}
 
 var AndOperators = map[string]bool {
-	"&": true }
+	"&": true,
+}
 
 var CompareOperators = map[string]bool {
 	":": true,
@@ -144,11 +148,13 @@ var CompareOperators = map[string]bool {
 	"<=": true,
 	">=": true,
 	"~~": true,
-	"!~": true }
+	"!~": true,
+}
 
 var AddOperators = map[string]bool {
 	"+": true,
-	"-": true }
+	"-": true,
+}
 
 var MultOperators = map[string]bool {
 	">>": true,
@@ -160,13 +166,18 @@ var MultOperators = map[string]bool {
 	"+%": true,
 	"-%": true,
 	"/": true,
-	"*": true }
+	"*": true,
+}
 
 var ExpOperators = map[string]bool {
-	"^": true }
+	"^": true,
+}
 
 var PrefixOperators = map[string]bool {
-	"!": true }
+	"!": true,
+	"-": true,
+	"+": true,
+}
 
 var SuffixOperators = map[string]bool {
 	"++": true,
@@ -199,5 +210,6 @@ var Keywords = map[string]bool {
 	"break" : true,
 	"label" : true,
 	"goto" : true,
-	"janus": true }
+	"janus": true,
+}
 

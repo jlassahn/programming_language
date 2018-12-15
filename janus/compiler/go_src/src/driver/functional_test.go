@@ -11,6 +11,13 @@ import (
 	"output"
 )
 
+var parserOKTests = []string {
+	"hello",
+	"options",
+	"comments",
+	"literals",
+}
+
 func TestMain(m *testing.M) {
 
 	logger = &Logger { }
@@ -27,12 +34,7 @@ func TestMain(m *testing.M) {
 
 func TestParser(t *testing.T) {
 
-	names := []string {
-		"hello",
-		"options",
-	}
-
-	for _,name := range names {
+	for _,name := range parserOKTests {
 		t.Run(name, func(t *testing.T) { runParseTest(t, name) })
 	}
 }

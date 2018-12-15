@@ -1,0 +1,31 @@
+
+janus 1.0;
+
+const n1 = 17s8;
+const n2 = 17s16;
+const n3 = 17s32;
+const n4 = 17s64;
+
+const n5 = 17u8;
+const n6 = 17u16;
+const n7 = 17u32;
+const n8 = 17u64;
+
+const n9 = -17s64;
+
+const n10 = 0b_0000_0001_0001_s32;
+const n11 = 0x11_s32;
+const n12 = 0o21_s32;
+
+const r1 = 17.0*10^3;
+
+const ch = `x`;
+
+const s1 = "This is a string";
+
+const s2 =
+"""
+This is a long preformatted string
+With multiple lines.
+""";
+

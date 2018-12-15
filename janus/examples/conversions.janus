@@ -1,0 +1,44 @@
+
+janus 1.0;
+
+def Main()
+{
+	def x Int32;
+	def y = x.ToInt8();
+	y = x.To(Int8);
+	y = ToInt8(x);
+
+	def a1 Array(Int32) = [1, 2, 3];
+	def a2 = a1.ToArray(Int8);
+	a2 = ToArray(a1, Int8);
+}
+
+def ToArray(a1 Array(Int32), T CType) -> Array(T)
+{
+	def ret = Allocate(T, a1.Length)
+	for i = [0:a1.Length]
+	{
+		ret[i] = a1[i].To(T);
+	}
+}
+
+method Array(T1 CType) To(T2 CType(Array(CaptureType(T3)))) -> T2
+{
+	def ret = Allocate(T2, this.Length)
+	for i = [0:this.Length]
+	{
+		ret[i] = this[i].To(T3);
+	}
+}
+
+method NamedType(T1 CType(Real64)) To(T2 CType(Complex)) -> T2;
+
+def fn(x CaptureType(T)) -> Array(T)
+{
+	def ret = Allocate(T, 10);
+	ret[0] = x;
+	return ret;
+}
+
+def fn2(x struct_type(CaptureType(T))) -> T;
+

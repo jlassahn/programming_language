@@ -1,0 +1,29 @@
+
+janus 1.0;
+
+
+# single line comments run to the next LF
+#{ this is a
+multiline comment }
+# { this is a single line comment
+# #{ this is also a single line comment
+
+#{
+ this is a multiline comment
+}
+
+#{
+	"}"
+	stuff in quotes do not end comments
+	'#'
+	#} single line comments can't end multiline comments
+}
+
+def func( #{deleted_arg Integer, } arg2 String) -> Void
+{
+	def x = "# not a comment";
+
+}
+
+
+

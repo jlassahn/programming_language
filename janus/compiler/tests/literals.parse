@@ -1,0 +1,95 @@
+(  2,  1) [SOURCE_FILE] 
+(  2,  7) 	[HEADER] 
+(  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
+(  4,  1) 	[DEF] 
+(  4,  1) 		[KEYWORD] const
+(  4,  7) 		[SYMBOL] n1
+(  4, 10) 		[EMPTY] 
+(  4, 12) 		[NUMBER] 17s8
+(  5,  1) 	[DEF] 
+(  5,  1) 		[KEYWORD] const
+(  5,  7) 		[SYMBOL] n2
+(  5, 10) 		[EMPTY] 
+(  5, 12) 		[NUMBER] 17s16
+(  6,  1) 	[DEF] 
+(  6,  1) 		[KEYWORD] const
+(  6,  7) 		[SYMBOL] n3
+(  6, 10) 		[EMPTY] 
+(  6, 12) 		[NUMBER] 17s32
+(  7,  1) 	[DEF] 
+(  7,  1) 		[KEYWORD] const
+(  7,  7) 		[SYMBOL] n4
+(  7, 10) 		[EMPTY] 
+(  7, 12) 		[NUMBER] 17s64
+(  9,  1) 	[DEF] 
+(  9,  1) 		[KEYWORD] const
+(  9,  7) 		[SYMBOL] n5
+(  9, 10) 		[EMPTY] 
+(  9, 12) 		[NUMBER] 17u8
+( 10,  1) 	[DEF] 
+( 10,  1) 		[KEYWORD] const
+( 10,  7) 		[SYMBOL] n6
+( 10, 10) 		[EMPTY] 
+( 10, 12) 		[NUMBER] 17u16
+( 11,  1) 	[DEF] 
+( 11,  1) 		[KEYWORD] const
+( 11,  7) 		[SYMBOL] n7
+( 11, 10) 		[EMPTY] 
+( 11, 12) 		[NUMBER] 17u32
+( 12,  1) 	[DEF] 
+( 12,  1) 		[KEYWORD] const
+( 12,  7) 		[SYMBOL] n8
+( 12, 10) 		[EMPTY] 
+( 12, 12) 		[NUMBER] 17u64
+( 14,  1) 	[DEF] 
+( 14,  1) 		[KEYWORD] const
+( 14,  7) 		[SYMBOL] n9
+( 14, 10) 		[EMPTY] 
+( 14, 12) 		[EXPRESSION] 
+( 14, 12) 			[OPERATOR] -
+( 14, 13) 			[NUMBER] 17s64
+( 16,  1) 	[DEF] 
+( 16,  1) 		[KEYWORD] const
+( 16,  7) 		[SYMBOL] n10
+( 16, 11) 		[EMPTY] 
+( 16, 13) 		[NUMBER] 0b_0000_0001_0001_s32
+( 17,  1) 	[DEF] 
+( 17,  1) 		[KEYWORD] const
+( 17,  7) 		[SYMBOL] n11
+( 17, 11) 		[EMPTY] 
+( 17, 13) 		[NUMBER] 0x11_s32
+( 18,  1) 	[DEF] 
+( 18,  1) 		[KEYWORD] const
+( 18,  7) 		[SYMBOL] n12
+( 18, 11) 		[EMPTY] 
+( 18, 13) 		[NUMBER] 0o21_s32
+( 20,  1) 	[DEF] 
+( 20,  1) 		[KEYWORD] const
+( 20,  7) 		[SYMBOL] r1
+( 20, 10) 		[EMPTY] 
+( 20, 16) 		[EXPRESSION] 
+( 20, 16) 			[OPERATOR] *
+( 20, 12) 			[NUMBER] 17.0
+( 20, 19) 			[EXPRESSION] 
+( 20, 19) 				[OPERATOR] ^
+( 20, 17) 				[NUMBER] 10
+( 20, 20) 				[NUMBER] 3
+( 22,  1) 	[DEF] 
+( 22,  1) 		[KEYWORD] const
+( 22,  7) 		[SYMBOL] ch
+( 22, 10) 		[EMPTY] 
+( 22, 12) 		[CHARACTER] x
+( 24,  1) 	[DEF] 
+( 24,  1) 		[KEYWORD] const
+( 24,  7) 		[SYMBOL] s1
+( 24, 10) 		[EMPTY] 
+( 24, 12) 		[STRING] This is a string
+( 26,  1) 	[DEF] 
+( 26,  1) 		[KEYWORD] const
+( 26,  7) 		[SYMBOL] s2
+( 26, 10) 		[EMPTY] 
+( 27,  1) 		[STRING] 
+This is a long preformatted string
+With multiple lines.
+

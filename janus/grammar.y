@@ -295,7 +295,7 @@ expression_exp:
 
 expression_prefix:
 	expression_suffix
-	| PREFIX_OP expression_prefix   // "!"
+	| PREFIX_OP expression_prefix   // "!"  "-"  "+"
 
 expression_suffix:
 	NUMBER_TOKEN
