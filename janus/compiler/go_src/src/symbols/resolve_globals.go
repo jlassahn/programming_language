@@ -7,19 +7,12 @@ import (
 )
 
 
-// FIXME store file info in the parse tree as a generic interface
-// FIXME use parseTree,FilePos().File.(SourceFile) instead of passing file
-type uninitDeclaration struct {
-	parseTree parser.ParseElement
-	file *SourceFile
-}
-
 //FIXME cleaner organization???
 //FIXME do we actually want to keep declarations in the final symbols?
 
 type uninitializedSymbol struct {
 	name string
-	declarations []*uninitDeclaration
+	declarations []parser.ParseElement
 	needs *uninitializedSymbol
 	initialized Symbol
 }
@@ -86,12 +79,11 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 
 		case parser.DEF:
 			/*
-				KEYWORD def or const
 				SYMBOL name
 				TYPE or FUNCTION_TYPE dtype
 				EXPRESSION, etc initializer
 			*/
-			name := el.Children()[1].TokenString()
+			name := el.Children()[0].TokenString()
 			sym := getSymbol(name, file, mod)
 			if sym == nil {
 				parser.Error(el.FilePos(),
@@ -99,11 +91,7 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 				continue
 			}
 
-			dec := &uninitDeclaration {
-				parseTree: el,
-				file: file,
-			}
-			sym.declarations = append(sym.declarations, dec)
+			sym.declarations = append(sym.declarations, el)
 			output.FIXMEDebug("    def for %v %p", name, sym)
 
 		//FIXME implement
@@ -315,12 +303,12 @@ func resolveVariableType(value Symbol) Symbol {
 		return uninit.initialized
 	}
 
-	elType := uninit.declarations[0].parseTree.ElementType()
+	elType := uninit.declarations[0].ElementType()
 	for _,dec := range uninit.declarations {
-		if dec.parseTree.ElementType() != elType {
-			parser.Error(dec.parseTree.FilePos(),
+		if dec.ElementType() != elType {
+			parser.Error(dec.FilePos(),
 				"declaration mismatch with %v",
-				uninit.declarations[0].parseTree.FilePos())
+				uninit.declarations[0].FilePos())
 			return nil
 		}
 	}
@@ -329,14 +317,12 @@ func resolveVariableType(value Symbol) Symbol {
 	switch elType {
 
 	case parser.DEF:
-		for _,dec := range uninit.declarations {
-			el := dec.parseTree
-			file := dec.file
+		for _,el := range uninit.declarations {
+			file := el.FilePos().File.(*SourceFile)
 			output.FIXMEDebug("initializing %v %v", file.FileName, el)
-			//FIXME is string compare the right thing here?
-			isConst := (el.Children()[0].TokenString() == "const")
-			typeTree := el.Children()[2]
-			valTree := el.Children()[3]
+			isConst := false //FIXME do we need to track this
+			typeTree := el.Children()[1]
+			valTree := el.Children()[2]
 
 			output.FIXMEDebug("  symbol %v %v %v", isConst, typeTree, valTree)
 
@@ -396,7 +382,7 @@ func resolveVariableType(value Symbol) Symbol {
 
 	default:
 		parser.FatalError(
-			uninit.declarations[0].parseTree.FilePos(),
+			uninit.declarations[0].FilePos(),
 			"Unhandled element: %v", elType)
 	}
 

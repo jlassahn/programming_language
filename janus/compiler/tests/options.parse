@@ -51,7 +51,6 @@
 ( 12,  2) 				[SYMBOL] b
 ( 12,  6) 				[SYMBOL] undefined
 ( 16,  1) 	[DEF] 
-( 16,  1) 		[KEYWORD] def
 ( 16,  5) 		[SYMBOL] Main
 ( 16,  9) 		[FUNCTION_TYPE] 
 ( 16, 10) 			[PARAMETER_LIST] 

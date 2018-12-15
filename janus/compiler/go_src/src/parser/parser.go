@@ -385,10 +385,10 @@ func (mp *mainParser) parseFileDeclaration() ParseElement {
 	}
 
 	if mp.peek(0, KEYWORD, "struct") {
-		return mp.parseStructDeclaration()
+		return mp.parseStructDeclaration(STRUCT_DEF)
 	}
 	if mp.peek(0, KEYWORD, "m_struct") {
-		return mp.parseStructDeclaration()
+		return mp.parseStructDeclaration(M_STRUCT_DEF)
 	}
 
 	if mp.peek(0, KEYWORD, "interface") {
@@ -408,10 +408,10 @@ func (mp *mainParser) parseFileDeclaration() ParseElement {
 	}
 
 	if mp.peek(0, KEYWORD, "def") {
-		return mp.parseDefStatement()
+		return mp.parseDefStatement(DEF)
 	}
 	if mp.peek(0, KEYWORD, "const") {
-		return mp.parseDefStatement()
+		return mp.parseDefStatement(CONST)
 	}
 
 	return nil
@@ -458,10 +458,11 @@ struct_declaration:
 	;
 *****/
 
-func (mp *mainParser) parseStructDeclaration() ParseElement {
-	ret := mp.startElement(STRUCT_DEF)
+func (mp *mainParser) parseStructDeclaration(etype *Tag) ParseElement {
 
-	ret.addChild(mp.match(KEYWORD, ""))
+	ret := mp.startElement(etype)
+	mp.match(KEYWORD, "")
+
 	ret.addChild(mp.parseTypeName())
 
 	ret.addChild(mp.parseStructOptions())
@@ -973,12 +974,11 @@ def_or_const:
 	;
 *****/
 
-func (mp *mainParser) parseDefStatement() ParseElement {
+func (mp *mainParser) parseDefStatement(etype *Tag) ParseElement {
 
-	ret := mp.startElement(DEF)
+	ret := mp.startElement(etype)
 
-	//def or const
-	ret.addChild(mp.match(KEYWORD, ""))
+	mp.match(KEYWORD, "")
 
 	ret.addChild(mp.match(SYMBOL, ""))
 
@@ -1084,10 +1084,10 @@ func (mp *mainParser) parseFunctionStatement() ParseElement {
 	}
 
 	if mp.peek(0, KEYWORD, "def") {
-		return mp.parseDefStatement()
+		return mp.parseDefStatement(DEF)
 	}
 	if mp.peek(0, KEYWORD, "const") {
-		return mp.parseDefStatement()
+		return mp.parseDefStatement(CONST)
 	}
 
 	if mp.tryMatch(KEYWORD, "if") {

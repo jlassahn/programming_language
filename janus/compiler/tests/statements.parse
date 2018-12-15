@@ -6,14 +6,12 @@
 (  4, 10) 		[EMPTY] 
 (  4,  8) 		[SYMBOL] io
 (  6,  1) 	[DEF] 
-(  6,  1) 		[KEYWORD] def
 (  6,  5) 		[SYMBOL] Main
 (  6,  9) 		[FUNCTION_TYPE] 
 (  6, 10) 			[PARAMETER_LIST] 
 (  7,  1) 			[EMPTY] 
 (  8,  2) 		[FUNCTION_CONTENT] 
 (  8,  2) 			[DEF] 
-(  8,  2) 				[KEYWORD] def
 (  8,  6) 				[SYMBOL] lst
 (  8, 10) 				[TYPE] 
 (  8, 10) 					[SYMBOL] Int16
@@ -61,7 +59,6 @@
 ( 17, 23) 									[LIST] 
 ( 17, 27) 								[STRING] `lf`
 ( 20,  2) 			[DEF] 
-( 20,  2) 				[KEYWORD] def
 ( 20,  6) 				[SYMBOL] i
 ( 20,  8) 				[EMPTY] 
 ( 20, 10) 				[NUMBER] 0

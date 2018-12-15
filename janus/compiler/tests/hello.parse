@@ -6,7 +6,6 @@
 (  4, 10) 		[EMPTY] 
 (  4,  8) 		[SYMBOL] io
 (  6,  1) 	[DEF] 
-(  6,  1) 		[KEYWORD] def
 (  6,  5) 		[SYMBOL] main
 (  6,  9) 		[FUNCTION_TYPE] 
 (  6, 10) 			[PARAMETER_LIST] 

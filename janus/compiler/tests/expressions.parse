@@ -6,14 +6,12 @@
 (  4, 12) 		[EMPTY] 
 (  4,  8) 		[SYMBOL] math
 (  6,  1) 	[DEF] 
-(  6,  1) 		[KEYWORD] def
 (  6,  5) 		[SYMBOL] NoArgs
 (  6, 11) 		[FUNCTION_TYPE] 
 (  6, 12) 			[PARAMETER_LIST] 
 (  6, 14) 			[EMPTY] 
 (  8,  2) 		[FUNCTION_CONTENT] 
 (  8,  2) 			[DEF] 
-(  8,  2) 				[KEYWORD] def
 (  8,  6) 				[SYMBOL] x
 (  8,  8) 				[EMPTY] 
 (  8, 44) 				[EXPRESSION] 
@@ -36,7 +34,6 @@
 (  8, 42) 								[NUMBER] 3
 (  8, 46) 					[CHARACTER] x
 ( 10,  2) 			[DEF] 
-( 10,  2) 				[KEYWORD] def
 ( 10,  6) 				[SYMBOL] n
 ( 10,  8) 				[EMPTY] 
 ( 10, 37) 				[EXPRESSION] 
@@ -59,7 +56,6 @@
 ( 10, 39) 						[SYMBOL] NULL
 ( 10, 47) 						[SYMBOL] NULL
 ( 12,  2) 			[DEF] 
-( 12,  2) 				[KEYWORD] def
 ( 12,  6) 				[SYMBOL] q
 ( 12,  8) 				[EMPTY] 
 ( 12, 13) 				[EXPRESSION] 
@@ -75,7 +71,6 @@
 ( 12, 17) 								[OPERATOR] !
 ( 12, 18) 								[SYMBOL] n
 ( 14,  2) 			[DEF] 
-( 14,  2) 				[KEYWORD] def
 ( 14,  6) 				[SYMBOL] f
 ( 14,  8) 				[TYPE] 
 ( 14,  8) 					[SYMBOL] Real64
@@ -91,7 +86,6 @@
 ( 16,  8) 			[RETURN] 
 ( 16,  8) 				[EMPTY] 
 ( 19,  1) 	[DEF] 
-( 19,  1) 		[KEYWORD] def
 ( 19,  5) 		[SYMBOL] Length
 ( 19, 11) 		[FUNCTION_TYPE] 
 ( 19, 12) 			[PARAMETER_LIST] 
@@ -107,7 +101,6 @@
 ( 20,  9) 					[SYMBOL] x
 ( 20, 11) 					[SYMBOL] Length
 ( 23,  1) 	[DEF] 
-( 23,  1) 		[KEYWORD] def
 ( 23,  5) 		[SYMBOL] LotsOfArgs
 ( 23, 15) 		[FUNCTION_TYPE] 
 ( 24,  2) 			[PARAMETER_LIST] 
