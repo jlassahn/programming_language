@@ -2,7 +2,7 @@
 (  2,  7) 	[HEADER] 
 (  2,  7) 		[NUMBER] 1.0
 (  2, 10) 		[LIST] 
-( 22,  1) 	[DEF] 
+( 37,  1) 	[DEF] 
 (  5,  1) 		* [COMMENT] # single line comments run to the next LF
 (  6,  1) 		* [PUNCTUATION] #{
 (  6,  4) 		* [SYMBOL] this
@@ -21,19 +21,51 @@
 ( 12, 22) 		* [SYMBOL] comment
 ( 13,  1) 		* [PUNCTUATION] }
 ( 15,  1) 		* [PUNCTUATION] #{
-( 16,  2) 		* [STRING] }
-( 17,  2) 		* [SYMBOL] stuff
-( 17,  8) 		* [SYMBOL] in
-( 17, 11) 		* [SYMBOL] quotes
-( 17, 18) 		* [SYMBOL] do
-( 17, 21) 		* [SYMBOL] not
-( 17, 25) 		* [SYMBOL] end
-( 17, 29) 		* [SYMBOL] comments
-( 18,  2) 		* [PUNCTUATION] '
-( 18,  3) 		* [COMMENT] #'
-( 19,  2) 		* [COMMENT] #} single line comments can't end multiline comments
-( 20,  1) 		* [PUNCTUATION] }
-( 22,  1) 		[KEYWORD] def
+( 16,  2) 		* [SYMBOL] Multiline
+( 16, 12) 		* [SYMBOL] comments
+( 16, 21) 		* [SYMBOL] can
+( 16, 25) 		* [SYMBOL] nest
+( 16, 29) 		* [PUNCTUATION] ,
+( 16, 31) 		* [SYMBOL] like
+( 16, 36) 		* [SYMBOL] this
+( 16, 40) 		* [OPERATOR] :
+( 17,  2) 		* [PUNCTUATION] #{
+( 18,  3) 		* [SYMBOL] more
+( 18,  8) 		* [SYMBOL] comments
+( 19,  2) 		* [PUNCTUATION] }
+( 21,  2) 		* [SYMBOL] and
+( 21,  6) 		* [SYMBOL] must
+( 21, 11) 		* [SYMBOL] have
+( 21, 16) 		* [SYMBOL] matching
+( 21, 25) 		* [SYMBOL] braces
+( 22,  2) 		* [PUNCTUATION] {
+( 23,  3) 		* [SYMBOL] like
+( 23,  8) 		* [SYMBOL] this
+( 24,  2) 		* [PUNCTUATION] }
+( 26,  2) 		* [SYMBOL] Which
+( 26,  8) 		* [SYMBOL] lets
+( 26, 13) 		* [SYMBOL] them
+( 26, 18) 		* [SYMBOL] comment
+( 26, 26) 		* [SYMBOL] out
+( 26, 30) 		* [SYMBOL] blocks
+( 26, 37) 		* [SYMBOL] of
+( 26, 40) 		* [SYMBOL] code
+( 26, 44) 		* [OPERATOR] .
+( 27,  1) 		* [PUNCTUATION] }
+( 30,  1) 		* [PUNCTUATION] #{
+( 31,  2) 		* [STRING] }
+( 32,  2) 		* [SYMBOL] stuff
+( 32,  8) 		* [SYMBOL] in
+( 32, 11) 		* [SYMBOL] quotes
+( 32, 18) 		* [SYMBOL] do
+( 32, 21) 		* [SYMBOL] not
+( 32, 25) 		* [SYMBOL] end
+( 32, 29) 		* [SYMBOL] comments
+( 33,  2) 		* [PUNCTUATION] '
+( 33,  3) 		* [COMMENT] #'
+( 34,  2) 		* [COMMENT] #} single line comments can't end multiline comments
+( 35,  1) 		* [PUNCTUATION] }
+( 37,  1) 		[KEYWORD] def
 (  5,  1) 			* [COMMENT] # single line comments run to the next LF
 (  6,  1) 			* [PUNCTUATION] #{
 (  6,  4) 			* [SYMBOL] this
@@ -52,45 +84,77 @@
 ( 12, 22) 			* [SYMBOL] comment
 ( 13,  1) 			* [PUNCTUATION] }
 ( 15,  1) 			* [PUNCTUATION] #{
-( 16,  2) 			* [STRING] }
-( 17,  2) 			* [SYMBOL] stuff
-( 17,  8) 			* [SYMBOL] in
-( 17, 11) 			* [SYMBOL] quotes
-( 17, 18) 			* [SYMBOL] do
-( 17, 21) 			* [SYMBOL] not
-( 17, 25) 			* [SYMBOL] end
-( 17, 29) 			* [SYMBOL] comments
-( 18,  2) 			* [PUNCTUATION] '
-( 18,  3) 			* [COMMENT] #'
-( 19,  2) 			* [COMMENT] #} single line comments can't end multiline comments
-( 20,  1) 			* [PUNCTUATION] }
-( 22,  5) 		[SYMBOL] func
-( 22,  9) 		[FUNCTION_TYPE] 
-( 22, 36) 			[PARAMETER_LIST] 
-( 22, 11) 				* [PUNCTUATION] #{
-( 22, 13) 				* [SYMBOL] deleted_arg
-( 22, 25) 				* [SYMBOL] Integer
-( 22, 32) 				* [PUNCTUATION] ,
-( 22, 34) 				* [PUNCTUATION] }
-( 22, 36) 				[PARAMETER] 
-( 22, 11) 					* [PUNCTUATION] #{
-( 22, 13) 					* [SYMBOL] deleted_arg
-( 22, 25) 					* [SYMBOL] Integer
-( 22, 32) 					* [PUNCTUATION] ,
-( 22, 34) 					* [PUNCTUATION] }
-( 22, 36) 					[SYMBOL] arg2
-( 22, 11) 						* [PUNCTUATION] #{
-( 22, 13) 						* [SYMBOL] deleted_arg
-( 22, 25) 						* [SYMBOL] Integer
-( 22, 32) 						* [PUNCTUATION] ,
-( 22, 34) 						* [PUNCTUATION] }
-( 22, 41) 					[TYPE] 
-( 22, 41) 						[SYMBOL] String
-( 22, 52) 			[TYPE] 
-( 22, 52) 				[SYMBOL] Void
-( 24,  2) 		[FUNCTION_CONTENT] 
-( 24,  2) 			[DEF] 
-( 24,  2) 				[KEYWORD] def
-( 24,  6) 				[SYMBOL] x
-( 24,  8) 				[EMPTY] 
-( 24, 10) 				[STRING] # not a comment
+( 16,  2) 			* [SYMBOL] Multiline
+( 16, 12) 			* [SYMBOL] comments
+( 16, 21) 			* [SYMBOL] can
+( 16, 25) 			* [SYMBOL] nest
+( 16, 29) 			* [PUNCTUATION] ,
+( 16, 31) 			* [SYMBOL] like
+( 16, 36) 			* [SYMBOL] this
+( 16, 40) 			* [OPERATOR] :
+( 17,  2) 			* [PUNCTUATION] #{
+( 18,  3) 			* [SYMBOL] more
+( 18,  8) 			* [SYMBOL] comments
+( 19,  2) 			* [PUNCTUATION] }
+( 21,  2) 			* [SYMBOL] and
+( 21,  6) 			* [SYMBOL] must
+( 21, 11) 			* [SYMBOL] have
+( 21, 16) 			* [SYMBOL] matching
+( 21, 25) 			* [SYMBOL] braces
+( 22,  2) 			* [PUNCTUATION] {
+( 23,  3) 			* [SYMBOL] like
+( 23,  8) 			* [SYMBOL] this
+( 24,  2) 			* [PUNCTUATION] }
+( 26,  2) 			* [SYMBOL] Which
+( 26,  8) 			* [SYMBOL] lets
+( 26, 13) 			* [SYMBOL] them
+( 26, 18) 			* [SYMBOL] comment
+( 26, 26) 			* [SYMBOL] out
+( 26, 30) 			* [SYMBOL] blocks
+( 26, 37) 			* [SYMBOL] of
+( 26, 40) 			* [SYMBOL] code
+( 26, 44) 			* [OPERATOR] .
+( 27,  1) 			* [PUNCTUATION] }
+( 30,  1) 			* [PUNCTUATION] #{
+( 31,  2) 			* [STRING] }
+( 32,  2) 			* [SYMBOL] stuff
+( 32,  8) 			* [SYMBOL] in
+( 32, 11) 			* [SYMBOL] quotes
+( 32, 18) 			* [SYMBOL] do
+( 32, 21) 			* [SYMBOL] not
+( 32, 25) 			* [SYMBOL] end
+( 32, 29) 			* [SYMBOL] comments
+( 33,  2) 			* [PUNCTUATION] '
+( 33,  3) 			* [COMMENT] #'
+( 34,  2) 			* [COMMENT] #} single line comments can't end multiline comments
+( 35,  1) 			* [PUNCTUATION] }
+( 37,  5) 		[SYMBOL] func
+( 37,  9) 		[FUNCTION_TYPE] 
+( 37, 36) 			[PARAMETER_LIST] 
+( 37, 11) 				* [PUNCTUATION] #{
+( 37, 13) 				* [SYMBOL] deleted_arg
+( 37, 25) 				* [SYMBOL] Integer
+( 37, 32) 				* [PUNCTUATION] ,
+( 37, 34) 				* [PUNCTUATION] }
+( 37, 36) 				[PARAMETER] 
+( 37, 11) 					* [PUNCTUATION] #{
+( 37, 13) 					* [SYMBOL] deleted_arg
+( 37, 25) 					* [SYMBOL] Integer
+( 37, 32) 					* [PUNCTUATION] ,
+( 37, 34) 					* [PUNCTUATION] }
+( 37, 36) 					[SYMBOL] arg2
+( 37, 11) 						* [PUNCTUATION] #{
+( 37, 13) 						* [SYMBOL] deleted_arg
+( 37, 25) 						* [SYMBOL] Integer
+( 37, 32) 						* [PUNCTUATION] ,
+( 37, 34) 						* [PUNCTUATION] }
+( 37, 41) 					[TYPE] 
+( 37, 41) 						[SYMBOL] String
+( 37, 52) 			[TYPE] 
+( 37, 52) 				[SYMBOL] Void
+( 39,  2) 		[FUNCTION_CONTENT] 
+( 39,  2) 			[DEF] 
+( 39,  2) 				[KEYWORD] def
+( 39,  6) 				[SYMBOL] x
+( 39,  8) 				[EMPTY] 
+( 39, 10) 				[STRING] # not a comment

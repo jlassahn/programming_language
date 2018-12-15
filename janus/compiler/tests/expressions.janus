@@ -1,28 +1,30 @@
 
 janus 1.0;
 
-def no_args() -> Void {
+import math;
 
-	def x = 3.0 + length("a string")*1.0*10^3 + `x`;
+def NoArgs() {
 
-	def n = (x != 3) & x >= 1.0 | true | null !~ null;
+	def x = 3.0 + Length("a string")*1.0*10^3 + `x`;
+
+	def n = (x != 3) & x >= 1.0 | TRUE | NULL !~ NULL;
 
 	def q = !n & !!!n;
 
-	def f Float64 = sqrt(x)^2;
+	def f Real64 = math.Sqrt(x)^2;
 
 	return;
 }
 
-def length(x String) -> Integer {
-	return x.length;
+def Length(x String) -> Int64 {
+	return x.Length;
 }
 
-def lots_of_args(
+def LotsOfArgs(
 	a Integer,
-	b array(map(String, String)),
-	c ref(ref(slice(UInt8)))) -> function () -> Void
+	b Array(Map(String, String)),
+	c Ref(Ref(MSlice(UInt8)))) -> function () -> Void
 {
-	return no_args;
+	return NoArgs;
 }
 

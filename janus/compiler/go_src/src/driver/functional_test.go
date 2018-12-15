@@ -16,6 +16,9 @@ var parserOKTests = []string {
 	"options",
 	"comments",
 	"literals",
+	"expressions",
+	"structs",
+	"statements",
 }
 
 func TestMain(m *testing.M) {

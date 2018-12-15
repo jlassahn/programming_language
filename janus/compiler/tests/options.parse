@@ -4,10 +4,10 @@
 (  4,  2) 		[LIST] 
 (  4,  2) 			[ASSIGNMENT] 
 (  4,  2) 				[SYMBOL] machine_mode
-(  4, 17) 				[SYMBOL] True
+(  4, 17) 				[SYMBOL] TRUE
 (  5,  2) 			[ASSIGNMENT] 
 (  5,  2) 				[SYMBOL] object_mode
-(  5, 16) 				[SYMBOL] True
+(  5, 16) 				[SYMBOL] TRUE
 (  6,  2) 			[ASSIGNMENT] 
 (  6,  2) 				[SYMBOL] module_name
 (  6, 24) 				[DOT_LIST] 
@@ -15,7 +15,7 @@
 (  6, 24) 					[SYMBOL] module
 (  7,  2) 			[ASSIGNMENT] 
 (  7,  2) 				[SYMBOL] export_symbols
-(  7, 19) 				[SYMBOL] True
+(  7, 19) 				[SYMBOL] TRUE
 (  8,  2) 			[ASSIGNMENT] 
 (  8,  2) 				[SYMBOL] a
 (  8,  6) 				[NUMBER] 1

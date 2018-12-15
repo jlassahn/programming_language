@@ -3,5 +3,5 @@ janus 1.0;
 
 import io;
 
-def print(x string);
+def Print(x String);
 

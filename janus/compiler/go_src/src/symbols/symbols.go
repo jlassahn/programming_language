@@ -237,8 +237,8 @@ func buildPredefinedSymbols() *symbolTable {
 
 	syms.Symbols["__system"] = buildInternalSymbols()
 
-	syms.AddConst("True", BoolType, TrueValue)
-	syms.AddConst("False", BoolType, FalseValue)
+	syms.AddConst("TRUE", BoolType, TrueValue)
+	syms.AddConst("FALSE", BoolType, FalseValue)
 
 	syms.AddConst("CType", CTypeType, &typeDV{CTypeType, CTypeType})
 	syms.AddConst("Bool", CTypeType, &typeDV{CTypeType, BoolType})

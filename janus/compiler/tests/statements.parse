@@ -1,0 +1,168 @@
+(  2,  1) [SOURCE_FILE] 
+(  2,  7) 	[HEADER] 
+(  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
+(  4,  1) 	[IMPORT] 
+(  4, 10) 		[EMPTY] 
+(  4,  8) 		[SYMBOL] io
+(  6,  1) 	[DEF] 
+(  6,  1) 		[KEYWORD] def
+(  6,  5) 		[SYMBOL] Main
+(  6,  9) 		[FUNCTION_TYPE] 
+(  6, 10) 			[PARAMETER_LIST] 
+(  7,  1) 			[EMPTY] 
+(  8,  2) 		[FUNCTION_CONTENT] 
+(  8,  2) 			[DEF] 
+(  8,  2) 				[KEYWORD] def
+(  8,  6) 				[SYMBOL] lst
+(  8, 10) 				[TYPE] 
+(  8, 10) 					[SYMBOL] Int16
+(  8, 19) 				[LIST] 
+(  8, 19) 					[NUMBER] 1
+(  8, 22) 					[NUMBER] 2
+(  8, 25) 					[NUMBER] 4
+(  8, 28) 					[NUMBER] 8
+(  8, 31) 					[NUMBER] 16
+( 10,  6) 			[FOR] 
+( 10,  6) 				[SYMBOL] i
+( 10, 10) 				[SYMBOL] lst
+( 12,  3) 				[FUNCTION_CONTENT] 
+( 12, 12) 					[CALL] 
+( 12,  6) 						[DOT_LIST] 
+( 12,  3) 							[SYMBOL] io
+( 12,  6) 							[SYMBOL] Print
+( 12, 12) 						[LIST] 
+( 12, 25) 							[EXPRESSION] 
+( 12, 25) 								[OPERATOR] +
+( 12, 23) 								[CALL] 
+( 12, 14) 									[DOT_LIST] 
+( 12, 12) 										[SYMBOL] i
+( 12, 14) 										[SYMBOL] ToString
+( 12, 23) 									[LIST] 
+( 12, 27) 								[STRING] `lf`
+( 15,  6) 			[FOR] 
+( 15,  6) 				[SYMBOL] i
+( 15, 11) 				[EXPRESSION] 
+( 15, 11) 					[OPERATOR] :
+( 15, 10) 					[NUMBER] 0
+( 15, 12) 					[NUMBER] 10
+( 17,  3) 				[FUNCTION_CONTENT] 
+( 17, 12) 					[CALL] 
+( 17,  6) 						[DOT_LIST] 
+( 17,  3) 							[SYMBOL] io
+( 17,  6) 							[SYMBOL] Print
+( 17, 12) 						[LIST] 
+( 17, 25) 							[EXPRESSION] 
+( 17, 25) 								[OPERATOR] +
+( 17, 23) 								[CALL] 
+( 17, 14) 									[DOT_LIST] 
+( 17, 12) 										[SYMBOL] i
+( 17, 14) 										[SYMBOL] ToString
+( 17, 23) 									[LIST] 
+( 17, 27) 								[STRING] `lf`
+( 20,  2) 			[DEF] 
+( 20,  2) 				[KEYWORD] def
+( 20,  6) 				[SYMBOL] i
+( 20,  8) 				[EMPTY] 
+( 20, 10) 				[NUMBER] 0
+( 21,  8) 			[WHILE] 
+( 21, 10) 				[EXPRESSION] 
+( 21, 10) 					[OPERATOR] <
+( 21,  8) 					[SYMBOL] i
+( 21, 12) 					[NUMBER] 10
+( 23,  3) 				[FUNCTION_CONTENT] 
+( 23, 12) 					[CALL] 
+( 23,  6) 						[DOT_LIST] 
+( 23,  3) 							[SYMBOL] io
+( 23,  6) 							[SYMBOL] Print
+( 23, 12) 						[LIST] 
+( 23, 25) 							[EXPRESSION] 
+( 23, 25) 								[OPERATOR] +
+( 23, 23) 								[CALL] 
+( 23, 14) 									[DOT_LIST] 
+( 23, 12) 										[SYMBOL] i
+( 23, 14) 										[SYMBOL] ToString
+( 23, 23) 									[LIST] 
+( 23, 27) 								[STRING] `lf`
+( 24,  5) 					[EXPRESSION] 
+( 24,  5) 						[OPERATOR] ++
+( 24,  3) 						[SYMBOL] i
+( 27,  5) 			[IF] 
+( 27,  7) 				[EXPRESSION] 
+( 27,  7) 					[OPERATOR] >=
+( 27,  5) 					[SYMBOL] i
+( 27, 10) 					[NUMBER] 10
+( 29,  3) 				[FUNCTION_CONTENT] 
+( 29, 12) 					[CALL] 
+( 29,  6) 						[DOT_LIST] 
+( 29,  3) 							[SYMBOL] io
+( 29,  6) 							[SYMBOL] Print
+( 29, 12) 						[LIST] 
+( 29, 12) 							[STRING] OK`lf`
+( 31, 10) 				[IF] 
+( 31, 10) 					[SYMBOL] TRUE
+( 33,  3) 					[FUNCTION_CONTENT] 
+( 33, 12) 						[CALL] 
+( 33,  6) 							[DOT_LIST] 
+( 33,  3) 								[SYMBOL] io
+( 33,  6) 								[SYMBOL] Print
+( 33, 12) 							[LIST] 
+( 33, 12) 								[STRING] Can't happen 1`lf`
+( 37,  3) 					[FUNCTION_CONTENT] 
+( 37, 12) 						[CALL] 
+( 37,  6) 							[DOT_LIST] 
+( 37,  3) 								[SYMBOL] io
+( 37,  6) 								[SYMBOL] Print
+( 37, 12) 							[LIST] 
+( 37, 12) 								[STRING] Can't happen 2`lf`
+( 40,  4) 			[ASSIGNMENT] 
+( 40,  2) 				[SYMBOL] i
+( 40,  6) 				[NUMBER] 0
+( 41,  8) 			[WHILE] 
+( 41,  8) 				[SYMBOL] TRUE
+( 43,  3) 				[FUNCTION_CONTENT] 
+( 43,  6) 					[IF] 
+( 43,  8) 						[EXPRESSION] 
+( 43,  8) 							[OPERATOR] >=
+( 43,  6) 							[SYMBOL] i
+( 43, 11) 							[NUMBER] 10
+( 45,  4) 						[FUNCTION_CONTENT] 
+( 45,  9) 							[BREAK] 
+( 45,  9) 								[EMPTY] 
+( 47, 11) 						[IF] 
+( 47, 13) 							[EXPRESSION] 
+( 47, 13) 								[OPERATOR] >=
+( 47, 11) 								[SYMBOL] i
+( 47, 16) 								[NUMBER] 10
+( 49,  4) 							[FUNCTION_CONTENT] 
+( 49, 10) 								[BREAK] 
+( 49, 10) 									[NUMBER] 1
+( 52,  3) 							[EMPTY] 
+( 52,  6) 					[IF] 
+( 52,  8) 						[EXPRESSION] 
+( 52,  8) 							[OPERATOR] <
+( 52,  6) 							[SYMBOL] i
+( 52,  9) 							[NUMBER] 1
+( 54,  4) 						[FUNCTION_CONTENT] 
+( 54, 12) 							[CONTINUE] 
+( 57,  3) 						[EMPTY] 
+( 57, 12) 					[CALL] 
+( 57,  6) 						[DOT_LIST] 
+( 57,  3) 							[SYMBOL] io
+( 57,  6) 							[SYMBOL] Print
+( 57, 12) 						[LIST] 
+( 57, 25) 							[EXPRESSION] 
+( 57, 25) 								[OPERATOR] +
+( 57, 23) 								[CALL] 
+( 57, 14) 									[DOT_LIST] 
+( 57, 12) 										[SYMBOL] i
+( 57, 14) 										[SYMBOL] ToString
+( 57, 23) 									[LIST] 
+( 57, 27) 								[STRING] `lf`
+( 58,  5) 					[EXPRESSION] 
+( 58,  5) 						[OPERATOR] ++
+( 58,  3) 						[SYMBOL] i
+( 61,  7) 			[GOTO] 
+( 61,  7) 				[SYMBOL] target
+( 63,  8) 			[LABEL] 
+( 63,  8) 				[SYMBOL] target

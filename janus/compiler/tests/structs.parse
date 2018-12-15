@@ -1,0 +1,53 @@
+(  2,  1) [SOURCE_FILE] 
+(  2,  7) 	[HEADER] 
+(  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
+(  4,  1) 	[STRUCT_DEF] 
+(  4,  1) 		[KEYWORD] m_struct
+(  4, 10) 		[TYPE_NAME] 
+(  4, 10) 			[SYMBOL] SimpleStructure
+(  5,  1) 		[LIST] 
+(  6,  2) 		[LIST] 
+(  6,  6) 			[DEF] 
+(  6,  6) 				[SYMBOL] x
+(  6,  8) 				[TYPE] 
+(  6,  8) 					[SYMBOL] Int64
+(  7,  6) 			[DEF] 
+(  7,  6) 				[SYMBOL] y
+(  7,  8) 				[TYPE] 
+(  7,  8) 					[SYMBOL] Int64
+( 10,  1) 	[STRUCT_DEF] 
+( 10,  1) 		[KEYWORD] m_struct
+( 10, 10) 		[TYPE_NAME] 
+( 10, 10) 			[SYMBOL] BiggerStructure
+( 10, 26) 		[LIST] 
+( 10, 34) 			[EXTENDS_DEF] 
+( 10, 34) 				[TYPE] 
+( 10, 34) 					[SYMBOL] SimpleStructure
+( 11,  1) 	[STRUCT_DEF] 
+( 11,  1) 		[KEYWORD] m_struct
+( 11, 10) 		[TYPE_NAME] 
+( 11, 10) 			[SYMBOL] BiggerStructure
+( 12,  1) 		[LIST] 
+( 13,  2) 		[LIST] 
+( 13, 10) 			[EXTENDS_DEF] 
+( 13, 10) 				[TYPE] 
+( 13, 10) 					[SYMBOL] SimpleStructure
+( 14,  6) 			[DEF] 
+( 14,  6) 				[SYMBOL] next
+( 14, 11) 				[TYPE] 
+( 14, 11) 					[SYMBOL] MRef
+( 14, 16) 					[LIST] 
+( 14, 16) 						[SYMBOL] BiggerStructure
+( 15,  6) 			[DEF] 
+( 15,  6) 				[SYMBOL] prev
+( 15, 11) 				[TYPE] 
+( 15, 11) 					[SYMBOL] MRef
+( 15, 16) 					[LIST] 
+( 15, 16) 						[SYMBOL] BiggerStructure
+( 19,  1) 	[STRUCT_DEF] 
+( 19,  1) 		[KEYWORD] struct
+( 19,  8) 		[TYPE_NAME] 
+( 19,  8) 			[SYMBOL] ObjectStructure
+( 20,  1) 		[LIST] 
+( 21,  1) 		[LIST] 

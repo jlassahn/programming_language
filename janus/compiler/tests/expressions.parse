@@ -1,0 +1,146 @@
+(  2,  1) [SOURCE_FILE] 
+(  2,  7) 	[HEADER] 
+(  2,  7) 		[NUMBER] 1.0
+(  2, 10) 		[LIST] 
+(  4,  1) 	[IMPORT] 
+(  4, 12) 		[EMPTY] 
+(  4,  8) 		[SYMBOL] math
+(  6,  1) 	[DEF] 
+(  6,  1) 		[KEYWORD] def
+(  6,  5) 		[SYMBOL] NoArgs
+(  6, 11) 		[FUNCTION_TYPE] 
+(  6, 12) 			[PARAMETER_LIST] 
+(  6, 14) 			[EMPTY] 
+(  8,  2) 		[FUNCTION_CONTENT] 
+(  8,  2) 			[DEF] 
+(  8,  2) 				[KEYWORD] def
+(  8,  6) 				[SYMBOL] x
+(  8,  8) 				[EMPTY] 
+(  8, 44) 				[EXPRESSION] 
+(  8, 44) 					[OPERATOR] +
+(  8, 14) 					[EXPRESSION] 
+(  8, 14) 						[OPERATOR] +
+(  8, 10) 						[NUMBER] 3.0
+(  8, 38) 						[EXPRESSION] 
+(  8, 38) 							[OPERATOR] *
+(  8, 34) 							[EXPRESSION] 
+(  8, 34) 								[OPERATOR] *
+(  8, 23) 								[CALL] 
+(  8, 16) 									[SYMBOL] Length
+(  8, 23) 									[LIST] 
+(  8, 23) 										[STRING] a string
+(  8, 35) 								[NUMBER] 1.0
+(  8, 41) 							[EXPRESSION] 
+(  8, 41) 								[OPERATOR] ^
+(  8, 39) 								[NUMBER] 10
+(  8, 42) 								[NUMBER] 3
+(  8, 46) 					[CHARACTER] x
+( 10,  2) 			[DEF] 
+( 10,  2) 				[KEYWORD] def
+( 10,  6) 				[SYMBOL] n
+( 10,  8) 				[EMPTY] 
+( 10, 37) 				[EXPRESSION] 
+( 10, 37) 					[OPERATOR] |
+( 10, 30) 					[EXPRESSION] 
+( 10, 30) 						[OPERATOR] |
+( 10, 19) 						[EXPRESSION] 
+( 10, 19) 							[OPERATOR] &
+( 10, 13) 							[EXPRESSION] 
+( 10, 13) 								[OPERATOR] !=
+( 10, 11) 								[SYMBOL] x
+( 10, 16) 								[NUMBER] 3
+( 10, 23) 							[EXPRESSION] 
+( 10, 23) 								[OPERATOR] >=
+( 10, 21) 								[SYMBOL] x
+( 10, 26) 								[NUMBER] 1.0
+( 10, 32) 						[SYMBOL] TRUE
+( 10, 44) 					[EXPRESSION] 
+( 10, 44) 						[OPERATOR] !~
+( 10, 39) 						[SYMBOL] NULL
+( 10, 47) 						[SYMBOL] NULL
+( 12,  2) 			[DEF] 
+( 12,  2) 				[KEYWORD] def
+( 12,  6) 				[SYMBOL] q
+( 12,  8) 				[EMPTY] 
+( 12, 13) 				[EXPRESSION] 
+( 12, 13) 					[OPERATOR] &
+( 12, 10) 					[EXPRESSION] 
+( 12, 10) 						[OPERATOR] !
+( 12, 11) 						[SYMBOL] n
+( 12, 15) 					[EXPRESSION] 
+( 12, 15) 						[OPERATOR] !
+( 12, 16) 						[EXPRESSION] 
+( 12, 16) 							[OPERATOR] !
+( 12, 17) 							[EXPRESSION] 
+( 12, 17) 								[OPERATOR] !
+( 12, 18) 								[SYMBOL] n
+( 14,  2) 			[DEF] 
+( 14,  2) 				[KEYWORD] def
+( 14,  6) 				[SYMBOL] f
+( 14,  8) 				[TYPE] 
+( 14,  8) 					[SYMBOL] Real64
+( 14, 29) 				[EXPRESSION] 
+( 14, 29) 					[OPERATOR] ^
+( 14, 27) 					[CALL] 
+( 14, 22) 						[DOT_LIST] 
+( 14, 17) 							[SYMBOL] math
+( 14, 22) 							[SYMBOL] Sqrt
+( 14, 27) 						[LIST] 
+( 14, 27) 							[SYMBOL] x
+( 14, 30) 					[NUMBER] 2
+( 16,  8) 			[RETURN] 
+( 16,  8) 				[EMPTY] 
+( 19,  1) 	[DEF] 
+( 19,  1) 		[KEYWORD] def
+( 19,  5) 		[SYMBOL] Length
+( 19, 11) 		[FUNCTION_TYPE] 
+( 19, 12) 			[PARAMETER_LIST] 
+( 19, 12) 				[PARAMETER] 
+( 19, 12) 					[SYMBOL] x
+( 19, 14) 					[TYPE] 
+( 19, 14) 						[SYMBOL] String
+( 19, 25) 			[TYPE] 
+( 19, 25) 				[SYMBOL] Int64
+( 20,  2) 		[FUNCTION_CONTENT] 
+( 20,  9) 			[RETURN] 
+( 20, 11) 				[DOT_LIST] 
+( 20,  9) 					[SYMBOL] x
+( 20, 11) 					[SYMBOL] Length
+( 23,  1) 	[DEF] 
+( 23,  1) 		[KEYWORD] def
+( 23,  5) 		[SYMBOL] LotsOfArgs
+( 23, 15) 		[FUNCTION_TYPE] 
+( 24,  2) 			[PARAMETER_LIST] 
+( 24,  2) 				[PARAMETER] 
+( 24,  2) 					[SYMBOL] a
+( 24,  4) 					[TYPE] 
+( 24,  4) 						[SYMBOL] Integer
+( 25,  2) 				[PARAMETER] 
+( 25,  2) 					[SYMBOL] b
+( 25,  4) 					[TYPE] 
+( 25,  4) 						[SYMBOL] Array
+( 25, 10) 						[LIST] 
+( 25, 14) 							[CALL] 
+( 25, 10) 								[SYMBOL] Map
+( 25, 14) 								[LIST] 
+( 25, 14) 									[SYMBOL] String
+( 25, 22) 									[SYMBOL] String
+( 26,  2) 				[PARAMETER] 
+( 26,  2) 					[SYMBOL] c
+( 26,  4) 					[TYPE] 
+( 26,  4) 						[SYMBOL] Ref
+( 26,  8) 						[LIST] 
+( 26, 12) 							[CALL] 
+( 26,  8) 								[SYMBOL] Ref
+( 26, 12) 								[LIST] 
+( 26, 19) 									[CALL] 
+( 26, 12) 										[SYMBOL] MSlice
+( 26, 19) 										[LIST] 
+( 26, 19) 											[SYMBOL] UInt8
+( 26, 41) 			[FUNCTION_TYPE] 
+( 26, 42) 				[PARAMETER_LIST] 
+( 26, 47) 				[TYPE] 
+( 26, 47) 					[SYMBOL] Void
+( 28,  2) 		[FUNCTION_CONTENT] 
+( 28,  9) 			[RETURN] 
+( 28,  9) 				[SYMBOL] NoArgs

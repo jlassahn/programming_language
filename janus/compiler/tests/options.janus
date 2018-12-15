@@ -1,10 +1,10 @@
 
 janus 1.0
 {
-	machine_mode = True;
-	object_mode = True;
+	machine_mode = TRUE;
+	object_mode = TRUE;
 	module_name = example.module;
-	export_symbols = True;
+	export_symbols = TRUE;
 	a = 1;
 	a.b = 0xFFFF;
 	a.c = 1234.56r64;

@@ -13,6 +13,21 @@ multiline comment }
 }
 
 #{
+	Multiline comments can nest, like this:
+	#{
+		more comments
+	}
+
+	and must have matching braces
+	{
+		like this
+	}
+
+	Which lets them comment out blocks of code.
+}
+
+
+#{
 	"}"
 	stuff in quotes do not end comments
 	'#'
@@ -26,4 +41,4 @@ def func( #{deleted_arg Integer, } arg2 String) -> Void
 }
 
 
-
+# end of file

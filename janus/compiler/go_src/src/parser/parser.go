@@ -42,10 +42,6 @@ func (pe *parseElement) ElementType() *Tag {
 	return pe.elementType
 }
 
-func (pe *parseElement) Position() (int, int) {
-	return pe.pos.Line, pe.pos.Column
-}
-
 func (pe *parseElement) FilePos() *FilePosition {
 	return pe.pos
 }
@@ -167,7 +163,7 @@ func (mp *mainParser) consume() ParseElement {
 	mp.progress = true
 
 	if ret.ElementType() == EOF {
-		FatalError(ret.FilePos(), "inernal error, unexpected EOF")
+		FatalError(ret.FilePos(), "internal error, unexpected EOF")
 	}
 
 	return ret
@@ -1103,6 +1099,8 @@ func (mp *mainParser) parseFunctionStatement() ParseElement {
 
 		if mp.peek(0, KEYWORD, "else") {
 			ret.addChild(mp.parseElseStatement())
+		} else {
+			ret.addChild(mp.startElement(EMPTY))
 		}
 
 		return ret
@@ -1209,6 +1207,8 @@ func (mp *mainParser) parseElseStatement() ParseElement {
 
 	if mp.peek(0, KEYWORD, "else") {
 		ret.addChild(mp.parseElseStatement())
+	} else {
+		ret.addChild(mp.startElement(EMPTY))
 	}
 
 	return ret
@@ -1470,7 +1470,7 @@ type:
 	FUNCTION function_type
 	;
 *****/
-
+//FIXME more specialized grammar for types would be better
 func (mp *mainParser) parseType() ParseElement {
 
 	if mp.tryMatch(KEYWORD, "function") {

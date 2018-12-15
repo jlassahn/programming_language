@@ -315,6 +315,7 @@ expression_dot:
 	| expression_dot '.' SYMBOL_TOKEN
 	;
 
+//FIXME more specialized grammar for types would be better
 type:
 	expression_dot
 	expression_dot '(' list_content ')'

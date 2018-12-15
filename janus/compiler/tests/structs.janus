@@ -1,0 +1,22 @@
+
+janus 1.0;
+
+m_struct SimpleStructure
+{
+	def x Int64;
+	def y Int64;
+}
+
+m_struct BiggerStructure extends SimpleStructure;
+m_struct BiggerStructure
+{
+	extends SimpleStructure;
+	def next MRef(BiggerStructure);
+	def prev MRef(BiggerStructure);
+}
+
+
+struct ObjectStructure
+{
+}
+

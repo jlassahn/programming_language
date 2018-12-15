@@ -3,9 +3,9 @@ janus 1.0;
 
 import io;
 
-def main(args array(String)) -> Void
+def Main()
 {
-	def lst = [1, 2, 4, 8, 16];
+	def lst Int16 = [1, 2, 4, 8, 16];
 
 	for i = lst
 	{
@@ -28,7 +28,7 @@ def main(args array(String)) -> Void
 	{
 		io.Print("OK`lf`");
 	}
-	else if true
+	else if TRUE
 	{
 		io.Print("Can't happen 1`lf`");
 	}
@@ -38,7 +38,7 @@ def main(args array(String)) -> Void
 	}
 
 	i = 0;
-	while true
+	while TRUE
 	{
 		if i >= 10
 		{
@@ -47,6 +47,11 @@ def main(args array(String)) -> Void
 		else if i >= 10
 		{
 			break 1;
+		}
+
+		if i <1
+		{
+			continue;
 		}
 
 		io.Print(i.ToString() + "`lf`");
