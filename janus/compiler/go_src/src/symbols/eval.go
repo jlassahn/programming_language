@@ -23,7 +23,6 @@ func (self *EvalContext) Lookup(name string) Symbol {
 	if self.SymbolPreprocessor != nil {
 		uninit, ok := ret.(*uninitializedSymbol)
 		if ok {
-			output.FIXMEDebug("lookup bouncing to preproc for %v", ret)
 			if self.CycleDetectSymbol != nil {
 				self.CycleDetectSymbol.needs = uninit
 			}
@@ -31,7 +30,6 @@ func (self *EvalContext) Lookup(name string) Symbol {
 			if self.CycleDetectSymbol != nil {
 				self.CycleDetectSymbol.needs = nil
 			}
-			output.FIXMEDebug("lookup got from preproc %v", ret)
 		}
 	}
 
@@ -51,6 +49,7 @@ var handlers = map[*parser.Tag] ConstEvaluator {
 	parser.EXPRESSION: evalExpression,
 	parser.FUNCTION_TYPE: evalFunctionType,
 	parser.TYPE: evalType,
+	parser.FUNCTION_CONTENT: evalFunctionContent,
 }
 
 

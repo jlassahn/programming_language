@@ -7,4 +7,3 @@ const X2 Int32 = 123s32;
 const XREF1 = XREF2;
 const XREF2 = 5;
 
-

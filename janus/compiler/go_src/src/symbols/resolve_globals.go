@@ -9,7 +9,6 @@ import (
 )
 
 
-//FIXME cleaner organization???
 //FIXME do we actually want to keep declarations in the final symbols?
 
 type uninitializedSymbol struct {
@@ -58,9 +57,8 @@ func ResolveGlobals(fileSet *FileSet) {
 	//    propagates evaluation if not
 
 	resolveConstValues(fileSet.RootModule, fileSet)
-	resolveVariableTypes(fileSet.RootModule, fileSet)
-	replaceUninitialized(fileSet)
 	resolveVariableValues(fileSet.RootModule, fileSet)
+	replaceUninitialized(fileSet)
 
 }
 
@@ -274,8 +272,18 @@ func resolveConstValues(mod *Module, fileSet *FileSet) {
 	for _,value := range mod.ExportedSymbols.Symbols {
 		resolveConstValue(value)
 	}
-	// FIXME mod.LocalSymbols.Symbols
-	// FIXME operators?
+
+	for _,value := range mod.ExportedSymbols.Operators {
+		resolveConstValue(value)
+	}
+
+	for _,value := range mod.LocalSymbols.Symbols {
+		resolveConstValue(value)
+	}
+
+	for _,value := range mod.LocalSymbols.Operators {
+		resolveConstValue(value)
+	}
 }
 
 func resolveConstValue(value Symbol) Symbol {
@@ -288,12 +296,12 @@ func resolveConstValue(value Symbol) Symbol {
 
 	if uninit.needs != nil {
 		output.Error("definition loop")
-		x := uninit.needs
+		x := uninit
 		for {
-			if x == nil { break }
-			if x == uninit { break }
 			output.Error("  definition %v -> %v", x.name, x.needs.name)
 			x = x.needs
+			if x == nil { break }
+			if x == uninit { break }
 		}
 		return nil
 	}
@@ -325,7 +333,6 @@ func resolveConstValue(value Symbol) Symbol {
 		//dtype can be nil when the type is inferred from the initializer
 		output.FIXMEDebug("  resolving type for %v to %v", value, dtype)
 
-		//FIXME what happens when dval points to a function body?
 		dval := resolveSymbolValue(uninit, dtype, resolveConstValue)
 		output.FIXMEDebug("  resolving value for %v to %v", value, dval)
 
@@ -353,7 +360,6 @@ func resolveConstValue(value Symbol) Symbol {
 				}
 			}
 
-			//FIXME merge functions with the same types
 			sym := &baseSymbol {
 				name: uninit.Name(),
 				dtype: dtype,
@@ -361,7 +367,10 @@ func resolveConstValue(value Symbol) Symbol {
 				isConst: uninit.isConst,
 				genVal: nil,
 			}
-			funcSymbol.choices = append(funcSymbol.choices, sym)
+			if funcSymbol.Add(sym) != nil {
+				parser.Error(el.FilePos(), "delcaration mismatch for %v", value)
+				return nil
+			}
 
 		} else {
 
@@ -412,41 +421,37 @@ func resolveConstValue(value Symbol) Symbol {
 	return sym
 }
 
-func resolveVariableTypes(mod *Module, fileSet *FileSet) {
+func resolveVariableValues(mod *Module, fileSet *FileSet) {
 
-	output.FIXMEDebug("resolveVariableTypes for %v", mod.Name)
+	output.FIXMEDebug("resolveVariableValues for %v", mod.Name)
 	for _,x := range mod.Children {
-		resolveVariableTypes(x, fileSet)
+		resolveVariableValues(x, fileSet)
 	}
 
 	for _,value := range mod.ExportedSymbols.Symbols {
-		resolveVariableType(value)
+		resolveVariableValue(value)
 	}
-	// FIXME mod.LocalSymbols.Symbols
-	// FIXME operators?
+
+	for _,value := range mod.ExportedSymbols.Operators {
+		resolveVariableValue(value)
+	}
+
+	for _,value := range mod.LocalSymbols.Symbols {
+		resolveVariableValue(value)
+	}
+
+	for _,value := range mod.LocalSymbols.Operators {
+		resolveVariableValue(value)
+	}
 }
 
-//FIXME does this need a cycle resolver?  All consts should be finished
-//      already, and types can't depend on variables
-func resolveVariableType(value Symbol) Symbol {
+func resolveVariableValue(value Symbol) Symbol {
 
-	output.FIXMEDebug("resolveVariableType %v", value)
+	output.FIXMEDebug("resolveVariableValue %v", value)
 	uninit, ok := value.(*uninitializedSymbol)
 	if !ok {
 		output.FIXMEDebug("value %v already finalized", value)
 		return value
-	}
-
-	if uninit.needs != nil {
-		output.Error("definition loop")
-		x := uninit.needs
-		for {
-			if x == nil { break }
-			if x == uninit { break }
-			output.Error("  definition %v -> %v", x.name, x.needs.name)
-			x = x.needs
-		}
-		return nil
 	}
 
 	if uninit.initialized != nil {
@@ -454,102 +459,107 @@ func resolveVariableType(value Symbol) Symbol {
 		return uninit.initialized
 	}
 
-	elType := uninit.declarations[0].ElementType()
-	for _,dec := range uninit.declarations {
-		if dec.ElementType() != elType {
-			parser.Error(dec.FilePos(),
-				"declaration mismatch with %v",
-				uninit.declarations[0].FilePos())
+	//FIXME below is nearly identical to resolveConstValues
+	var dtypeMatch DataType
+	var dvalMatch DataValue
+	var funcSymbol *functionChoiceSymbol
+
+	for _,el := range uninit.declarations {
+
+		dtype, err := resolveSymbolType(uninit, el, nil)
+		if err != nil {
+			output.FIXMEDebug("  resolving type failed for  %v: %v", value, err)
 			return nil
+		}
+
+		//dtype can be nil when the type is inferred from the initializer
+		output.FIXMEDebug("  resolving type for %v to %v", value, dtype)
+
+		dval := resolveSymbolValue(uninit, dtype, resolveVariableValue)
+		output.FIXMEDebug("  resolving value for %v to %v", value, dval)
+
+		if dtype == nil && dval != nil {
+			dtype = dval.Type()
+			output.FIXMEDebug("  inferring type for %v to %v", value, dtype)
+		}
+
+		if dtype == nil {
+			parser.Error(el.FilePos(), "no data type for %v", value)
+			return nil
+		}
+
+		if dtype.Base() == FUNCTION_TYPE {
+			if dtypeMatch != nil {
+				parser.Error(el.FilePos(), "data type mismatch for %v", value)
+				return nil
+			}
+
+			if funcSymbol == nil {
+				funcSymbol = &functionChoiceSymbol {
+					name: uninit.Name(),
+					choices: []Symbol { },
+				}
+			}
+
+			sym := &baseSymbol {
+				name: uninit.Name(),
+				dtype: dtype,
+				initialValue: dval,
+				isConst: uninit.isConst,
+				genVal: nil,
+			}
+			if funcSymbol.Add(sym) != nil {
+				parser.Error(el.FilePos(), "delcaration mismatch for %v", value)
+				return nil
+			}
+
+		} else {
+
+			if funcSymbol != nil {
+				parser.Error(el.FilePos(),
+					"data type mismatch for %v", value)
+				return nil
+			}
+
+			if dtypeMatch == nil {
+				dtypeMatch = dtype
+			} else if !TypeMatches(dtypeMatch, dtype) {
+				parser.Error(el.FilePos(),
+					"multiple declaration with different types for %v", value)
+				return nil
+			}
+
+			if dvalMatch == nil {
+				dvalMatch = dval
+			} else {
+				parser.Error(el.FilePos(),
+					"multiple definitions for %v", value)
+				return nil
+			}
 		}
 	}
 
-	//FIXME use resolveSymbolType here
 
 	var sym Symbol
-	switch elType {
-
-	case parser.DEF:
-		for _,el := range uninit.declarations {
-			file := el.FilePos().File.(*SourceFile)
-			output.FIXMEDebug("initializing %v %v", file.FileName, el)
-			isConst := false //FIXME do we need to track this
-			typeTree := el.Children()[1]
-			valTree := el.Children()[2]
-
-			output.FIXMEDebug("  symbol %v %v %v", isConst, typeTree, valTree)
-
-			//FIXME include unitialized resolver and current symbol in ctx
-			ctx := &EvalContext {
-				Symbols: file.FileSymbols,
-				SymbolPreprocessor: resolveVariableType,
-				CycleDetectSymbol: uninit,
-			}
-
-			symTypeVal := EvaluateConstExpression(typeTree, ctx)
-			if symTypeVal == nil {
-				parser.Error(typeTree.FilePos(), "unknown data type in expr")
-				return nil
-			}
-			//FIXME function types include the parameter names
-			//      have to make the names consistent!
-			//      have to use the names in the actual definition.
-			symType := symTypeVal.(TypeDataValue).AsDataType()
-			output.FIXMEDebug("  symType %v", symType)
-
-			dval := &codeDV {
-				dtype: CodeType,
-				element: valTree,
-				file: file,
-			}
-
-			if sym == nil {
-				if symType.Base() == FUNCTION_TYPE {
-					sym = &functionChoiceSymbol {
-						name: uninit.Name(),
-						choices: []Symbol {
-							&baseSymbol {
-								name: uninit.Name(),
-								dtype: symType,
-								initialValue: dval,
-								isConst: isConst,
-								genVal: nil,
-							},
-						},
-					}
-				} else {
-					output.FIXMEDebug("NOT A FUNCTION")
-				}
-
-			} else {
-				output.FatalError("FIXME merge multiple defs of symbol")
-			}
+	if funcSymbol != nil {
+		sym = funcSymbol
+	} else {
+		if dtypeMatch == nil {
+			output.Error("symbol with no type definition: %v", uninit.Name())
+			return nil
 		}
 
-	//FIXME implement
-	//struct
-	//interface
-	//method (can be handled in a second pass unless we allow const methods)
-	//alias
-	//operator
-
-	default:
-		parser.FatalError(
-			uninit.declarations[0].FilePos(),
-			"Unhandled element: %v", elType)
+		sym = &baseSymbol {
+			name: uninit.Name(),
+			dtype: dtypeMatch,
+			initialValue: dvalMatch,
+			isConst: uninit.isConst,
+			genVal: nil,
+		}
 	}
 
 	uninit.initialized = sym
 	return sym
-}
-
-func resolveVariableValues(mod *Module, fileSet *FileSet) {
-
-	output.FIXMEDebug("resolveVariableValues for %v", mod.Name)
-	for _,x := range mod.Children {
-		resolveVariableValues(x, fileSet)
-	}
-	 //FIXME do something
 }
 
 func replaceUninitialized(fileSet *FileSet) {
