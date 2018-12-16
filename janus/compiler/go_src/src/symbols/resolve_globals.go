@@ -2,6 +2,8 @@
 package symbols
 
 import (
+	"fmt"
+
 	"output"
 	"parser"
 )
@@ -13,6 +15,9 @@ import (
 type uninitializedSymbol struct {
 	name string
 	declarations []parser.ParseElement
+	isConst bool
+	elementType *parser.Tag
+
 	needs *uninitializedSymbol
 	initialized Symbol
 }
@@ -75,24 +80,17 @@ func findSymbolsForModule(mod *Module) {
 func findSymbolsForFile(file *SourceFile, mod *Module) {
 	for _, el := range file.ParseTree.Children() {
 
+		name := ""
+		isConst := false
+
 		switch el.ElementType() {
-
 		case parser.DEF:
-			/*
-				SYMBOL name
-				TYPE or FUNCTION_TYPE dtype
-				EXPRESSION, etc initializer
-			*/
-			name := el.Children()[0].TokenString()
-			sym := getSymbol(name, file, mod)
-			if sym == nil {
-				parser.Error(el.FilePos(),
-					"symbol %v collides with import name", name)
-				continue
-			}
+			name = el.Children()[0].TokenString()
+			isConst = false
 
-			sym.declarations = append(sym.declarations, el)
-			output.FIXMEDebug("    def for %v %p", name, sym)
+		case parser.CONST:
+			name = el.Children()[0].TokenString()
+			isConst = true
 
 		//FIXME implement
 		//struct
@@ -104,6 +102,28 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 		default:
 			continue
 		}
+
+		//FIXME getSymbol only called here, maybe inline it.
+		sym := getSymbol(name, file, mod)
+		if sym == nil {
+			parser.Error(el.FilePos(),
+				"symbol %v collides with import name", name)
+			continue
+		}
+
+		if sym.elementType == nil {
+			sym.elementType = el.ElementType()
+			sym.isConst = isConst
+		} else {
+			if sym.elementType != el.ElementType() {
+				parser.Error(el.FilePos(),
+					"name declared with different types: %v", name)
+				continue
+			}
+		}
+
+		sym.declarations = append(sym.declarations, el)
+		output.FIXMEDebug("    def for %v %p", name, sym)
 	}
 }
 
@@ -250,6 +270,7 @@ func resolveConstValues(mod *Module, fileSet *FileSet) {
 		resolveConstValues(x, fileSet)
 	}
 
+	//FIXME Symbols needs to be sorted!
 	for _,value := range mod.ExportedSymbols.Symbols {
 		resolveConstValue(value)
 	}
@@ -258,7 +279,137 @@ func resolveConstValues(mod *Module, fileSet *FileSet) {
 }
 
 func resolveConstValue(value Symbol) Symbol {
-	return nil
+
+	uninit, ok := value.(*uninitializedSymbol)
+	if !ok {
+		output.FIXMEDebug("  value %v already finalized", value)
+		return value
+	}
+
+	if uninit.needs != nil {
+		output.Error("definition loop")
+		x := uninit.needs
+		for {
+			if x == nil { break }
+			if x == uninit { break }
+			output.Error("  definition %v -> %v", x.name, x.needs.name)
+			x = x.needs
+		}
+		return nil
+	}
+
+	if !uninit.isConst {
+		output.FIXMEDebug("  value %v not constant", value)
+		return nil
+	}
+
+	if uninit.initialized != nil {
+		output.FIXMEDebug("  value %v already resolved", value)
+		return uninit.initialized
+	}
+
+	output.FIXMEDebug("  resolving constant %v", value)
+
+	var dtypeMatch DataType
+	var dvalMatch DataValue
+	var funcSymbol *functionChoiceSymbol
+
+	for _,el := range uninit.declarations {
+
+		dtype, err := resolveSymbolType(uninit, el, resolveConstValue)
+		if err != nil {
+			output.FIXMEDebug("  resolving type failed for  %v: %v", value, err)
+			return nil
+		}
+
+		//dtype can be nil when the type is inferred from the initializer
+		output.FIXMEDebug("  resolving type for %v to %v", value, dtype)
+
+		//FIXME what happens when dval points to a function body?
+		dval := resolveSymbolValue(uninit, dtype, resolveConstValue)
+		output.FIXMEDebug("  resolving value for %v to %v", value, dval)
+
+		if dtype == nil && dval != nil {
+			dtype = dval.Type()
+			output.FIXMEDebug("  inferring type for %v to %v", value, dtype)
+		}
+
+		if dtype == nil {
+			parser.Error(el.FilePos(), "no data type for %v", value)
+			return nil
+		}
+
+		if dtype.Base() == FUNCTION_TYPE {
+			if dtypeMatch != nil {
+				parser.Error(el.FilePos(),
+					"data type mismatch for %v", value)
+				return nil
+			}
+
+			if funcSymbol == nil {
+				funcSymbol = &functionChoiceSymbol {
+					name: uninit.Name(),
+					choices: []Symbol { },
+				}
+			}
+
+			//FIXME merge functions with the same types
+			sym := &baseSymbol {
+				name: uninit.Name(),
+				dtype: dtype,
+				initialValue: dval,
+				isConst: uninit.isConst,
+				genVal: nil,
+			}
+			funcSymbol.choices = append(funcSymbol.choices, sym)
+
+		} else {
+
+			if funcSymbol != nil {
+				parser.Error(el.FilePos(),
+					"data type mismatch for %v", value)
+				return nil
+			}
+
+			if dtypeMatch == nil {
+				dtypeMatch = dtype
+			} else if !TypeMatches(dtypeMatch, dtype) {
+				parser.Error(el.FilePos(),
+					"multiple declaration with different types for %v", value)
+				return nil
+			}
+
+			if dvalMatch == nil {
+				dvalMatch = dval
+			} else {
+				parser.Error(el.FilePos(),
+					"multiple definitions for %v", value)
+				return nil
+			}
+		}
+	}
+
+
+	var sym Symbol
+	if funcSymbol != nil {
+		sym = funcSymbol
+	} else {
+		if dtypeMatch == nil {
+			output.Error("symbol with no type definition: %v", uninit.Name())
+			return nil
+		}
+
+		sym = &baseSymbol {
+			name: uninit.Name(),
+			dtype: dtypeMatch,
+			initialValue: dvalMatch,
+			isConst: uninit.isConst,
+			genVal: nil,
+		}
+	}
+
+	uninit.initialized = sym
+	return sym
 }
 
 func resolveVariableTypes(mod *Module, fileSet *FileSet) {
@@ -312,6 +463,8 @@ func resolveVariableType(value Symbol) Symbol {
 			return nil
 		}
 	}
+
+	//FIXME use resolveSymbolType here
 
 	var sym Symbol
 	switch elType {
@@ -439,5 +592,89 @@ func replaceUninitializedInMap(syms map[string]Symbol) {
 	for key,value := range replace {
 		syms[key] = value
 	}
+}
+
+func resolveSymbolType(sym *uninitializedSymbol, el parser.ParseElement,
+	handler func(Symbol)Symbol) (DataType, error) {
+
+	var typeTree parser.ParseElement
+
+	switch sym.elementType {
+	case parser.DEF:
+		typeTree = el.Children()[1]
+
+	case parser.CONST:
+		typeTree = el.Children()[1]
+
+	//FIXME and others...
+
+	default:
+		output.FatalError("bad resolveSymbolType for %v", sym.elementType)
+		return nil, fmt.Errorf("unimplemented")
+	}
+
+	ctx := &EvalContext {
+		Symbols: typeTree.FilePos().File.(*SourceFile).FileSymbols,
+		SymbolPreprocessor: handler,
+		CycleDetectSymbol: sym,
+	}
+
+	if typeTree.ElementType() == parser.EMPTY {
+		return nil, nil
+	}
+
+	dval := EvaluateConstExpression(typeTree, ctx)
+	if dval == nil {
+		//FIXME error should probaly come from deeper..
+		parser.Error(typeTree.FilePos(), "unknown data type in expr")
+		return nil, fmt.Errorf("undefined data type")
+	}
+	symTypeVal, ok := dval.(TypeDataValue)
+	if !ok {
+		parser.Error(typeTree.FilePos(), "not a data type")
+		return nil, fmt.Errorf("not a data type")
+	}
+	symType := symTypeVal.AsDataType()
+
+	output.FIXMEDebug("  symType %v", symType)
+	return symType, nil
+}
+
+
+func resolveSymbolValue(sym *uninitializedSymbol, initDT DataType, handler func(Symbol)Symbol) DataValue {
+
+	for _,el := range sym.declarations {
+
+		var valTree parser.ParseElement
+
+		switch sym.elementType {
+		case parser.DEF:
+			valTree = el.Children()[2]
+
+		case parser.CONST:
+			valTree = el.Children()[2]
+
+		//FIXME and others...
+
+		default:
+			output.FatalError("bad resolveSymbolValue for %v", sym.elementType)
+			return nil
+		}
+
+		if valTree.ElementType() == parser.EMPTY {
+			continue
+		}
+
+		ctx := &EvalContext {
+			Symbols: valTree.FilePos().File.(*SourceFile).FileSymbols,
+			SymbolPreprocessor: handler,
+			CycleDetectSymbol: sym,
+			InitializerType: initDT,
+		}
+
+		return EvaluateConstExpression(valTree, ctx)
+	}
+
+	return nil
 }
 

@@ -20,7 +20,7 @@ func evalFunctionType(el parser.ParseElement, ctx *EvalContext) DataValue {
 		paramType := param.Children()[1]
 		name := paramName.TokenString()
 
-		if ctx.Symbols.Lookup(name) != nil {
+		if ctx.Lookup(name) != nil {
 			parser.Error(paramName.FilePos(),
 				"parameter name already defined: %v", name)
 			return nil

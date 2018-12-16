@@ -14,7 +14,35 @@ type EvalContext struct {
 	Symbols SymbolTable
 	SymbolPreprocessor func(Symbol)Symbol
 	CycleDetectSymbol *uninitializedSymbol
+	InitializerType DataType
 }
+
+func (self *EvalContext) Lookup(name string) Symbol {
+
+	ret := self.Symbols.Lookup(name)
+	if self.SymbolPreprocessor != nil {
+		uninit, ok := ret.(*uninitializedSymbol)
+		if ok {
+			output.FIXMEDebug("lookup bouncing to preproc for %v", ret)
+			if self.CycleDetectSymbol != nil {
+				self.CycleDetectSymbol.needs = uninit
+			}
+			ret = self.SymbolPreprocessor(ret)
+			if self.CycleDetectSymbol != nil {
+				self.CycleDetectSymbol.needs = nil
+			}
+			output.FIXMEDebug("lookup got from preproc %v", ret)
+		}
+	}
+
+	return ret
+}
+
+func (self *EvalContext) LookupOperator(name string) FunctionChoiceSymbol {
+	//FIXME fake
+	return self.Symbols.LookupOperator(name)
+}
+
 
 var handlers = map[*parser.Tag] ConstEvaluator {
 	parser.NUMBER: evalNumber,

@@ -80,7 +80,7 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 	}
 
 	//FIXME make this a reusable function
-	opChoices := ctx.Symbols.LookupOperator(opName)
+	opChoices := ctx.LookupOperator(opName)
 	if opChoices == nil {
 		parser.Error(pos, "No definition for operator %v", opName)
 		//FIXME testing
@@ -131,7 +131,7 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
-	sym := ctx.Symbols.Lookup(el.TokenString())
+	sym := ctx.Lookup(el.TokenString())
 	output.FIXMEDebug("looking up %v %v", el.TokenString(), sym)
 
 	src, ok := sym.GetGenVal().(Result)

@@ -30,7 +30,7 @@ func evalExpression(el parser.ParseElement, ctx *EvalContext) DataValue {
 		argTypes[i] = args[i].Type()
 	}
 
-	opChoices := ctx.Symbols.LookupOperator(opName)
+	opChoices := ctx.LookupOperator(opName)
 	if opChoices == nil {
 		parser.Error(pos, "No definition for operator %v", opName)
 		//FIXME testing

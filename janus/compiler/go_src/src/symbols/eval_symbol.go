@@ -11,7 +11,7 @@ func evalSymbol(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	pos := el.FilePos()
 	name := el.TokenString()
-	symbol := ctx.Symbols.Lookup(name)
+	symbol := ctx.Lookup(name)
 
 	if symbol == nil {
 		parser.Error(pos, "undefined symbol: %v", name)

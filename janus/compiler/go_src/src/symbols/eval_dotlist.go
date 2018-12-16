@@ -22,7 +22,7 @@ func evaluateConstDotList(vals []string, ctx *EvalContext) DataValue {
 		return nil
 	}
 
-	symbol := ctx.Symbols.Lookup(vals[0])
+	symbol := ctx.Lookup(vals[0])
 	if symbol == nil {
 		return nil
 	}

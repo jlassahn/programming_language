@@ -119,7 +119,7 @@ func getUndefinedDotlist(el parser.ParseElement, ctx *EvalContext) []string {
 		if dotval == nil {
 			return nil
 		}
-		if ctx.Symbols.Lookup(dotval[0]) == nil {
+		if ctx.Lookup(dotval[0]) == nil {
 			return dotval
 		}
 		return nil
