@@ -28,7 +28,7 @@ type FunctionChoiceSymbol interface {
 type SymbolTable interface {
 	Lookup(string) Symbol
 	LookupOperator(string) FunctionChoiceSymbol
-	Emit()
+	Emit(emitParent bool) //FIXME do we really use recursive emits?
 
 	AddConst(name string, dtype DataType, val DataValue) error
 	AddVar(name string, dtype DataType) (Symbol, error)
@@ -124,7 +124,7 @@ func (self *symbolTable) AddOperator(
 
 }
 
-func (st *symbolTable) Emit() {
+func (st *symbolTable) Emit(emitParent bool) {
 
 	for st != nil {
 		output.Emit("  Symbol Table: %v", st.Name)
@@ -166,10 +166,13 @@ func (st *symbolTable) Emit() {
 				continue
 			}
 
-			v.InitialValue().(NamespaceDataValue).AsSymbolTable().Emit()
+			v.InitialValue().(NamespaceDataValue).AsSymbolTable().Emit(false)
 		}
 
 		st = st.Parent
+		if !emitParent {
+			break
+		}
 	}
 }
 
@@ -218,81 +221,4 @@ func (self *functionChoiceSymbol) Add(x Symbol) error {
 	return nil
 }
 
-
-
-var predefinedSymbols *symbolTable;
-
-func PredefinedSymbols() *symbolTable {
-	if predefinedSymbols == nil {
-		predefinedSymbols = buildPredefinedSymbols()
-	}
-	return predefinedSymbols
-}
-
-
-//FIXME reorganize and correct
-func buildPredefinedSymbols() *symbolTable {
-
-	syms := NewSymbolTable("PREDEFINED", nil)
-
-	syms.Symbols["__system"] = buildInternalSymbols()
-
-	syms.AddConst("TRUE", BoolType, TrueValue)
-	syms.AddConst("FALSE", BoolType, FalseValue)
-
-	syms.AddConst("CType", CTypeType, &typeDV{CTypeType, CTypeType})
-	syms.AddConst("Bool", CTypeType, &typeDV{CTypeType, BoolType})
-	syms.AddConst("Int32", CTypeType, &typeDV{CTypeType, Int32Type})
-
-	syms.AddOperator("+", Real64Type, []FunctionParameter {
-		{"a", Real64Type, false},
-		{"b", Real64Type, true},
-	},
-	true, nil) //FIXME nil implementation
-
-	syms.AddOperator("+", Int64Type, []FunctionParameter {
-		{"a", Int64Type, false},
-		{"b", Int64Type, true},
-	},
-	true, &intrinsicDV{"add_Int64"} )
-
-	syms.AddOperator("+", Int32Type, []FunctionParameter {
-		{"a", Int32Type, false},
-		{"b", Int32Type, true},
-	},
-	true, &intrinsicDV{"add_Int64"})
-
-	syms.AddOperator("/", Real64Type, []FunctionParameter {
-		{"a", Real64Type, false},
-		{"b", Real64Type, true},
-	},
-	true, &intrinsicDV{"div_Real64"})
-
-	//FIXME should  be Int64, >Real64
-	//FIXME should have other IntXXX versions
-	syms.AddOperator("/", Real64Type, []FunctionParameter {
-		{"a", Int64Type, false},
-		{"b", Int64Type, true},
-	},
-	true, &intrinsicDV{"div_Real64"})
-
-	return syms
-}
-
-func buildInternalSymbols() *baseSymbol {
-
-	name := "PREDEFINED:__system"
-	newTable := NewSymbolTable(name, nil)
-
-	val := &namespaceDV {
-		value: newTable,
-	}
-
-	return &baseSymbol {
-		name: name,
-		dtype: NamespaceType,
-		initialValue: val,
-		isConst: true,
-	}
-}
 

@@ -2,7 +2,6 @@
 package symbols
 
 import (
-	"output"
 	"parser"
 )
 
@@ -40,11 +39,7 @@ func evalFunctionType(el parser.ParseElement, ctx *EvalContext) DataValue {
 			DType: dtype,
 			AutoConvert: autoconv,
 		})
-
-		output.FIXMEDebug("param: %v %v", name, paramType)
 	}
-
-	output.FIXMEDebug("return: %v", retType)
 
 	var dtypeExp DataValue
 	if retType.ElementType() == parser.EMPTY {

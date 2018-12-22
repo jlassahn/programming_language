@@ -34,7 +34,7 @@ func evalExpression(el parser.ParseElement, ctx *EvalContext) DataValue {
 	if opChoices == nil {
 		parser.Error(pos, "No definition for operator %v", opName)
 		//FIXME testing
-		ctx.Symbols.Emit()
+		//ctx.Symbols.Emit()
 		return nil
 	}
 
@@ -55,9 +55,33 @@ func evalExpression(el parser.ParseElement, ctx *EvalContext) DataValue {
 func doConstOp(op Symbol,
 	args []DataValue, ctx *EvalContext) DataValue {
 
+	convertedArgs := make([]DataValue, len(args))
+
+	dtype := op.Type().(FunctionDataType)
+	for i, dest := range dtype.Parameters() {
+		convertedArgs[i] = doConvert(args[i], dest.DType)
+	}
+
 	//FIXME check if this is really an intrinsic
 	opName := op.InitialValue().(IntrinsicDataValue).ValueAsString()
-	return EvaluateIntrinsic(opName, args)
+	return EvaluateIntrinsic(opName, convertedArgs)
+}
+
+func doConvert(from DataValue, to DataType) DataValue {
+	if TypeMatches(from.Type(), to) {
+		return from
+	}
+
+	output.FIXMEDebug("FIXME converting %v to %v", from, to)
+	ret := ConvertBasic(from, to)
+	if ret != nil {
+		output.FIXMEDebug("FIXME converted to %v", ret)
+		return ret
+	}
+
+	//FIXME handle composite types, etc
+	output.FatalError("no conversion from %v to %v", from, to)
+	return from
 }
 
 //FIXME where should this live?
@@ -74,42 +98,5 @@ func SelectFunctionChoice(op FunctionChoiceSymbol, args []DataType) Symbol {
 	}
 
 	return nil
-}
-
-
-func CanConvertArgs(args []DataType, params []FunctionParameter) bool {
-
-	if len(args) != len(params) {
-		return false
-	}
-
-	for i, param := range params {
-		arg := args[i]
-
-		if param.AutoConvert {
-			if !CanConvert(arg, param.DType) {
-				return false
-			}
-		} else {
-			if !TypeMatches(arg, param.DType) {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-//FIXME move these
-
-func CanConvert(argType DataType, paramType DataType) bool {
-
-	//FIXME fake
-	return argType == paramType
-}
-
-func TypeMatches(a DataType, b DataType) bool {
-	//FIXME fake
-	return a == b
 }
 

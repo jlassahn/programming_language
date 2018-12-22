@@ -1,0 +1,26 @@
+MODULE SYMBOLS
+  Symbol Table: consts(LOCAL)
+    Symbols:
+      X1 INT64 = INT64{123}
+      X2 INT32 = INT32{123}
+      XREF1 INT64 = INT64{5}
+      XREF2 INT64 = INT64{5}
+    Operators:
+
+  Symbol Table: consts(EXPORTED)
+    Symbols:
+      X1 INT64 = INT64{123}
+      X2 INT32 = INT32{123}
+      XREF1 INT64 = INT64{5}
+      XREF2 INT64 = INT64{5}
+    Operators:
+
+FILE SYMBOLS
+  Symbol Table: consts.janus
+    Symbols:
+      X1 INT64 = INT64{123}
+      X2 INT32 = INT32{123}
+      XREF1 INT64 = INT64{5}
+      XREF2 INT64 = INT64{5}
+    Operators:
+

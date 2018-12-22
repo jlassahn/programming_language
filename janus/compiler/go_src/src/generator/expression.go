@@ -84,7 +84,7 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 	if opChoices == nil {
 		parser.Error(pos, "No definition for operator %v", opName)
 		//FIXME testing
-		ctx.Symbols.Emit()
+		ctx.Symbols.Emit(true)
 		return nil
 	}
 
@@ -182,21 +182,26 @@ func genNumber(fp GeneratedFile, genFunc GeneratedFunction,
 	return NewDataVal(dv)
 }
 
-func MakeIntrinsicOp(ret Result, opName string,
-	args []Result) string {
+func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
+
+	op, ok := LLVMOperator[opName]
+	if !ok {
+		output.FatalError("Unimplemented intrinsic %v", opName)
+		op = "UNIMPLEMENTED"
+	}
 
 	s := fmt.Sprintf("\t%v = %v %v %v, %v",
 		ret.LLVMVal(),
-		LLVMOperator[opName],
+		op,
 		args[0].LLVMType(),
 		args[0].LLVMVal(),
 		args[1].LLVMVal())
 
-	output.FIXMEDebug("%v", s)
 	return s
 }
 
 var LLVMOperator = map[string]string {
 	"add_Int64": "add",
+	"add_Int32": "add",
 }
 

@@ -58,7 +58,7 @@ func (self *SourceFile) SetModuleByFileName() {
 }
 
 func (self *SourceFile) EmitGlobals() {
-	self.FileSymbols.Emit()
+	self.FileSymbols.Emit(false)
 }
 
 type Module struct {
@@ -107,8 +107,8 @@ func (self *Module) EmitModuleTree(depth int) {
 }
 
 func (self *Module) EmitModuleSymbols() {
-	self.LocalSymbols.Emit()
-	self.ExportedSymbols.Emit()
+	self.LocalSymbols.Emit(false)
+	self.ExportedSymbols.Emit(false)
 
 	for _,x := range self.Children {
 		x.EmitModuleSymbols()

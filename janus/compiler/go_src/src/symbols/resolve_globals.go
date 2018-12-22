@@ -64,9 +64,7 @@ func ResolveGlobals(fileSet *FileSet) {
 
 func findSymbolsForModule(mod *Module) {
 
-	output.FIXMEDebug("searching module: %v", mod.Name)
 	for _, file := range mod.FileList {
-		output.FIXMEDebug("  searching file: %v", file.FileName)
 		findSymbolsForFile(file, mod)
 	}
 
@@ -121,13 +119,10 @@ func findSymbolsForFile(file *SourceFile, mod *Module) {
 		}
 
 		sym.declarations = append(sym.declarations, el)
-		output.FIXMEDebug("    def for %v %p", name, sym)
 	}
 }
 
 func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
-
-	output.FIXMEDebug("resolve imports for file %v", file.FileName)
 
 	for _,imp := range file.Imports {
 
@@ -137,9 +132,7 @@ func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
 
 		// operators always import into the main file table
 
-		output.FIXMEDebug("importing operators from %v", table.Name)
 		for key,value := range mod.ExportedSymbols.Operators {
-			output.FIXMEDebug("  importing %v %v", key, value)
 			if table.Operators[key] == nil {
 				table.Operators[key] = value
 			} else {
@@ -155,9 +148,7 @@ func resolveImportedSymbols(file *SourceFile, fileSet *FileSet) {
 		}
 
 		// import symbols into the module namespace
-		output.FIXMEDebug("importing symbols from %v", table.Name)
 		for key,value := range mod.ExportedSymbols.Symbols {
-			output.FIXMEDebug("  importing %v %v", key, value)
 			if table.Symbols[key] == nil {
 				table.Symbols[key] = value
 			} else {
@@ -263,7 +254,6 @@ const function declarations can be _called_ from const initializers.
 
 func resolveConstValues(mod *Module, fileSet *FileSet) {
 
-	output.FIXMEDebug("resolveConstValues for %v", mod.Name)
 	for _,x := range mod.Children {
 		resolveConstValues(x, fileSet)
 	}
@@ -290,7 +280,6 @@ func resolveConstValue(value Symbol) Symbol {
 
 	uninit, ok := value.(*uninitializedSymbol)
 	if !ok {
-		output.FIXMEDebug("  value %v already finalized", value)
 		return value
 	}
 
@@ -307,16 +296,12 @@ func resolveConstValue(value Symbol) Symbol {
 	}
 
 	if !uninit.isConst {
-		output.FIXMEDebug("  value %v not constant", value)
 		return nil
 	}
 
 	if uninit.initialized != nil {
-		output.FIXMEDebug("  value %v already resolved", value)
 		return uninit.initialized
 	}
-
-	output.FIXMEDebug("  resolving constant %v", value)
 
 	var dtypeMatch DataType
 	var dvalMatch DataValue
@@ -331,14 +316,11 @@ func resolveConstValue(value Symbol) Symbol {
 		}
 
 		//dtype can be nil when the type is inferred from the initializer
-		output.FIXMEDebug("  resolving type for %v to %v", value, dtype)
 
 		dval := resolveSymbolValue(uninit, dtype, resolveConstValue)
-		output.FIXMEDebug("  resolving value for %v to %v", value, dval)
 
 		if dtype == nil && dval != nil {
 			dtype = dval.Type()
-			output.FIXMEDebug("  inferring type for %v to %v", value, dtype)
 		}
 
 		if dtype == nil {
@@ -423,7 +405,6 @@ func resolveConstValue(value Symbol) Symbol {
 
 func resolveVariableValues(mod *Module, fileSet *FileSet) {
 
-	output.FIXMEDebug("resolveVariableValues for %v", mod.Name)
 	for _,x := range mod.Children {
 		resolveVariableValues(x, fileSet)
 	}
@@ -447,15 +428,12 @@ func resolveVariableValues(mod *Module, fileSet *FileSet) {
 
 func resolveVariableValue(value Symbol) Symbol {
 
-	output.FIXMEDebug("resolveVariableValue %v", value)
 	uninit, ok := value.(*uninitializedSymbol)
 	if !ok {
-		output.FIXMEDebug("value %v already finalized", value)
 		return value
 	}
 
 	if uninit.initialized != nil {
-		output.FIXMEDebug("value %v already resolved", value)
 		return uninit.initialized
 	}
 
@@ -468,19 +446,15 @@ func resolveVariableValue(value Symbol) Symbol {
 
 		dtype, err := resolveSymbolType(uninit, el, nil)
 		if err != nil {
-			output.FIXMEDebug("  resolving type failed for  %v: %v", value, err)
 			return nil
 		}
 
 		//dtype can be nil when the type is inferred from the initializer
-		output.FIXMEDebug("  resolving type for %v to %v", value, dtype)
 
 		dval := resolveSymbolValue(uninit, dtype, resolveVariableValue)
-		output.FIXMEDebug("  resolving value for %v to %v", value, dval)
 
 		if dtype == nil && dval != nil {
 			dtype = dval.Type()
-			output.FIXMEDebug("  inferring type for %v to %v", value, dtype)
 		}
 
 		if dtype == nil {
@@ -573,13 +547,14 @@ func replaceUninitialized(fileSet *FileSet) {
 
 func replaceUninitializedInModule(mod *Module) {
 
-	output.FIXMEDebug("replaceUninitialized for %v", mod.Name)
 	for _,x := range mod.Children {
 		replaceUninitializedInModule(x)
 	}
 	replaceUninitializedInMap(mod.ExportedSymbols.Symbols)
 	replaceUninitializedInMap(mod.LocalSymbols.Symbols)
-	// FIXME operators?
+	//FIXME operators
+	//replaceUninitializedInMap(mod.ExportedSymbols.Operators)
+	//replaceUninitializedInMap(mod.LocalSymbols.Operators)
 }
 
 func replaceUninitializedInMap(syms map[string]Symbol) {
@@ -646,7 +621,6 @@ func resolveSymbolType(sym *uninitializedSymbol, el parser.ParseElement,
 	}
 	symType := symTypeVal.AsDataType()
 
-	output.FIXMEDebug("  symType %v", symType)
 	return symType, nil
 }
 

@@ -5,7 +5,7 @@ import (
 )
 
 type Tag struct { string }
-func (self Tag) String() string {
+func (self *Tag) String() string {
 	return self.string
 }
 
@@ -91,11 +91,11 @@ func (self *functionDT) IsMethod() bool {
 }
 
 type simpleDT struct {
-	Tag
+	*Tag
 }
 
 func (self *simpleDT) Base() *Tag {
-	return &self.Tag
+	return self.Tag
 }
 
 func (self *simpleDT) SubTypes() []DTypeParameter {

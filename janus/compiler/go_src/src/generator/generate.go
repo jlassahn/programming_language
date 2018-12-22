@@ -289,7 +289,7 @@ func GenerateFunction(
 	genFunc.SetReturnType(dtype.ReturnType())
 
 	//FIXME
-	ctx.Symbols.Emit()
+	ctx.Symbols.Emit(true)
 
 	for _,elem := range el.Children() {
 		GenerateStatement(fp, genFunc, ctx, elem)

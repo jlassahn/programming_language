@@ -21,6 +21,10 @@ var parserOKTests = []string {
 	"statements",
 }
 
+var definitionOKTests = []string {
+	"consts",
+}
+
 func TestMain(m *testing.M) {
 
 	logger = &Logger { }
@@ -51,6 +55,31 @@ func runParseTest(t *testing.T, name string) {
 	}
 
 	infoExp,_ := ioutil.ReadFile(name+".parse")
+
+	runInfoCompare(t, name, args, infoExp)
+}
+
+func TestDefinitions(t *testing.T) {
+
+	for _,name := range definitionOKTests {
+		t.Run(name, func(t *testing.T) { runDefinitionTest(t, name) })
+	}
+}
+
+func runDefinitionTest(t *testing.T, name string) {
+
+	args := []string{
+		"-imports-only",
+		"-show-globals",
+		name+".janus",
+	}
+
+	infoExp,_ := ioutil.ReadFile(name+".globals")
+
+	runInfoCompare(t, name, args, infoExp)
+}
+
+func runInfoCompare(t *testing.T, name string, args []string, infoExp []byte) {
 
 	logger.errors.Reset()
 	logger.warns.Reset()

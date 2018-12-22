@@ -55,6 +55,10 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
+	if args.Flags["show-predefined"] {
+		symbols.PredefinedSymbols().Emit(true)
+	}
+
 	fileSet := symbols.NewFileSet()
 
 	if args.Flags["show-tokens"] {
@@ -116,7 +120,9 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
-	// FIXME stop here for -imports-only ??
+	if args.Flags["imports-only"] {
+		return 0
+	}
 
 	name := args.StringOpts["name"]
 	if name == "" {
@@ -131,9 +137,17 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
+	if args.Flags["llvm-only"] {
+		return 0
+	}
+
 	runLLVM(llvmName, asmName)
 	if output.ErrorCount > 0 {
 		return 1
+	}
+
+	if args.Flags["asm-only"] {
+		return 0
 	}
 
 	runAssembleLink(asmName, name)
@@ -216,6 +230,9 @@ Options:
  -lib         : output a .jlib library file
 
  -parse-only  : stop after parsing the source files
+ -imports-only: stop after resolving imported symbols
+ -llvm-only   : stop after generating LLVM
+ -asm-only    : stop after generating assembly
 
  -show-paths  : print the search paths used by the compiler
  -show-tokens : print the tokenized files to stdout
@@ -224,6 +241,7 @@ Options:
  -show-modules: print included source files and module names
  -show-imports: print files found through import statements
  -show-globals: print file scope symbol tables
+ -show-predefined: print predefined built-in symbol tables
 
  -name *      : set the name of the output file
  -source *    : add directory to source search path
@@ -246,7 +264,11 @@ func parseArgs(args []string) *parameters {
 		"show-modules": false,
 		"show-imports": false,
 		"show-globals": false,
+		"show-predefined": false,
 		"parse-only": false,
+		"imports-only": false,
+		"llvm-only": false,
+		"asm-only": false,
 	}
 
 	var stringOpts = map[string]string {

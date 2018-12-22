@@ -65,9 +65,9 @@ func EvaluateConstExpression(
 	eval := handlers[el.ElementType()]
 	if eval == nil {
 		//FIXME implement
-		output.FIXMEDebug("no evaluator for %v\n", el.ElementType())
-		parser.EmitParseTree(el)
-		ctx.Symbols.Emit()
+		output.Error("FIXME no evaluator for %v\n", el.ElementType())
+		//parser.EmitParseTree(el)
+		//ctx.Symbols.Emit()
 		return nil
 	} else {
 		return eval(el, ctx)
