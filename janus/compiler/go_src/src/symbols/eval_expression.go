@@ -49,7 +49,9 @@ func evalExpression(el parser.ParseElement, ctx *EvalContext) DataValue {
 		return nil
 	}
 
-	return doConstOp(op, args, ctx)
+	ret := doConstOp(op, args, ctx)
+
+	return ret
 }
 
 func doConstOp(op Symbol,
@@ -59,29 +61,16 @@ func doConstOp(op Symbol,
 
 	dtype := op.Type().(FunctionDataType)
 	for i, dest := range dtype.Parameters() {
-		convertedArgs[i] = doConvert(args[i], dest.DType)
+		convertedArgs[i] = ConvertConstant(args[i], dest.DType)
+		if convertedArgs[i] == nil {
+			output.Error("INTERNAL ERROR")
+			return nil
+		}
 	}
 
 	//FIXME check if this is really an intrinsic
 	opName := op.InitialValue().(IntrinsicDataValue).ValueAsString()
 	return EvaluateIntrinsic(opName, convertedArgs)
-}
-
-func doConvert(from DataValue, to DataType) DataValue {
-	if TypeMatches(from.Type(), to) {
-		return from
-	}
-
-	output.FIXMEDebug("FIXME converting %v to %v", from, to)
-	ret := ConvertBasic(from, to)
-	if ret != nil {
-		output.FIXMEDebug("FIXME converted to %v", ret)
-		return ret
-	}
-
-	//FIXME handle composite types, etc
-	output.FatalError("no conversion from %v to %v", from, to)
-	return from
 }
 
 //FIXME where should this live?

@@ -23,7 +23,14 @@ var parserOKTests = []string {
 
 var definitionOKTests = []string {
 	"consts",
+	"const_exp",
 }
+
+var codegenOKTests = []string {
+	"simple",
+}
+
+var basePath = ".."
 
 func TestMain(m *testing.M) {
 
@@ -79,13 +86,64 @@ func runDefinitionTest(t *testing.T, name string) {
 	runInfoCompare(t, name, args, infoExp)
 }
 
+func TestCodeGen(t *testing.T) {
+
+	for _,name := range codegenOKTests {
+		t.Run(name, func(t *testing.T) { runCodeGenTest(t, name) })
+	}
+}
+
+func runCodeGenTest(t *testing.T, name string) {
+
+	args := []string{
+		name+".janus",
+	}
+
+	genExp,_ := ioutil.ReadFile(name+".generated")
+
+	logger.errors.Reset()
+	logger.warns.Reset()
+	logger.info.Reset()
+
+	ret := Compile(basePath, args, nil)
+
+	if ret != 0 {
+		t.Errorf("compiler returned failure")
+	}
+
+	genAct,_ := ioutil.ReadFile(name+".ll")
+
+	if !bytes.Equal(genAct, genExp) {
+		t.Errorf("output doesn't match")
+	}
+
+	if logger.errors.Len() != 0 {
+		t.Errorf("compiler generated errors")
+	}
+
+	if logger.warns.Len() != 0 {
+		t.Errorf("compiler generated warnings")
+	}
+
+	/* FIXME do we care?
+	if logger.info.Len() != 0 {
+		t.Errorf("compiler generated info messages")
+	}
+	*/
+
+	fp,_ := os.Create(name+".out")
+	fp.Write(logger.errors.Bytes())
+	fp.Write(logger.warns.Bytes())
+	fp.Write(logger.info.Bytes())
+	fp.Close()
+}
+
 func runInfoCompare(t *testing.T, name string, args []string, infoExp []byte) {
 
 	logger.errors.Reset()
 	logger.warns.Reset()
 	logger.info.Reset()
 
-	basePath := "."
 	ret := Compile(basePath, args, nil)
 
 	if ret != 0 {

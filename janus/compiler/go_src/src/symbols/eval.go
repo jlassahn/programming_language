@@ -74,3 +74,19 @@ func EvaluateConstExpression(
 	}
 }
 
+func EvaluateConstRHS(el parser.ParseElement, ctx *EvalContext) DataValue {
+
+	initDT := ctx.InitializerType
+
+	ret := EvaluateConstExpression(el, ctx)
+	if ret == nil {
+		return nil
+	}
+
+	ret = MaskConstant(ret)
+	if initDT != nil {
+		ret = ConvertConstant(ret, initDT)
+	}
+	return ret
+}
+

@@ -656,7 +656,7 @@ func resolveSymbolValue(sym *uninitializedSymbol, initDT DataType, handler func(
 			InitializerType: initDT,
 		}
 
-		return EvaluateConstExpression(valTree, ctx)
+		return EvaluateConstRHS(valTree, ctx)
 	}
 
 	return nil

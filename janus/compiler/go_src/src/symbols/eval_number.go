@@ -138,8 +138,6 @@ func evalNumber(el parser.ParseElement, ctx *EvalContext) DataValue {
 		return nil
 	}
 
-	//FIXME bounds check values
-
 	switch typeInfo.cat {
 		case CAT_REAL:
 			return &realDV{typeInfo.dtype, float64(iv) + frac}
@@ -149,6 +147,7 @@ func evalNumber(el parser.ParseElement, ctx *EvalContext) DataValue {
 				parser.Error(pos, "fractional part in integer constant")
 				return nil
 			}
+
 			return &signedDV{typeInfo.dtype, int64(iv)}
 
 		case CAT_UNSIGNED:

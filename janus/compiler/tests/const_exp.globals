@@ -1,0 +1,35 @@
+MODULE SYMBOLS
+  Symbol Table: const_exp(LOCAL)
+    Symbols:
+      x1 INT8 = INT8{2}
+      x2 INT8 = INT8{0}
+      x3 INT8 = INT8{0}
+      x4 INT16 = INT16{2}
+      x5 INT16 = INT16{0}
+      x6 INT16 = INT16{0}
+      x7 REAL64 = REAL64{0.5}
+    Operators:
+
+  Symbol Table: const_exp(EXPORTED)
+    Symbols:
+      x1 INT8 = INT8{2}
+      x2 INT8 = INT8{0}
+      x3 INT8 = INT8{0}
+      x4 INT16 = INT16{2}
+      x5 INT16 = INT16{0}
+      x6 INT16 = INT16{0}
+      x7 REAL64 = REAL64{0.5}
+    Operators:
+
+FILE SYMBOLS
+  Symbol Table: const_exp.janus
+    Symbols:
+      x1 INT8 = INT8{2}
+      x2 INT8 = INT8{0}
+      x3 INT8 = INT8{0}
+      x4 INT16 = INT16{2}
+      x5 INT16 = INT16{0}
+      x6 INT16 = INT16{0}
+      x7 REAL64 = REAL64{0.5}
+    Operators:
+

@@ -27,13 +27,49 @@ func ConvertBasic(from DataValue, to DataType) DataValue {
 }
 
 var intrinsics = map[string] func(name string, args []DataValue) DataValue {
-	"add_Int64": intrinsicAddInt64,
 	"add_Int8": intrinsicAddInt,
-	"div_Real64": intrinsicDivReal64,
+	"add_Int16": intrinsicAddInt,
+	"add_Int32": intrinsicAddInt,
+	"add_Int64": intrinsicAddInt,
+	"add_Real32": intrinsicAddReal,
+	"add_Real64": intrinsicAddReal,
+
+	"sub_Int8": intrinsicSubInt,
+	"sub_Int16": intrinsicSubInt,
+	"sub_Int32": intrinsicSubInt,
+	"sub_Int64": intrinsicSubInt,
+	"sub_Real32": intrinsicSubReal,
+	"sub_Real64": intrinsicSubReal,
+
+	"negate_Int8": intrinsicNegateInt,
+	"negate_Int16": intrinsicNegateInt,
+	"negate_Int32": intrinsicNegateInt,
+	"negate_Int64": intrinsicNegateInt,
+	"negate_Real32": intrinsicNegateReal,
+	"negate_Real64": intrinsicNegateReal,
+
+	"div_IntReal": intrinsicDivIntReal,
+	"div_Real64": intrinsicDivReal,
+	"div_Real32": intrinsicDivReal,
 }
 
 var baseTypeConvert = map[tagPair] func(DataValue, DataType)DataValue  {
 	{INT8_TYPE, INT16_TYPE}: convSignedSigned,
+	{INT8_TYPE, INT32_TYPE}: convSignedSigned,
+	{INT8_TYPE, INT64_TYPE}: convSignedSigned,
+	{INT16_TYPE, INT32_TYPE}: convSignedSigned,
+	{INT16_TYPE, INT64_TYPE}: convSignedSigned,
+	{INT32_TYPE, INT64_TYPE}: convSignedSigned,
+
+	{INT8_TYPE, REAL32_TYPE}: convSignedReal,
+	{INT16_TYPE, REAL32_TYPE}: convSignedReal,
+	{INT32_TYPE, REAL32_TYPE}: convSignedReal,
+	{INT64_TYPE, REAL32_TYPE}: convSignedReal,
+	{INT8_TYPE, REAL64_TYPE}: convSignedReal,
+	{INT16_TYPE, REAL64_TYPE}: convSignedReal,
+	{INT32_TYPE, REAL64_TYPE}: convSignedReal,
+	{INT64_TYPE, REAL64_TYPE}: convSignedReal,
+
 }
 
 
@@ -42,6 +78,9 @@ var intMask = map[*Tag] uint64 {
 	INT16_TYPE : 0x000000000000FFFF,
 	INT32_TYPE : 0x00000000FFFFFFFF,
 	INT64_TYPE : 0xFFFFFFFFFFFFFFFF,
+}
+
+var uintMask = map[*Tag] uint64 {
 	UINT8_TYPE : 0x00000000000000FF,
 	UINT16_TYPE: 0x000000000000FFFF,
 	UINT32_TYPE: 0x00000000FFFFFFFF,
@@ -68,56 +107,138 @@ func (self *intrinsicDV) String() string {
 	return DataValueString(self)
 }
 
+func maskSigned(x int64, dtype *Tag) int64 {
+
+	mask := intMask[dtype]
+
+	m := uint64(x) & mask
+	if (m & (^mask >> 1)) != 0 {
+		m = m | ^mask
+	}
+	ret := int64(m)
+
+	//FIXME better context for message!
+	if x != ret {
+		output.Warning("truncating constant value %v to %v", x, ret)
+	}
+
+	return ret
+}
+
 func intrinsicAddInt(op string, args []DataValue) DataValue {
 
-	mask := intMask[args[0].Type().Base()]
+	a := args[0].(*signedDV).AsSigned64()
+	b := args[1].(*signedDV).AsSigned64()
+
+	x := maskSigned(a+b, args[0].Type().Base())
+
+	return &signedDV{args[0].Type(), x}
+}
+
+func intrinsicAddReal(op string, args []DataValue) DataValue {
+
+	a := args[0].(*realDV).AsReal64()
+	b := args[1].(*realDV).AsReal64()
+
+	x := a+b
+
+	return &realDV{args[0].Type(), x}
+}
+
+func intrinsicSubInt(op string, args []DataValue) DataValue {
 
 	a := args[0].(*signedDV).AsSigned64()
 	b := args[1].(*signedDV).AsSigned64()
 
-	x := uint64(a+b) & mask
-	if (x & (^mask >> 1)) != 0 {
-		x = x | ^mask
-	}
+	x := maskSigned(a-b, args[0].Type().Base())
 
-	return &signedDV{args[0].Type(), int64(x)}
+	return &signedDV{args[0].Type(), x}
 }
 
-func intrinsicAddInt64(op string, args []DataValue) DataValue {
+func intrinsicSubReal(op string, args []DataValue) DataValue {
+
+	a := args[0].(*realDV).AsReal64()
+	b := args[1].(*realDV).AsReal64()
+
+	x := a-b
+
+	return &realDV{args[0].Type(), x}
+}
+
+func intrinsicNegateInt(op string, args []DataValue) DataValue {
 
 	a := args[0].(*signedDV).AsSigned64()
-	b := args[1].(*signedDV).AsSigned64()
 
-	return &signedDV{Int64Type, a+b}
+	x := maskSigned(-a, args[0].Type().Base())
+
+	return &signedDV{args[0].Type(), x}
 }
 
-//FIXME should be real args, with conversions
-func intrinsicDivReal64(op string, args []DataValue) DataValue {
+func intrinsicNegateReal(op string, args []DataValue) DataValue {
 
-	var a float64
-	switch args[0].(type) {
-		case *signedDV:
-			a = float64(args[0].(*signedDV).AsSigned64())
-		case *realDV:
-			a = args[0].(*realDV).AsReal64()
-	}
+	a := args[0].(*realDV).AsReal64()
 
-	var b float64
-	switch args[1].(type) {
-		case *signedDV:
-			b = float64(args[1].(*signedDV).AsSigned64())
-		case *realDV:
-			b = args[1].(*realDV).AsReal64()
-	}
+	x := -a
 
+	return &realDV{args[0].Type(), x}
+}
+
+func intrinsicDivIntReal(op string, args []DataValue) DataValue {
+
+	a := float64(args[0].(*signedDV).AsSigned64())
+	b := args[1].(*realDV).AsReal64()
 	return &realDV{Real64Type, a/b}
 }
 
+func intrinsicDivReal(op string, args []DataValue) DataValue {
+
+	a := args[0].(*realDV).AsReal64()
+	b := args[1].(*realDV).AsReal64()
+	return &realDV{args[0].Type(), a/b}
+}
+
 func convSignedSigned(from DataValue, to DataType) DataValue {
-	//FIXME mask
+
+	x := from.(SignedDataValue).AsSigned64()
+	x = maskSigned(x, from.Type().Base())
+	x = maskSigned(x, to.Base())
+
 	return &signedDV{
 		dtype: to,
-		value: from.(SignedDataValue).AsSigned64(),
+		value: x,
 	}
+}
+
+func convSignedReal(from DataValue, to DataType) DataValue {
+
+	x := from.(SignedDataValue).AsSigned64()
+	x = maskSigned(x, from.Type().Base())
+
+	return &realDV{
+		dtype: to,
+		value: float64(x),
+	}
+}
+
+func MaskConstant(x DataValue) DataValue {
+
+	mask := intMask[x.Type().Base()]
+	if mask != 0 {
+
+		inVal := x.(SignedDataValue).AsSigned64()
+		outVal := maskSigned(inVal, x.Type().Base())
+		if inVal == outVal {
+			return x
+		}
+
+		return &signedDV{
+			dtype: x.Type(),
+			value: outVal,
+		}
+	}
+
+	//FIXME implement unsigned
+
+	return x
 }
 

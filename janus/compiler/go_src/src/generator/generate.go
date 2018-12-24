@@ -12,15 +12,27 @@ import (
 type Result interface {
 	ID() int
 	Type() symbols.DataType
+
+	//FIXME possible values include
+	// constant
+	// temporary result by value
+	// variable by reference
+
 	IsConst() bool
 	ConstVal() symbols.DataValue
+
+	IsVariableRef() bool
+
 	String() string
 	LLVMType() string
 	LLVMVal() string
 }
 
 type GeneratedFunction interface {
-	Emit(file GeneratedFile)
+	File() GeneratedFile
+	ReturnType() symbols.DataType
+
+	Emit()
 	SetReturnType(dtype symbols.DataType)
 	AddParameter(name string, dtype symbols.DataType) Result
 	AddPrologue(x string, args ...interface{})
@@ -38,8 +50,8 @@ type result struct {
 	id int
 	name string
 	dtype symbols.DataType
-	isConst bool
 	constVal symbols.DataValue
+	isVariableRef bool
 }
 
 func NewTempVal(fp GeneratedFile, dtype symbols.DataType) Result {
@@ -47,7 +59,6 @@ func NewTempVal(fp GeneratedFile, dtype symbols.DataType) Result {
 	ret := fp.MakeResult()
 	ret.dtype = dtype
 	ret.name = "tmp"
-	ret.isConst = false
 	ret.constVal = nil
 
 	return ret
@@ -58,8 +69,8 @@ func NewNamedVal(fp GeneratedFile, dtype symbols.DataType, name string) Result {
 	ret := fp.MakeResult()
 	ret.dtype = dtype
 	ret.name = name
-	ret.isConst = false
 	ret.constVal = nil
+	ret.isVariableRef = true
 
 	return ret
 }
@@ -69,7 +80,6 @@ func NewDataVal(dval symbols.DataValue) Result {
 	ret := &result { }
 	ret.dtype = dval.Type()
 	ret.name = "INVALID"
-	ret.isConst = true
 	ret.constVal = dval
 
 	return ret
@@ -79,15 +89,16 @@ func NewDataVal(dval symbols.DataValue) Result {
 func (self *result) String() string { return self.LLVMVal() }
 func (self *result) ID() int { return self.id }
 func (self *result) Type() symbols.DataType { return self.dtype }
-func (self *result) IsConst() bool { return self.isConst }
+func (self *result) IsConst() bool { return self.constVal != nil }
 func (self *result) ConstVal() symbols.DataValue { return  self.constVal }
+func (self *result) IsVariableRef() bool { return self.isVariableRef }
 
 func (self *result) LLVMType() string {
 	return MakeLLVMType(self.dtype)
 }
 
 func (self *result) LLVMVal() string {
-	if self.isConst {
+	if self.IsConst() {
 		return MakeLLVMConst(self.constVal)
 	} else {
 		return fmt.Sprintf("%%%s_%d", self.name, self.id)
@@ -148,38 +159,46 @@ func NewGeneratedFunction(fp GeneratedFile, name string) GeneratedFunction {
 	}
 }
 
-func (self *generatedFunction) Emit(fp GeneratedFile) {
+func (self *generatedFunction) File() GeneratedFile {
+	return self.fp
+}
 
-	fp.Emit("define %v @%v(", MakeLLVMType(self.returnType), self.name)
+func (self *generatedFunction) ReturnType() symbols.DataType {
+	return self.returnType
+}
+
+func (self *generatedFunction) Emit() {
+
+	self.fp.Emit("define %v @%v(", MakeLLVMType(self.returnType), self.name)
 	for i,param := range self.params {
 		term := ","
 		if i==len(self.params)-1 {
 			term = ""
 		}
-		fp.Emit("\t%v%v", param.LLVMType(), term)
+		self.fp.Emit("\t%v%v", param.LLVMType(), term)
 	}
-	fp.Emit(") {")
+	self.fp.Emit(") {")
 
 	for _,x := range self.prologue {
-		fp.Emit("%s", x)
+		self.fp.Emit("%s", x)
 	}
 
-	fp.Emit("")
+	self.fp.Emit("")
 
 	for _,x := range self.body {
-		fp.Emit("%s", x)
+		self.fp.Emit("%s", x)
 	}
 
-	fp.Emit("")
+	self.fp.Emit("")
 	//FIXME fake, only accessible if the function doesn't call return on
 	//      some path
-	fp.Emit("endpoint:")
+	self.fp.Emit("endpoint:")
 	if self.returnType == symbols.VoidType {
-		fp.Emit("\tret void")
+		self.fp.Emit("\tret void")
 	} else {
-		fp.Emit("\tret %v zeroinitializer", MakeLLVMType(self.returnType))
+		self.fp.Emit("\tret %v zeroinitializer", MakeLLVMType(self.returnType))
 	}
-	fp.Emit("}")
+	self.fp.Emit("}")
 }
 
 func (self *generatedFunction) SetReturnType(dtype symbols.DataType) {
@@ -245,6 +264,7 @@ func GenerateFunctions(fileSet *symbols.FileSet, fp GeneratedFile, mod *symbols.
 		}
 	}
 
+	//FIXME implement
 	//mod.LocalSymbols.Operators
 }
 
@@ -288,24 +308,21 @@ func GenerateFunction(
 	}
 	genFunc.SetReturnType(dtype.ReturnType())
 
-	//FIXME
-	ctx.Symbols.Emit(true)
-
 	for _,elem := range el.Children() {
-		GenerateStatement(fp, genFunc, ctx, elem)
+		GenerateStatement(genFunc, ctx, elem)
 	}
 
 	output.FIXMEDebug("generating %v %v %v", dtype, el, file)
 	output.FIXMEDebug("name %v", name)
 
-	genFunc.Emit(fp)
+	genFunc.Emit()
 }
 
 
-func GenerateStatement(fp GeneratedFile, genFunc GeneratedFunction,
+func GenerateStatement(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) {
 
-	GenerateExpression(fp, genFunc, ctx, el)
+	GenerateExpression(genFunc, ctx, el)
 }
 
 

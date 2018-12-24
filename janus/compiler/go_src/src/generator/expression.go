@@ -9,7 +9,7 @@ import (
 	"symbols"
 )
 
-type ExpressionGenerator func(fp GeneratedFile, genFunc GeneratedFunction,
+type ExpressionGenerator func(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result
 
 var handlers = map[*parser.Tag] ExpressionGenerator {
@@ -24,7 +24,7 @@ var loopHandler ExpressionGenerator
 
 
 
-func GenerateExpression(fp GeneratedFile, genFunc GeneratedFunction,
+func GenerateExpression(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	output.FIXMEDebug("GenerateExpression: %v", el)
@@ -37,11 +37,11 @@ func GenerateExpression(fp GeneratedFile, genFunc GeneratedFunction,
 		return nil
 	}
 
-	return handler(fp, genFunc, ctx, el)
+	return handler(genFunc, ctx, el)
 }
 
 
-func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
+func genExpression(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	children := el.Children()
@@ -50,16 +50,15 @@ func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
 
 	args := make([]Result, len(children) - 1)
 	for i, x := range(children[1:]) {
-		args[i] = loopHandler(fp, genFunc, ctx, x)
+		args[i] = loopHandler(genFunc, ctx, x)
 		if args[i] == nil {
 			output.FIXMEDebug("FIXME args not available")
 			return nil
 		}
 	}
 
-
 	if opElement.ElementType() == parser.OPERATOR {
-		return genOperator(fp, genFunc, ctx, opElement, args)
+		return genOperator(genFunc, ctx, opElement, args)
 	}
 
 	//FIXME implement
@@ -67,10 +66,11 @@ func genExpression(fp GeneratedFile, genFunc GeneratedFunction,
 	return nil
 }
 
-func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
+func genOperator(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement,
 	args []Result) Result {
 
+	fp := genFunc.File()
 	opName := el.TokenString()
 	pos := el.FilePos()
 
@@ -95,7 +95,11 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 		return nil
 	}
 
-	//FIXME handle type conversions for args here
+	convertedArgs := make([]Result, len(args))
+	dtype := op.Type().(symbols.FunctionDataType)
+	for i, dest := range dtype.Parameters() {
+		convertedArgs[i] = ConvertParameter(genFunc, args[i], dest.DType)
+	}
 
 	retType := op.Type().(symbols.FunctionDataType).ReturnType()
 
@@ -103,9 +107,9 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 		opName := op.InitialValue().(symbols.IntrinsicDataValue).ValueAsString()
 		ret := NewTempVal(fp, retType)
 
-		output.FIXMEDebug("applying intrinsic %v to %v", opName, args)
+		output.FIXMEDebug("applying intrinsic %v to %v", opName, convertedArgs)
 
-		genFunc.AddBody("%v", MakeIntrinsicOp(ret, opName, args))
+		genFunc.AddBody("%v", MakeIntrinsicOp(ret, opName, convertedArgs))
 		return ret
 	}
 
@@ -128,23 +132,15 @@ func genOperator(fp GeneratedFile, genFunc GeneratedFunction,
 	return nil
 }
 
-func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
+func genSymbol(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	sym := ctx.Lookup(el.TokenString())
 	output.FIXMEDebug("looking up %v %v", el.TokenString(), sym)
 
-	src, ok := sym.GetGenVal().(Result)
+	ret, ok := sym.GetGenVal().(Result)
 	if ok {
-		output.FIXMEDebug("found value %v", src)
-
-		ret := NewTempVal(fp, sym.Type())
-
-		genFunc.AddBody("\t%v = load %v, %v* %v",
-			ret.LLVMVal(),
-			ret.LLVMType(),
-			src.LLVMType(),
-			src.LLVMVal())
+		output.FIXMEDebug("found value %v", ret)
 
 		return ret
 	}
@@ -153,26 +149,42 @@ func genSymbol(fp GeneratedFile, genFunc GeneratedFunction,
 	return nil
 }
 
-func genReturn(fp GeneratedFile, genFunc GeneratedFunction,
+func genReturn(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
+
+	dtype := genFunc.ReturnType()
 
 	argEl := el.Children()[0]
 
-	//FIXME type checking -- expression type must match function type
 	if argEl.ElementType() == parser.EMPTY {
+		if dtype != symbols.VoidType {
+			parser.Error(el.FilePos(),
+				"return value is void should be %v", dtype)
+		}
 		genFunc.AddBody("\tret void")
 		return nil
 	}
 
-	arg := loopHandler(fp, genFunc, ctx, argEl)
+	arg := loopHandler(genFunc, ctx, argEl)
+	if arg == nil {
+		return nil
+	}
+
+	if !symbols.CanConvert(arg.Type(), dtype) {
+		parser.Error(el.FilePos(),
+				"return value is %v should be %v", arg.Type(), dtype)
+		return nil
+	}
+
+	convertedArg := ConvertParameter(genFunc, arg, dtype)
 
 	genFunc.AddBody("\tret %v %v",
-		arg.LLVMType(),
-		arg.LLVMVal())
+		convertedArg.LLVMType(),
+		convertedArg.LLVMVal())
 	return nil
 }
 
-func genNumber(fp GeneratedFile, genFunc GeneratedFunction,
+func genNumber(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	dv := symbols.EvaluateConstExpression(el, ctx)
@@ -180,6 +192,73 @@ func genNumber(fp GeneratedFile, genFunc GeneratedFunction,
 		return nil
 	}
 	return NewDataVal(dv)
+}
+
+
+//FIXME simplify control flow
+func ConvertParameter(genFunc GeneratedFunction,
+	arg Result, dtype symbols.DataType) Result {
+
+	if arg.IsVariableRef() {
+		arg = DereferenceVariable(genFunc, arg)
+	}
+
+	arg = ConvertValue(genFunc, arg, dtype)
+	if arg == nil {
+		output.Error("INTERNAL ERROR")
+		return nil
+	}
+
+	return arg
+}
+
+func DereferenceVariable(genFunc GeneratedFunction, src Result) Result {
+
+	fp := genFunc.File()
+	ret := NewTempVal(fp, src.Type())
+
+	genFunc.AddBody("\t%v = load %v, %v* %v",
+		ret.LLVMVal(),
+		ret.LLVMType(),
+		src.LLVMType(),
+		src.LLVMVal())
+
+	return ret
+}
+
+func ConvertValue(genFunc GeneratedFunction,
+	from Result, to symbols.DataType) Result {
+
+	if symbols.TypeMatches(from.Type(), to) {
+		return from
+	}
+
+	if from.IsConst() {
+		dval := from.ConstVal()
+		dval = symbols.ConvertConstant(dval, to)
+		return NewDataVal(dval)
+	}
+
+	fp := genFunc.File()
+	opString, ok := baseTypeConvert[tagPair{from.Type().Base(), to.Base()}]
+	if ok {
+		ret := NewTempVal(fp, to)
+
+		genFunc.AddBody("\t%v = %s %v %v to %v",
+			ret.LLVMVal(),
+			opString,
+			from.LLVMType(),
+			from.LLVMVal(),
+			ret.LLVMType())
+
+		return ret
+	}
+
+	//FIXME handle composite types, etc
+
+	//FIXME internal error, should have been checked before getting here
+	output.Error("no conversion from %v to %v", from, to)
+	return nil 
 }
 
 func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
@@ -203,5 +282,20 @@ func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
 var LLVMOperator = map[string]string {
 	"add_Int64": "add",
 	"add_Int32": "add",
+}
+
+
+//FIXME reorganize
+type tagPair struct {
+	from *symbols.Tag
+	to *symbols.Tag
+}
+
+var baseTypeConvert = map[tagPair] string  {
+	{symbols.INT8_TYPE, symbols.INT16_TYPE}: "sext",
+	{symbols.INT8_TYPE, symbols.INT32_TYPE}: "sext",
+	{symbols.INT8_TYPE, symbols.INT64_TYPE}: "sext",
+	{symbols.INT16_TYPE, symbols.INT32_TYPE}: "sext",
+	{symbols.INT16_TYPE, symbols.INT64_TYPE}: "sext",
 }
 

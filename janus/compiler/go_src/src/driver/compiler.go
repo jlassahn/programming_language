@@ -141,7 +141,7 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 0
 	}
 
-	runLLVM(llvmName, asmName)
+	runLLVM(basePath, llvmName, asmName)
 	if output.ErrorCount > 0 {
 		return 1
 	}
@@ -150,7 +150,7 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 0
 	}
 
-	runAssembleLink(asmName, name)
+	runAssembleLink(basePath, asmName, name)
 	if output.ErrorCount > 0 {
 		return 1
 	}

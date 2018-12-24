@@ -1,0 +1,13 @@
+
+janus 1.0;
+
+const x1 = 1s8 + 1s8;
+const x2 = 1s8 - 1s8;
+const x3 = 1s8 + -1s8;
+
+const x4 = 1s16 + 1s8;
+const x5 = 1s16 - 1s8;
+const x6 = 1s16 + -1s8;
+
+const x7 = 1s8 / 2s8;
+

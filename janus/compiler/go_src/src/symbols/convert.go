@@ -1,6 +1,9 @@
 
 package symbols
 
+import (
+	"output"
+)
 
 /* FIXME implicit type conversion rules
 
@@ -143,5 +146,28 @@ func TypeMatches(a DataType, b DataType) bool {
 	}
 
 	return true
+}
+
+func ConvertConstant(from DataValue, to DataType) DataValue {
+
+	if TypeMatches(from.Type(), to) {
+		return from
+	}
+
+	// function implementations
+	if to.Base() == FUNCTION_TYPE && from.Type() == CodeType {
+		return from
+	}
+
+	ret := ConvertBasic(from, to)
+	if ret != nil {
+		return ret
+	}
+
+	//FIXME handle composite types, etc
+
+	//FIXME better context for errors
+	output.Error("no conversion from %v to %v", from, to)
+	return nil
 }
 
