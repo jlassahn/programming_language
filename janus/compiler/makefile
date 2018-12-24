@@ -10,3 +10,8 @@ test:
 	go test -v -coverpkg driver,output,parser,symbols,generator  -coverprofile=coverage.out driver
 	go tool cover -html=coverage.out -o coverage.html
 
+clean:
+	-rm tests/*.out
+	-rm tests/*.ll
+	-rm tests/*.s
+
