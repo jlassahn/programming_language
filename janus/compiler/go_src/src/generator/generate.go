@@ -43,7 +43,10 @@ type GeneratedFile interface {
 	OutFile() output.ObjectFile
 	EmitComment(msg string, args ...interface{})
 	Emit(msg string, args ...interface{})
+
 	MakeResult() *result
+	SetMain(mainName string)
+	GetMain() string
 }
 
 type result struct {
@@ -109,6 +112,7 @@ func (self *result) LLVMVal() string {
 type generatedFile struct {
 	outFile output.ObjectFile
 	nextID int
+	mainName string
 }
 
 func NewGeneratedFile(outFile output.ObjectFile) GeneratedFile {
@@ -116,6 +120,7 @@ func NewGeneratedFile(outFile output.ObjectFile) GeneratedFile {
 	return &generatedFile {
 		outFile: outFile,
 		nextID: 0,
+		mainName: "",
 	}
 }
 
@@ -138,6 +143,16 @@ func (self *generatedFile) MakeResult() *result {
 	self.nextID ++
 
 	return ret
+}
+
+func (self *generatedFile) SetMain(mainName string) {
+
+	output.FIXMEDebug("setting main: %v", mainName)
+	self.mainName = mainName
+}
+
+func (self *generatedFile) GetMain() string {
+	return self.mainName
 }
 
 type generatedFunction struct {
@@ -237,6 +252,15 @@ func GenerateCode(fileSet *symbols.FileSet, objFile output.ObjectFile) {
 	for _,mod := range mods {
 		GenerateFunctions(fileSet, genFile, mod)
 	}
+
+	mainName := genFile.GetMain()
+	if mainName != "" {
+		genFile.EmitComment("")
+		genFile.EmitComment("main entrypoint")
+		genFile.EmitComment("")
+		genFile.Emit("@main = alias void(), void()* @%v", mainName)
+	}
+
 }
 
 func GenerateVariables(fileSet *symbols.FileSet, fp GeneratedFile, mod *symbols.Module) {
@@ -277,6 +301,17 @@ func GenerateFunction(
 	file := fn.InitialValue().(symbols.CodeDataValue).AsSourceFile()
 	dtype := fn.Type().(symbols.FunctionDataType)
 	name := MakeSymbolName(file.Options.ModuleName, dtype, fn.Name())
+
+	if fn.Name() == "Main" {
+		if dtype.ReturnType() != symbols.VoidType ||
+		len(dtype.Parameters()) != 0 {
+			parser.Error(el.FilePos(), "Main must be Main()->Void")
+		} else if fp.GetMain() != "" {
+			parser.Error(el.FilePos(), "multiple definitions of Main")
+		} else {
+			fp.SetMain(name)
+		}
+	}
 
 	symbolTable := symbols.NewSymbolTable(
 		fmt.Sprintf("local@%d", el.FilePos().Line),
@@ -372,6 +407,7 @@ func MakeTypeName(dtype symbols.DataType) string {
 
 func MakeLLVMType(dtype symbols.DataType) string {
 	switch dtype {
+	case symbols.VoidType: return "void"
 	case symbols.BoolType: return "i1"
 	case symbols.Int8Type: return "i8"
 	case symbols.Int16Type: return "i16"

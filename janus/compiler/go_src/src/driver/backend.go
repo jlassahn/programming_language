@@ -22,6 +22,11 @@ func runLLVM(basePath string, llvmName string, asmName string ) {
 }
 
 func runAssembleLink(basePath string, asmName string, name string) {
-	output.FIXMEDebug("IMPLEMENT GCC PASS")
+
+	cmd := "gcc"
+	err := exec.Command(cmd, asmName, "-o", name).Run()
+	if err != nil {
+		output.Error("GCC asm/link error: %v", err)
+	}
 }
 
