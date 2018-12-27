@@ -28,6 +28,7 @@ var definitionOKTests = []string {
 
 var codegenOKTests = []string {
 	"simple",
+	"main",
 }
 
 var basePath = ".."
@@ -97,6 +98,7 @@ func runCodeGenTest(t *testing.T, name string) {
 
 	args := []string{
 		name+".janus",
+		"-asm-only",
 	}
 
 	genExp,_ := ioutil.ReadFile(name+".generated")

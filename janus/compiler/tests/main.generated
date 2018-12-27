@@ -1,0 +1,40 @@
+; 
+; generating variables for main
+; 
+; 
+; generating variables for @root
+; 
+; 
+; generating functions for main
+; 
+define void @f_main.Main-FUNCTION-VOID$$(
+) {
+
+	%tmp_0 = call i64 @f_main.fn-FUNCTION-INT64$-INT64$-INT64$$(i64 11, i64 12)
+
+	ret void
+}
+define i64 @f_main.fn-FUNCTION-INT64$-INT64$-INT64$$(
+	i64,
+	i64
+) {
+	%x_1 = alloca i64
+	%y_2 = alloca i64
+
+	store i64 %0, i64* %x_1
+	store i64 %1, i64* %y_2
+	%tmp_3 = load i64, i64* %x_1
+	%tmp_4 = load i64, i64* %y_2
+	%tmp_5 = add i64 %tmp_3, %tmp_4
+	ret i64 %tmp_5
+tmp_6:
+
+	ret i64 zeroinitializer
+}
+; 
+; generating functions for @root
+; 
+; 
+; main entrypoint
+; 
+@main = alias void(), void()* @f_main.Main-FUNCTION-VOID$$

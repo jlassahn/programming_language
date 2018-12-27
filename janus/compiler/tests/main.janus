@@ -1,7 +1,13 @@
 
 janus 1.0;
 
+def fn(x Int64, y Int64) -> Int64
+{
+	return x + y;
+}
+
 def Main()
 {
+	def ret = fn(11, 12);
 }
 

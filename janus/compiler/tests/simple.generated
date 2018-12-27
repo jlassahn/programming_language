@@ -21,8 +21,8 @@ define i32 @f_simple.f1-FUNCTION-INT32$-INT32$-INT32$$(
 	%tmp_4 = add i32 %tmp_2, %tmp_3
 	%tmp_5 = add i32 %tmp_4, 1
 	ret i32 %tmp_5
+tmp_6:
 
-endpoint:
 	ret i32 zeroinitializer
 }
 ; 
