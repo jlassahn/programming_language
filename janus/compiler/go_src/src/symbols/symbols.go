@@ -26,6 +26,7 @@ type FunctionChoiceSymbol interface {
 }
 
 type SymbolTable interface {
+	String() string
 	Lookup(string) Symbol
 	LookupOperator(string) FunctionChoiceSymbol
 	Emit(emitParent bool) //FIXME do we really use recursive emits?
@@ -54,6 +55,7 @@ func NewSymbolTable(name string, parent *symbolTable) *symbolTable {
 	}
 }
 
+func (self *symbolTable) String() string { return self.Name }
 func (self *symbolTable) Lookup(x string) Symbol {
 
 	ret := self.Symbols[x]

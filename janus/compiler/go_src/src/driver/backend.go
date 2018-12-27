@@ -15,18 +15,18 @@ func runLLVM(basePath string, llvmName string, asmName string ) {
 		cmd = "./"+cmd
 	}
 
-	err := exec.Command(cmd, llvmName, "-o", asmName).Run()
+	ret, err := exec.Command(cmd, llvmName, "-o", asmName).CombinedOutput()
 	if err != nil {
-		output.Error("LLVM code generation error: %v", err)
+		output.Error("LLVM code generation error: %v", string(ret))
 	}
 }
 
 func runAssembleLink(basePath string, asmName string, name string) {
 
 	cmd := "gcc"
-	err := exec.Command(cmd, asmName, "-o", name).Run()
+	ret, err := exec.Command(cmd, asmName, "-o", name).CombinedOutput()
 	if err != nil {
-		output.Error("GCC asm/link error: %v", err)
+		output.Error("GCC asm/link error: %v", string(ret))
 	}
 }
 

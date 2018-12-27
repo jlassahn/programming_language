@@ -542,6 +542,8 @@ func replaceUninitialized(fileSet *FileSet) {
 	for _,file := range fileSet.FileList {
 		replaceUninitializedInMap(file.FileSymbols.Symbols)
 		// FIXME operators?
+
+		replaceUninitializedInNamespaces(file.FileSymbols.Symbols)
 	}
 }
 
@@ -555,6 +557,18 @@ func replaceUninitializedInModule(mod *Module) {
 	//FIXME operators
 	//replaceUninitializedInMap(mod.ExportedSymbols.Operators)
 	//replaceUninitializedInMap(mod.LocalSymbols.Operators)
+}
+
+func replaceUninitializedInNamespaces(syms map[string]Symbol) {
+
+	for _,sym := range syms {
+		if sym.Type() == NamespaceType {
+			child := sym.InitialValue().(NamespaceDataValue).AsSymbolTable()
+			replaceUninitializedInNamespaces(child.Symbols)
+			replaceUninitializedInMap(child.Symbols)
+		}
+	}
+
 }
 
 func replaceUninitializedInMap(syms map[string]Symbol) {

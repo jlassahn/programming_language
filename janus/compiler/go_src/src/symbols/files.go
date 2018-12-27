@@ -64,6 +64,7 @@ func (self *SourceFile) EmitGlobals() {
 type Module struct {
 
 	Name string
+	Path []string
 	Parent *Module
 
 	Children map[string]*Module
@@ -76,8 +77,20 @@ type Module struct {
 
 func NewModule(name string, parent *Module) *Module {
 
+	modPath := []string { name }
+
+	if parent != nil {
+		m := parent
+		// use m.Parent so @root isn't part of the path
+		for m.Parent != nil {
+			modPath = append([]string{ m.Name }, modPath...)
+			m = m.Parent
+		}
+	}
+
 	return &Module {
 		Name: name,
+		Path: modPath,
 		Parent : parent,
 		Children: map[string]*Module {},
 		FileList: nil,

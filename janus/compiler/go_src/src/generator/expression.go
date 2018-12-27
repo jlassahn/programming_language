@@ -20,6 +20,7 @@ var handlers = map[*parser.Tag] ExpressionGenerator {
 	parser.RETURN: genReturn,
 	parser.DEF: genDef,
 	parser.CALL: genCall,
+	parser.DOT_LIST: genDotList,
 }
 
 // indirect call to GenerateExpression, to avoid a circular dependency
@@ -254,6 +255,10 @@ func genSymbol(genFunc GeneratedFunction,
 		return ret
 	}
 
+	if sym.IsConst() {
+		return NewDataVal(sym.InitialValue())
+	}
+
 	output.FIXMEDebug("NO VALUE FOUND")
 	return nil
 }
@@ -348,6 +353,36 @@ func genRHS(genFunc GeneratedFunction,
 	return ret
 }
 
+func genDotList(genFunc GeneratedFunction,
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
+
+	lhsEl := el.Children()[0]
+	rhsEl := el.Children()[1]
+
+	lhs := loopHandler(genFunc, ctx, lhsEl)
+	if lhs == nil {
+		return nil
+	}
+
+	output.FIXMEDebug("getDotList %v %v", lhsEl, rhsEl)
+
+	if lhs.Type() == symbols.NamespaceType {
+		table := lhs.ConstVal().(symbols.NamespaceDataValue).AsSymbolTable()
+
+		impCtx := symbols.EvalContext { }
+		impCtx.Symbols = table
+
+		output.FIXMEDebug("push module context %v", table)
+		ret := loopHandler(genFunc,&impCtx, rhsEl)
+		output.FIXMEDebug("pop module context %v", table)
+
+		return ret
+	}
+
+	//FIXME implement member access, etc
+	parser.Error(el.FilePos(), "FIXME unimplemented dot operator %v, rhsEl")
+	return nil
+}
 
 //FIXME simplify control flow
 func ConvertParameter(genFunc GeneratedFunction,

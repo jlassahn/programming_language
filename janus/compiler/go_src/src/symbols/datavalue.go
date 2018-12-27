@@ -32,7 +32,7 @@ func (self *realDV) Type() DataType {
 }
 
 func (self *realDV) ValueAsString() string {
-	return fmt.Sprintf("%v", self.value)
+	return fmt.Sprintf("%e", self.value)
 }
 
 func (self *realDV) String() string {

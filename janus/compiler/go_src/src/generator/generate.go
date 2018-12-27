@@ -317,9 +317,7 @@ func GenerateVariables(fileSet *symbols.FileSet, fp GeneratedFile, mod *symbols.
 		choice, ok := sym.(symbols.FunctionChoiceSymbol)
 		if ok {
 			for _, fn := range choice.Choices() {
-				file := fn.InitialValue().(symbols.CodeDataValue).AsSourceFile()
-				mod := file.Options.ModuleName
-				name := MakeSymbolName(mod, fn.Type(), fn.Name())
+				name := MakeSymbolName(mod.Path, fn.Type(), fn.Name())
 				genVal := NewGlobalVal(fp, fn.Type(), name)
 				fn.SetGenVal(genVal)
 			}
@@ -358,10 +356,23 @@ func GenerateFunction(
 	mod *symbols.Module,
 	fn symbols.Symbol) {
 
+	fdef := fn.InitialValue()
+	if fdef == nil {
+		//FIXME what about externally defined functions?
+		//output.Warning("no definition for function %v", fn)
+		GenerateExternFunction(fp, mod, fn)
+		return
+	}
+
+	if fdef.Type() != symbols.CodeType {
+		output.FIXMEDebug("FIXME function %v is %v not code", fn, fdef.Type())
+		return
+	}
+
 	el := fn.InitialValue().(symbols.CodeDataValue).AsParseElement()
 	file := fn.InitialValue().(symbols.CodeDataValue).AsSourceFile()
 	dtype := fn.Type().(symbols.FunctionDataType)
-	name := MakeSymbolName(file.Options.ModuleName, dtype, fn.Name())
+	name := MakeSymbolName(mod.Path, dtype, fn.Name())
 
 	if fn.Name() == "Main" {
 		if dtype.ReturnType() != symbols.VoidType ||
@@ -412,6 +423,27 @@ func GenerateFunction(
 	output.FIXMEDebug("name %v", name)
 
 	genFunc.Emit()
+}
+
+func GenerateExternFunction(
+	fp GeneratedFile,
+	mod *symbols.Module,
+	fn symbols.Symbol) {
+
+	dtype := fn.Type().(symbols.FunctionDataType)
+	name := MakeSymbolName(mod.Path, dtype, fn.Name()) 
+
+	s := fmt.Sprintf("declare %v @%v(", MakeLLVMType(dtype.ReturnType()), name)
+	for i,param := range dtype.Parameters() {
+		if i > 0 {
+			s = s + ", "
+		}
+		s = s + MakeLLVMType(param.DType)
+	}
+	s = s + ")"
+
+	fp.Emit("%v", s)
+
 }
 
 
@@ -507,9 +539,9 @@ func MakeLLVMConst(val symbols.DataValue) string {
 	case symbols.UInt32Type: return val.ValueAsString()
 	case symbols.UInt64Type: return val.ValueAsString()
 
-	//FIXME implement
-	//case symbols.Real32Type:
-	//case symbols.Real64Type:
+	//FIXME better mechanism for emitting exact floating consts
+	case symbols.Real32Type: return val.ValueAsString()
+	case symbols.Real64Type: return val.ValueAsString()
 
 	//case symbols.IntegerType:
 	}

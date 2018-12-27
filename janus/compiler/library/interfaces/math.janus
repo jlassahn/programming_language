@@ -41,9 +41,9 @@ const RoundZero(x >Real64) -> Int64;
 const Infinity Real64;
 # -Infinity is the negative verion
 
-const Sign(Real64 x) -> Bool; # True means negative
-const IsNAN(Real64 x) -> Bool;
-const IsSignalingNAN(Real64 x) -> Bool;
-const GetNAN(Real64 x) -> Int64;
-const MakeNAN(Bool sign, Bool signaling, Int64 val) -> Real64;
+const Sign(x Real64) -> Bool; # True means negative
+const IsNAN(x Real64) -> Bool;
+const IsSignalingNAN(x Real64) -> Bool;
+const GetNAN(x Real64) -> Int64;
+const MakeNAN(sign Bool, signaling Bool, val Int64) -> Real64;
 

@@ -7,7 +7,7 @@ MODULE SYMBOLS
       x4 INT16 = INT16{2}
       x5 INT16 = INT16{0}
       x6 INT16 = INT16{0}
-      x7 REAL64 = REAL64{0.5}
+      x7 REAL64 = REAL64{5.000000e-01}
     Operators:
 
   Symbol Table: const_exp(EXPORTED)
@@ -18,7 +18,7 @@ MODULE SYMBOLS
       x4 INT16 = INT16{2}
       x5 INT16 = INT16{0}
       x6 INT16 = INT16{0}
-      x7 REAL64 = REAL64{0.5}
+      x7 REAL64 = REAL64{5.000000e-01}
     Operators:
 
 FILE SYMBOLS
@@ -30,6 +30,6 @@ FILE SYMBOLS
       x4 INT16 = INT16{2}
       x5 INT16 = INT16{0}
       x6 INT16 = INT16{0}
-      x7 REAL64 = REAL64{0.5}
+      x7 REAL64 = REAL64{5.000000e-01}
     Operators:
 
