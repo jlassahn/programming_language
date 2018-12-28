@@ -126,6 +126,30 @@ func (self *symbolTable) AddOperator(
 
 }
 
+func (self *symbolTable) AddFunction(
+	name string, retType DataType, params []FunctionParameter,
+	isConst bool, impl DataValue) error {
+
+	if self.Symbols[name] == nil {
+		self.Symbols[name] = &functionChoiceSymbol {name, nil}
+	}
+
+	choices, ok := self.Symbols[name].(FunctionChoiceSymbol)
+	if !ok {
+		return fmt.Errorf("multiple symbol definitions for %v", name)
+	}
+
+	return choices.Add(
+		&baseSymbol {
+			name,
+			&functionDT {retType, params, false},
+			impl,
+			isConst,
+			nil,
+		})
+
+}
+
 func (st *symbolTable) Emit(emitParent bool) {
 
 	for st != nil {
@@ -218,6 +242,19 @@ func (self *functionChoiceSymbol) Add(x Symbol) error {
 	//FIXME
 	// if FunctionParamsAmbiguous(params, choices) ...
 	// FIXME how to handle error messsages, etc
+
+	for i, old := range self.choices {
+		if TypeMatches(old.Type(), x.Type()) {
+			if x.InitialValue() != nil {
+				if old.InitialValue() != nil {
+					return fmt.Errorf("multiple definitions")
+				}
+				self.choices[i] = x
+				return nil
+			}
+			return nil
+		}
+	}
 
 	self.choices = append(self.choices, x)
 	return nil

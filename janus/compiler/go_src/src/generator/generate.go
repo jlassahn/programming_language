@@ -108,6 +108,16 @@ func NewDataVal(dval symbols.DataValue) Result {
 	return ret
 }
 
+func NewTypedDataVal(dtype symbols.DataType, dval symbols.DataValue) Result {
+
+	ret := &result { }
+	ret.dtype = dtype
+	ret.name = "INVALID"
+	ret.constVal = dval
+
+	return ret
+}
+
 func NewFunctionChoiceResult(fn symbols.FunctionChoiceSymbol) Result {
 
 	ret := &result { }
@@ -288,6 +298,8 @@ func GenerateCode(fileSet *symbols.FileSet, objFile output.ObjectFile) {
 
 	mods := fileSet.RootModule.GetModuleList()
 
+	GenerateHeader(genFile)
+
 	for _,mod := range mods {
 		GenerateVariables(fileSet, genFile, mod)
 	}
@@ -306,20 +318,38 @@ func GenerateCode(fileSet *symbols.FileSet, objFile output.ObjectFile) {
 
 }
 
+func GenerateHeader(fp GeneratedFile) {
+	fp.EmitComment("")
+	fp.EmitComment("global declarations")
+	fp.EmitComment("")
+
+	//FIXME organize better
+	fp.Emit("declare double @llvm.sqrt.f64(double)")
+
+}
+
 func GenerateVariables(fileSet *symbols.FileSet, fp GeneratedFile, mod *symbols.Module) {
 	fp.EmitComment("")
 	fp.EmitComment("generating variables for %v", mod.Name)
 	fp.EmitComment("")
 
+	//FIXME may need to totally rethink how variable assignments happen,
+	//      e.g. we want def fn() = thing; to not generate a second copy
+	//      of the code.
 	for _,name := range symbols.SortedKeys(mod.LocalSymbols.Symbols) {
 		sym := mod.LocalSymbols.Symbols[name]
 
 		choice, ok := sym.(symbols.FunctionChoiceSymbol)
 		if ok {
 			for _, fn := range choice.Choices() {
-				name := MakeSymbolName(mod.Path, fn.Type(), fn.Name())
-				genVal := NewGlobalVal(fp, fn.Type(), name)
-				fn.SetGenVal(genVal)
+				fdef := fn.InitialValue()
+
+				//If it's undefined or defined as code
+				if fdef == nil || fdef.Type() == symbols.CodeType {
+					name := MakeSymbolName(mod.Path, fn.Type(), fn.Name())
+					genVal := NewGlobalVal(fp, fn.Type(), name)
+					fn.SetGenVal(genVal)
+				}
 			}
 			continue
 		}

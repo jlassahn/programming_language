@@ -90,13 +90,17 @@ func genCall(genFunc GeneratedFunction,
 
 		ok := true
 		opResult, ok = fnSym.GetGenVal().(Result)
-		if !ok {
+		if ok {
+			//done
+		} else if fnSym.InitialValue().Type() == symbols.IntrinsicType {
+			opResult = NewTypedDataVal(fnSym.Type(), fnSym.InitialValue())
+		} else {
 			output.FIXMEDebug("NO GENVAL FOR FUNCTION %v", fnSym)
 			return nil
 		}
 	}
 
-	output.FIXMEDebug("applying %v to %v", opResult, args)
+	output.FIXMEDebug("applying %v to %v", opResult.Name(), args)
 
 	return genFuncCall(genFunc, ctx, opResult, args)
 }
@@ -130,6 +134,7 @@ func genFuncCall(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, op Result, args []Result) Result {
 
 	//FIXME combine with genOperator
+	output.FIXMEDebug("dtype = %v", op.Type())
 
 	fp := genFunc.File()
 	convertedArgs := make([]Result, len(args))
@@ -145,6 +150,16 @@ func genFuncCall(genFunc GeneratedFunction,
 	//   we can put that DataValue in a Result....
 
 	ret := NewTempVal(fp, retType)
+
+	if op.IsConst() && op.ConstVal().Type() == symbols.IntrinsicType {
+		opName := op.ConstVal().(symbols.IntrinsicDataValue).ValueAsString()
+
+		output.FIXMEDebug("applying intrinsic %v to %v", opName, convertedArgs)
+
+		genFunc.AddBody("%v", MakeIntrinsicOp(ret, opName, convertedArgs))
+		return ret
+	}
+
 
 	callStr := fmt.Sprintf("\t%v = call %v %v(",
 		ret.LLVMVal(),
@@ -453,19 +468,39 @@ func ConvertValue(genFunc GeneratedFunction,
 func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
 
 	op, ok := LLVMOperator[opName]
-	if !ok {
-		output.FatalError("Unimplemented intrinsic %v", opName)
-		op = "UNIMPLEMENTED"
+	if ok {
+		return  fmt.Sprintf("\t%v = %v %v %v, %v",
+			ret.LLVMVal(),
+			op,
+			args[0].LLVMType(),
+			args[0].LLVMVal(),
+			args[1].LLVMVal())
 	}
 
-	s := fmt.Sprintf("\t%v = %v %v %v, %v",
-		ret.LLVMVal(),
-		op,
-		args[0].LLVMType(),
-		args[0].LLVMVal(),
-		args[1].LLVMVal())
+	//FIXME this could be done by using the normal function call path
+	//   and providing a Result with name = LLVMFunction[opName]
+	//   which could be injected into the intrinsic by SetGenVal
+	op, ok = LLVMFunction[opName]
+	if ok {
+		s := fmt.Sprintf("\t%v = call %v %v(",
+			ret.LLVMVal(),
+			ret.LLVMType(),
+			op)
 
-	return s
+		for i,arg := range args {
+			if i > 0 {
+				s = s + ", "
+			}
+			s = s + fmt.Sprintf("%v %v", arg.LLVMType(), arg.LLVMVal())
+		}
+		s = s + ")"
+
+		return s
+	}
+
+	output.FatalError("Unimplemented intrinsic %v", opName)
+
+	return ""
 }
 
 var LLVMOperator = map[string]string {
@@ -473,6 +508,9 @@ var LLVMOperator = map[string]string {
 	"add_Int32": "add",
 }
 
+var LLVMFunction = map[string]string {
+	"sqrt_Real64": "@llvm.sqrt.f64",
+}
 
 //FIXME reorganize
 type tagPair struct {

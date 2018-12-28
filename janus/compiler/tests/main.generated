@@ -1,4 +1,8 @@
 ; 
+; global declarations
+; 
+declare double @llvm.sqrt.f64(double)
+; 
 ; generating variables for main
 ; 
 ; 

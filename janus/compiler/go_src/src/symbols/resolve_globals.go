@@ -317,7 +317,7 @@ func resolveConstValue(value Symbol) Symbol {
 
 		//dtype can be nil when the type is inferred from the initializer
 
-		dval := resolveSymbolValue(uninit, dtype, resolveConstValue)
+		dval := resolveSymbolValue(uninit, el, dtype, resolveConstValue)
 
 		if dtype == nil && dval != nil {
 			dtype = dval.Type()
@@ -349,8 +349,9 @@ func resolveConstValue(value Symbol) Symbol {
 				isConst: uninit.isConst,
 				genVal: nil,
 			}
-			if funcSymbol.Add(sym) != nil {
-				parser.Error(el.FilePos(), "delcaration mismatch for %v", value)
+			err := funcSymbol.Add(sym)
+			if err != nil {
+				parser.Error(el.FilePos(), "declaration mismatch for %v: %v", value, err)
 				return nil
 			}
 
@@ -451,7 +452,7 @@ func resolveVariableValue(value Symbol) Symbol {
 
 		//dtype can be nil when the type is inferred from the initializer
 
-		dval := resolveSymbolValue(uninit, dtype, resolveVariableValue)
+		dval := resolveSymbolValue(uninit, el, dtype, resolveVariableValue)
 
 		if dtype == nil && dval != nil {
 			dtype = dval.Type()
@@ -482,8 +483,9 @@ func resolveVariableValue(value Symbol) Symbol {
 				isConst: uninit.isConst,
 				genVal: nil,
 			}
+
 			if funcSymbol.Add(sym) != nil {
-				parser.Error(el.FilePos(), "delcaration mismatch for %v", value)
+				parser.Error(el.FilePos(), "declaration mismatch for %v", value)
 				return nil
 			}
 
@@ -639,40 +641,36 @@ func resolveSymbolType(sym *uninitializedSymbol, el parser.ParseElement,
 }
 
 
-func resolveSymbolValue(sym *uninitializedSymbol, initDT DataType, handler func(Symbol)Symbol) DataValue {
+func resolveSymbolValue(sym *uninitializedSymbol, el parser.ParseElement,
+	initDT DataType, handler func(Symbol)Symbol) DataValue {
 
-	for _,el := range sym.declarations {
+	var valTree parser.ParseElement
 
-		var valTree parser.ParseElement
+	switch sym.elementType {
+	case parser.DEF:
+		valTree = el.Children()[2]
 
-		switch sym.elementType {
-		case parser.DEF:
-			valTree = el.Children()[2]
+	case parser.CONST:
+		valTree = el.Children()[2]
 
-		case parser.CONST:
-			valTree = el.Children()[2]
+	//FIXME and others...
 
-		//FIXME and others...
-
-		default:
-			output.FatalError("bad resolveSymbolValue for %v", sym.elementType)
-			return nil
-		}
-
-		if valTree.ElementType() == parser.EMPTY {
-			continue
-		}
-
-		ctx := &EvalContext {
-			Symbols: valTree.FilePos().File.(*SourceFile).FileSymbols,
-			SymbolPreprocessor: handler,
-			CycleDetectSymbol: sym,
-			InitializerType: initDT,
-		}
-
-		return EvaluateConstRHS(valTree, ctx)
+	default:
+		output.FatalError("bad resolveSymbolValue for %v", sym.elementType)
+		return nil
 	}
 
-	return nil
+	if valTree.ElementType() == parser.EMPTY {
+		return nil
+	}
+
+	ctx := &EvalContext {
+		Symbols: valTree.FilePos().File.(*SourceFile).FileSymbols,
+		SymbolPreprocessor: handler,
+		CycleDetectSymbol: sym,
+		InitializerType: initDT,
+	}
+
+	return EvaluateConstRHS(valTree, ctx)
 }
 

@@ -1,0 +1,5 @@
+
+janus 1.0;
+
+const Sqrt(x >Real64) -> Real64 = __system.sqrt;
+

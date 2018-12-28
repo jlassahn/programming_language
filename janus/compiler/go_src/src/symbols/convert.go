@@ -145,6 +145,34 @@ func TypeMatches(a DataType, b DataType) bool {
 		}
 	}
 
+	if a.Base() == FUNCTION_TYPE {
+		fnA := a.(FunctionDataType)
+		fnB := b.(FunctionDataType)
+
+		if fnA.IsMethod() != fnB.IsMethod() {
+			return false
+		}
+
+		if !TypeMatches(fnA.ReturnType(), fnB.ReturnType()) {
+			return false
+		}
+
+		paramsA := fnA.Parameters()
+		paramsB := fnB.Parameters()
+		if len(paramsA) != len(paramsB) {
+			return false
+		}
+		for i:=0; i<len(paramsA); i++ {
+			if paramsA[i].AutoConvert != paramsB[i].AutoConvert {
+				return false
+			}
+
+			if !TypeMatches(paramsA[i].DType, paramsB[i].DType) {
+				return false
+			}
+		}
+	}
+
 	return true
 }
 
@@ -158,6 +186,9 @@ func ConvertConstant(from DataValue, to DataType) DataValue {
 	if to.Base() == FUNCTION_TYPE && from.Type() == CodeType {
 		return from
 	}
+	if to.Base() == FUNCTION_TYPE && from.Type() == IntrinsicType {
+		return from
+	}
 
 	ret := ConvertBasic(from, to)
 	if ret != nil {
@@ -167,7 +198,7 @@ func ConvertConstant(from DataValue, to DataType) DataValue {
 	//FIXME handle composite types, etc
 
 	//FIXME better context for errors
-	output.Error("no conversion from %v to %v", from, to)
+	output.Error("no const conversion from %v to %v", from, to)
 	return nil
 }
 

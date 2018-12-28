@@ -81,6 +81,11 @@ func buildInternalSymbols() *baseSymbol {
 	name := "PREDEFINED:__system"
 	newTable := NewSymbolTable(name, nil)
 
+	newTable.AddFunction("sqrt", Real64Type, []FunctionParameter {
+		{"a", Real64Type, false}, //FIXME should be true
+	} ,
+	true, &intrinsicDV{"sqrt_Real64"})
+
 	val := &namespaceDV {
 		value: newTable,
 	}
