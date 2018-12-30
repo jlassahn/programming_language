@@ -49,11 +49,7 @@ func genCall(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	children := el.Children()
-
-	//FIXME fake, resolve symbol
 	opElement := children[0]
-	opName := opElement.TokenString() //FIXME only used for debug
-
 	argList := children[1].Children()
 
 	opResult := loopHandler(genFunc, ctx, opElement)
@@ -61,6 +57,24 @@ func genCall(genFunc GeneratedFunction,
 		output.FIXMEDebug("FIXME opResult lookup failed")
 		return nil
 	}
+
+	//FIXME
+	//if opResult is method call
+	//  twiddle args to form non-method version
+
+	return genInvokeFunction(genFunc, ctx, opResult, argList)
+}
+
+//FIXME clean this up
+
+func genInvokeFunction(
+	genFunc GeneratedFunction,
+	ctx *symbols.EvalContext,
+	opResult Result,
+	argList []parser.ParseElement,
+) Result {
+
+	fp := genFunc.File()
 
 	args := make([]Result, len(argList))
 	argTypes := make([]symbols.DataType, len(argList))
@@ -73,27 +87,34 @@ func genCall(genFunc GeneratedFunction,
 		argTypes[i] = args[i].Type()
 	}
 
-	//FIXME
-	//if opResult is method call
-	//  twiddle args to form non-method version
-
 	//FIXME make this a function?
 	if opResult.IsFunctionChoice() {
 		functionChoice := opResult.FunctionChoice()
+		opName := functionChoice.Name()
 		fnSym := symbols.SelectFunctionChoice(functionChoice, argTypes)
 		output.FIXMEDebug("FIXME resolve function choice for %v = %v", opName, fnSym)
 		if fnSym == nil {
-			parser.Error(el.FilePos(),
+			parser.Error(argList[0].FilePos(),
 				"Operator %v can't take these parameters", opName)
 			return nil
 		}
 
-		ok := true
-		opResult, ok = fnSym.GetGenVal().(Result)
-		if ok {
-			//done
-		} else if fnSym.InitialValue().Type() == symbols.IntrinsicType {
+
+		if fnSym.GetGenVal() != nil {
+			opResult = fnSym.GetGenVal().(Result)
+
+		} else if fnSym.InitialValue().Tag() == symbols.INTRINSIC_VALUE {
+			//FIXME do we need Typed... ? InitialValue should have the right type.
 			opResult = NewTypedDataVal(fnSym.Type(), fnSym.InitialValue())
+
+		} else if fnSym.InitialValue().Tag() == symbols.CODE_VALUE  {
+
+			//FIXME messy, should have something like Symbol.ModulePath()
+
+			modPath := fnSym.InitialValue().(symbols.CodeDataValue).AsSourceFile().Options.ModuleName
+			name := MakeSymbolName(modPath, fnSym.Type(), fnSym.Name())
+			opResult = NewGlobalVal(fp, fnSym.Type(), name)
+
 		} else {
 			output.FIXMEDebug("NO GENVAL FOR FUNCTION %v", fnSym)
 			return nil
@@ -101,42 +122,12 @@ func genCall(genFunc GeneratedFunction,
 	}
 
 	output.FIXMEDebug("applying %v to %v", opResult.Name(), args)
-
-	return genFuncCall(genFunc, ctx, opResult, args)
-}
-
-func genExpression(genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement) Result {
-
-	children := el.Children()
-	opElement := children[0]
-	opName := opElement.TokenString() //FIXME only used for debug
-
-	args := make([]Result, len(children) - 1)
-	for i, x := range(children[1:]) {
-		args[i] = loopHandler(genFunc, ctx, x)
-		if args[i] == nil {
-			output.FIXMEDebug("FIXME args not available")
-			return nil
-		}
-	}
-
-	if opElement.ElementType() == parser.OPERATOR {
-		return genOperator(genFunc, ctx, opElement, args)
-	}
-
-	//FIXME implement
-	output.FIXMEDebug("applying %v to %v", opName, args)
-	return nil
-}
-
-func genFuncCall(genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, op Result, args []Result) Result {
+	op := opResult
 
 	//FIXME combine with genOperator
 	output.FIXMEDebug("dtype = %v", op.Type())
 
-	fp := genFunc.File()
+	//fp := genFunc.File()
 	convertedArgs := make([]Result, len(args))
 	dtype := op.Type().(symbols.FunctionDataType)
 	for i, dest := range dtype.Parameters() {
@@ -151,7 +142,7 @@ func genFuncCall(genFunc GeneratedFunction,
 
 	ret := NewTempVal(fp, retType)
 
-	if op.IsConst() && op.ConstVal().Type() == symbols.IntrinsicType {
+	if op.IsConst() && op.ConstVal().Tag() == symbols.INTRINSIC_VALUE {
 		opName := op.ConstVal().(symbols.IntrinsicDataValue).ValueAsString()
 
 		output.FIXMEDebug("applying intrinsic %v to %v", opName, convertedArgs)
@@ -178,56 +169,6 @@ func genFuncCall(genFunc GeneratedFunction,
 
 	genFunc.AddBody("%v", callStr)
 	return ret
-}
-
-func genOperator(genFunc GeneratedFunction,
-	ctx *symbols.EvalContext, el parser.ParseElement,
-	args []Result) Result {
-
-	fp := genFunc.File()
-	opName := el.TokenString()
-	pos := el.FilePos()
-
-	argTypes := make([]symbols.DataType, len(args))
-	for i,x := range args {
-		argTypes[i] = x.Type()
-	}
-
-	//FIXME make this a reusable function
-	opChoices := ctx.LookupOperator(opName)
-	if opChoices == nil {
-		parser.Error(pos, "No definition for operator %v", opName)
-		//FIXME testing
-		ctx.Symbols.Emit(true)
-		return nil
-	}
-
-	//FIXME below here is the same as non-operator functions
-	op := symbols.SelectFunctionChoice(opChoices, argTypes)
-	if op == nil {
-		parser.Error(pos, "Operator %v can't take these parameters", opName)
-		return nil
-	}
-
-	convertedArgs := make([]Result, len(args))
-	dtype := op.Type().(symbols.FunctionDataType)
-	for i, dest := range dtype.Parameters() {
-		convertedArgs[i] = ConvertParameter(genFunc, args[i], dest.DType)
-	}
-
-	retType := op.Type().(symbols.FunctionDataType).ReturnType()
-
-	if op.InitialValue().Type() == symbols.IntrinsicType {
-		opName := op.InitialValue().(symbols.IntrinsicDataValue).ValueAsString()
-		ret := NewTempVal(fp, retType)
-
-		output.FIXMEDebug("applying intrinsic %v to %v", opName, convertedArgs)
-
-		genFunc.AddBody("%v", MakeIntrinsicOp(ret, opName, convertedArgs))
-		return ret
-	}
-
-	output.FIXMEDebug("no support for operator %v", op)
 
 	//FIXME handle cases...
 	//   const intrinsic
@@ -235,14 +176,46 @@ func genOperator(genFunc GeneratedFunction,
 	//   const code
 	//   var code
 
-	// FIXME
-	// if op is of type CODE
-	// cdv = op.InitialValue().(CodeDataValue)
-	//  info to build a global reference:
-	//  DataType    == op.Type()
-	//  name        == op.Name()
-	//  module path == cdv.AsSourceFile().Options.ModuleName
+}
 
+
+func genExpression(genFunc GeneratedFunction,
+	ctx *symbols.EvalContext, el parser.ParseElement) Result {
+
+	children := el.Children()
+	opElement := children[0]
+	opName := opElement.TokenString()
+
+	if opElement.ElementType() == parser.OPERATOR {
+
+		opChoices := ctx.LookupOperator(opName)
+		if opChoices == nil {
+			parser.Error(el.FilePos(), "no definition for operator %v", opName)
+			return nil
+		}
+
+		opResult := NewFunctionChoiceResult(opChoices)
+		argList := children[1:]
+		return genInvokeFunction(genFunc, ctx, opResult, argList)
+	}
+
+	/* FIXME remove
+	args := make([]Result, len(children) - 1)
+	for i, x := range(children[1:]) {
+		args[i] = loopHandler(genFunc, ctx, x)
+		if args[i] == nil {
+			output.FIXMEDebug("FIXME args not available")
+			return nil
+		}
+	}
+
+	if opElement.ElementType() == parser.OPERATOR {
+		return genOperator(genFunc, ctx, opElement, args)
+	}
+	*/
+
+	//FIXME implement  (what non-operator expressions are there???)
+	output.FIXMEDebug("expression with non-operator %v", opElement)
 	return nil
 }
 
@@ -340,11 +313,13 @@ func genDef(genFunc GeneratedFunction,
 		if dval == nil {
 			return nil
 		}
-		symTypeVal, ok := dval.(symbols.TypeDataValue)
-		if !ok {
+
+		if dval.Tag() != symbols.TYPE_VALUE {
 			parser.Error(typeTree.FilePos(), "not a data type")
 			return nil
 		}
+
+		symTypeVal := dval.(symbols.TypeDataValue)
 		dtype = symTypeVal.AsDataType()
 	}
 

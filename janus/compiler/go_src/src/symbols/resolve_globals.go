@@ -630,11 +630,13 @@ func resolveSymbolType(sym *uninitializedSymbol, el parser.ParseElement,
 		parser.Error(typeTree.FilePos(), "unknown data type in expr")
 		return nil, fmt.Errorf("undefined data type")
 	}
-	symTypeVal, ok := dval.(TypeDataValue)
-	if !ok {
+
+	if dval.Tag() != TYPE_VALUE {
 		parser.Error(typeTree.FilePos(), "not a data type")
 		return nil, fmt.Errorf("not a data type")
 	}
+
+	symTypeVal := dval.(TypeDataValue)
 	symType := symTypeVal.AsDataType()
 
 	return symType, nil

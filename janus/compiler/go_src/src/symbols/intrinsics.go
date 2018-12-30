@@ -89,18 +89,28 @@ var uintMask = map[*Tag] uint64 {
 
 type IntrinsicDataValue interface {
 	ValueAsString() string
+	IsIntrinsic() bool //FIXME remove!
 }
 
 type intrinsicDV struct {
+	dtype DataType
 	name string
 }
 
+func (self *intrinsicDV) Tag() *ValueTag {
+	return INTRINSIC_VALUE
+}
+
 func (self *intrinsicDV) Type() DataType {
-	return IntrinsicType
+	return self.dtype
 }
 
 func (self *intrinsicDV) ValueAsString() string {
 	return self.name
+}
+
+func (self *intrinsicDV) IsIntrinsic() bool {
+	return true
 }
 
 func (self *intrinsicDV) String() string {

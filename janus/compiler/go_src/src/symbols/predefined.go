@@ -67,11 +67,11 @@ func buildPredefinedSymbols() *symbolTable {
 
 	addBinaryIntrinsic(syms, "/", "div_Real64", Real64Type)
 	addBinaryIntrinsic(syms, "/", "div_Real32", Real32Type)
-	syms.AddOperator("/", Real64Type, []FunctionParameter {
-		{"a", Int64Type, true},
-		{"b", Real64Type, true},
-	},
-	true, &intrinsicDV{"div_IntReal"})
+
+	fnType := NewFunction(Real64Type)
+	fnType.AddParam("a", Int64Type, true)
+	fnType.AddParam("b", Real64Type, true)
+	syms.AddOperator("/", fnType, true, &intrinsicDV{fnType, "div_IntReal"})
 
 	return syms
 }
@@ -81,10 +81,10 @@ func buildInternalSymbols() *baseSymbol {
 	name := "PREDEFINED:__system"
 	newTable := NewSymbolTable(name, nil)
 
-	newTable.AddFunction("sqrt", Real64Type, []FunctionParameter {
-		{"a", Real64Type, false}, //FIXME should be true
-	} ,
-	true, &intrinsicDV{"sqrt_Real64"})
+	fnType := NewFunction(Real64Type)
+	fnType.AddParam("a", Real64Type, false) //FIXME should be true
+
+	newTable.AddFunction("sqrt", fnType, true, &intrinsicDV{fnType, "sqrt_Real64"})
 
 	val := &namespaceDV {
 		value: newTable,
@@ -101,19 +101,19 @@ func buildInternalSymbols() *baseSymbol {
 func addBinaryIntrinsic(syms *symbolTable, name string, op string,
 	dtype DataType) {
 
-	syms.AddOperator(name, dtype, []FunctionParameter {
-		{"a", dtype, false},
-		{"b", dtype, true},
-	},
-	true, &intrinsicDV{op} )
+	fnType := NewFunction(dtype)
+	fnType.AddParam("a", dtype, false)
+	fnType.AddParam("b", dtype, true)
+
+	syms.AddOperator(name, fnType, true, &intrinsicDV{fnType, op})
 }
 
 func addUnaryIntrinsic(syms *symbolTable, name string, op string,
 	dtype DataType) {
 
-	syms.AddOperator(name, dtype, []FunctionParameter {
-		{"a", dtype, false},
-	},
-	true, &intrinsicDV{op} )
+	fnType := NewFunction(dtype)
+	fnType.AddParam("a", dtype, false)
+
+	syms.AddOperator(name, fnType, true, &intrinsicDV{fnType, op})
 }
 

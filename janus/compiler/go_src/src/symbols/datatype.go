@@ -42,12 +42,35 @@ type FunctionDataType interface {
 	ReturnType() DataType
 	Parameters() []FunctionParameter
 	IsMethod() bool
+
+	AddParam(name string, dtype DataType, auto bool) FunctionDataType
 }
 
 type functionDT struct {
 	returnType DataType
 	parameters []FunctionParameter
 	isMethod bool
+}
+
+func NewFunction(retType DataType) FunctionDataType {
+	return &functionDT {
+		returnType: retType,
+		parameters: nil,
+		isMethod: false,
+	}
+}
+
+func (self *functionDT) AddParam(
+	name string, dtype DataType, auto bool) FunctionDataType {
+
+	param := FunctionParameter {
+		Name: name,
+		DType: dtype,
+		AutoConvert: auto,
+	}
+
+	self.parameters = append(self.parameters, param)
+	return self
 }
 
 func (self *functionDT) String() string {

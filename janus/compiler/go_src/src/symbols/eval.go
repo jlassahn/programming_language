@@ -37,10 +37,10 @@ func (self *EvalContext) Lookup(name string) Symbol {
 }
 
 func (self *EvalContext) LookupOperator(name string) FunctionChoiceSymbol {
-	//FIXME fake
+
+	//FIXME handle uninitializedSymbol and SymbolPreprocessor
 	return self.Symbols.LookupOperator(name)
 }
-
 
 var handlers = map[*parser.Tag] ConstEvaluator {
 	parser.NUMBER: evalNumber,

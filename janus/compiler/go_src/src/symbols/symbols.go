@@ -34,8 +34,8 @@ type SymbolTable interface {
 	AddConst(name string, dtype DataType, val DataValue) error
 	AddVar(name string, dtype DataType) (Symbol, error)
 
-	AddOperator(name string, retType DataType, params []FunctionParameter,
-		isConst bool, impl DataValue) error
+	AddOperator(name string, dtype DataType, isConst bool, impl DataValue) error
+
 }
 
 type symbolTable struct {
@@ -105,8 +105,7 @@ func (self *symbolTable) AddVar(name string, dtype DataType) (Symbol, error) {
 	return sym, nil
 }
 
-func (self *symbolTable) AddOperator(
-	name string, retType DataType, params []FunctionParameter,
+func (self *symbolTable) AddOperator(name string, dtype DataType,
 	isConst bool, impl DataValue) error {
 
 	if self.Operators[name] == nil {
@@ -118,7 +117,7 @@ func (self *symbolTable) AddOperator(
 	return choices.Add(
 		&baseSymbol {
 			name,
-			&functionDT {retType, params, false},
+			dtype,
 			impl,
 			isConst,
 			nil,
@@ -126,8 +125,9 @@ func (self *symbolTable) AddOperator(
 
 }
 
+//FIXME should this be part of the SymbolTable interface?
 func (self *symbolTable) AddFunction(
-	name string, retType DataType, params []FunctionParameter,
+	name string, dtype DataType,
 	isConst bool, impl DataValue) error {
 
 	if self.Symbols[name] == nil {
@@ -142,7 +142,7 @@ func (self *symbolTable) AddFunction(
 	return choices.Add(
 		&baseSymbol {
 			name,
-			&functionDT {retType, params, false},
+			dtype,
 			impl,
 			isConst,
 			nil,
@@ -232,11 +232,14 @@ type functionChoiceSymbol struct {
 
 func (self *functionChoiceSymbol) Name() string { return self.name; }
 func (self *functionChoiceSymbol) Type() DataType { return FunctionChoiceType; }
-func (self *functionChoiceSymbol) InitialValue() DataValue { return nil; }
 func (self *functionChoiceSymbol) IsConst() bool { return true; }
 func (self *functionChoiceSymbol) Choices() []Symbol { return self.choices; }
 func (self *functionChoiceSymbol) SetGenVal(val interface{}) { }
 func (self *functionChoiceSymbol) GetGenVal() interface{} { return nil }
+
+func (self *functionChoiceSymbol) InitialValue() DataValue {
+	return &functionChoiceDV { self }
+}
 
 func (self *functionChoiceSymbol) Add(x Symbol) error {
 	//FIXME

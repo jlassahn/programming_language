@@ -182,17 +182,32 @@ func ConvertConstant(from DataValue, to DataType) DataValue {
 		return from
 	}
 
-	// function implementations
-	if to.Base() == FUNCTION_TYPE && from.Type() == CodeType {
-		return from
-	}
-	if to.Base() == FUNCTION_TYPE && from.Type() == IntrinsicType {
-		return from
-	}
-
 	ret := ConvertBasic(from, to)
 	if ret != nil {
 		return ret
+	}
+
+	if from.Type() == FunctionChoiceType {
+		fn := from.(FunctionChoiceValue).AsSymbol()
+		for _,choice := range fn.Choices() {
+			if TypeMatches(choice.Type(), to) {
+
+				ret := choice.InitialValue()
+
+				//special case for assigning the value of a function
+				// definition to another constant value, supply a global
+				// data reference instead of a copy of the code.
+				if ret.Tag() == CODE_VALUE {
+					ret = &globalDV {
+						dtype: choice.Type(),
+						symbol: choice,
+						offset: 0,
+					}
+				}
+
+				return ret
+			}
+		}
 	}
 
 	//FIXME handle composite types, etc
