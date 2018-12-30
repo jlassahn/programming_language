@@ -13,8 +13,10 @@ declare double @llvm.sqrt.f64(double)
 ; 
 define void @f_main.Main-FUNCTION-VOID$$(
 ) {
+	%ret_1 = alloca i64
 
 	%tmp_0 = call i64 @f_main.fn-FUNCTION-INT64$-INT64$-INT64$$(i64 11, i64 12)
+	store i64 %tmp_0, i64* %ret_1
 
 	ret void
 }
@@ -22,16 +24,16 @@ define i64 @f_main.fn-FUNCTION-INT64$-INT64$-INT64$$(
 	i64,
 	i64
 ) {
-	%x_1 = alloca i64
-	%y_2 = alloca i64
+	%x_2 = alloca i64
+	%y_3 = alloca i64
 
-	store i64 %0, i64* %x_1
-	store i64 %1, i64* %y_2
-	%tmp_3 = load i64, i64* %x_1
-	%tmp_4 = load i64, i64* %y_2
-	%tmp_5 = add i64 %tmp_3, %tmp_4
-	ret i64 %tmp_5
-tmp_6:
+	store i64 %0, i64* %x_2
+	store i64 %1, i64* %y_3
+	%tmp_4 = load i64, i64* %x_2
+	%tmp_5 = load i64, i64* %y_3
+	%tmp_6 = add i64 %tmp_4, %tmp_5
+	ret i64 %tmp_6
+tmp_7:
 
 	ret i64 zeroinitializer
 }
