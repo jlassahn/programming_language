@@ -3,161 +3,13 @@ package generator
 
 import (
 	"fmt"
+	"bytes"
+	"encoding/binary"
 
 	"output"
 	"parser"
 	"symbols"
 )
-
-type GeneratedFunction interface {
-	File() GeneratedFile
-	ReturnType() symbols.DataType
-
-	Emit()
-	SetReturnType(dtype symbols.DataType)
-	AddParameter(name string, dtype symbols.DataType) Result
-	AddPrologue(x string, args ...interface{})
-	AddBody(x string, args ...interface{})
-}
-
-type GeneratedFile interface {
-	OutFile() output.ObjectFile
-	EmitComment(msg string, args ...interface{})
-	Emit(msg string, args ...interface{})
-
-	MakeResult() *result
-	SetMain(mainName string)
-	GetMain() string
-}
-
-
-type generatedFile struct {
-	outFile output.ObjectFile
-	nextID int
-	mainName string
-}
-
-func NewGeneratedFile(outFile output.ObjectFile) GeneratedFile {
-
-	return &generatedFile {
-		outFile: outFile,
-		nextID: 0,
-		mainName: "",
-	}
-}
-
-func (self *generatedFile) OutFile() output.ObjectFile {
-	return self.outFile
-}
-
-func (self *generatedFile) EmitComment(msg string, args ...interface{}) {
-	self.outFile.EmitComment(msg, args...)
-}
-
-func (self *generatedFile) Emit(msg string, args ...interface{}) {
-	self.outFile.Emit(msg, args...)
-}
-
-func (self *generatedFile) MakeResult() *result {
-
-	ret := &result { }
-	ret.id = self.nextID
-	self.nextID ++
-
-	return ret
-}
-
-func (self *generatedFile) SetMain(mainName string) {
-
-	output.FIXMEDebug("setting main: %v", mainName)
-	self.mainName = mainName
-}
-
-func (self *generatedFile) GetMain() string {
-	return self.mainName
-}
-
-type generatedFunction struct {
-	fp GeneratedFile
-	name string
-	returnType symbols.DataType
-	params []Result
-	prologue []string
-	body []string
-}
-
-func NewGeneratedFunction(fp GeneratedFile, name string) GeneratedFunction {
-
-	return &generatedFunction {
-		fp: fp,
-		name: name,
-		returnType: symbols.VoidType,
-		params: nil,
-	}
-}
-
-func (self *generatedFunction) File() GeneratedFile {
-	return self.fp
-}
-
-func (self *generatedFunction) ReturnType() symbols.DataType {
-	return self.returnType
-}
-
-func (self *generatedFunction) Emit() {
-
-	self.fp.Emit("define %v @%v(", MakeLLVMType(self.returnType), self.name)
-	for i,param := range self.params {
-		term := ","
-		if i==len(self.params)-1 {
-			term = ""
-		}
-		self.fp.Emit("\t%v%v", param.LLVMType(), term)
-	}
-	self.fp.Emit(") {")
-
-	for _,x := range self.prologue {
-		self.fp.Emit("%s", x)
-	}
-
-	self.fp.Emit("")
-
-	for _,x := range self.body {
-		self.fp.Emit("%s", x)
-	}
-
-	self.fp.Emit("")
-	//FIXME fake, only accessible if the function doesn't call return on
-	//      some path
-	if self.returnType == symbols.VoidType {
-		self.fp.Emit("\tret void")
-	} else {
-		self.fp.Emit("\tret %v zeroinitializer", MakeLLVMType(self.returnType))
-	}
-	self.fp.Emit("}")
-}
-
-func (self *generatedFunction) SetReturnType(dtype symbols.DataType) {
-	self.returnType = dtype
-}
-
-func (self *generatedFunction) AddParameter(name string, dtype symbols.DataType) Result {
-
-	ret := NewNamedVal(self.fp, dtype, name)
-	self.params = append(self.params, ret)
-
-	return ret
-}
-
-func (self *generatedFunction) AddPrologue(x string, args ...interface{}) {
-	s := fmt.Sprintf(x, args...)
-	self.prologue = append(self.prologue, s)
-}
-
-func (self *generatedFunction) AddBody(x string, args ...interface{}) {
-	s := fmt.Sprintf(x, args...)
-	self.body = append(self.body, s)
-}
 
 
 func GenerateCode(fileSet *symbols.FileSet, objFile output.ObjectFile) {
@@ -426,14 +278,30 @@ func MakeLLVMConst(val symbols.DataValue) string {
 	case symbols.UInt32Type: return val.ValueAsString()
 	case symbols.UInt64Type: return val.ValueAsString()
 
-	//FIXME better mechanism for emitting exact floating consts
-	case symbols.Real32Type: return val.ValueAsString()
-	case symbols.Real64Type: return val.ValueAsString()
+	case symbols.Real32Type: return MakeLLVMReal(val)
+	case symbols.Real64Type: return MakeLLVMReal(val)
 
 	//case symbols.IntegerType:
 	}
 
 	output.FatalError("Unimplemented constant type: %v", val)
 	return "INVALID"
+}
+
+func MakeLLVMReal(dval symbols.DataValue) string {
+	x := dval.(symbols.RealDataValue).AsReal64()
+	if dval.Type() == symbols.Real32Type {
+		x = float64(float32(x))
+	}
+	return MakeLLVMDouble(x)
+}
+
+func MakeLLVMDouble(x float64) string {
+
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, x)
+	var n uint64
+	binary.Read(buf, binary.LittleEndian, &n)
+	return fmt.Sprintf("0x%x", n)
 }
 
