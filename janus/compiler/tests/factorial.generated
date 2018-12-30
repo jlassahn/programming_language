@@ -1,0 +1,57 @@
+; 
+; global declarations
+; 
+declare double @llvm.sqrt.f64(double)
+declare void @clib_print_Real64(double)
+declare void @clib_print_Int64(i64)
+; 
+; generating variables for factorial
+; 
+; 
+; generating variables for @root
+; 
+; 
+; generating functions for factorial
+; 
+define i64 @f_factorial.Factorial-FUNCTION-INT64$-INT64$$(
+	i64
+) {
+	%x_0 = alloca i64
+
+	store i64 %0, i64* %x_0
+	%tmp_1 = load i64, i64* %x_0
+	%tmp_2 = icmp sle i64 %tmp_1, 1
+	br i1 %tmp_2, label %tmp_3, label %tmp_4
+tmp_3:
+	%tmp_6 = load i64, i64* %x_0
+	ret i64 %tmp_6
+tmp_7:
+	br label %tmp_5
+tmp_4:
+	br label %tmp_5
+tmp_5:
+	%tmp_8 = load i64, i64* %x_0
+	%tmp_9 = sub i64 %tmp_8, 1
+	%tmp_10 = call i64 @f_factorial.Factorial-FUNCTION-INT64$-INT64$$(i64 %tmp_9)
+	%tmp_11 = load i64, i64* %x_0
+	%tmp_12 = mul i64 %tmp_11, %tmp_10
+	ret i64 %tmp_12
+tmp_13:
+
+	ret i64 zeroinitializer
+}
+define void @f_factorial.Main-FUNCTION-VOID$$(
+) {
+
+	%tmp_14 = call i64 @f_factorial.Factorial-FUNCTION-INT64$-INT64$$(i64 4)
+	call void @clib_print_Int64(i64 %tmp_14)
+
+	ret void
+}
+; 
+; generating functions for @root
+; 
+; 
+; main entrypoint
+; 
+@main = alias void(), void()* @f_factorial.Main-FUNCTION-VOID$$

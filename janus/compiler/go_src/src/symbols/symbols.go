@@ -45,13 +45,18 @@ type symbolTable struct {
 	Parent *symbolTable
 }
 
-func NewSymbolTable(name string, parent *symbolTable) *symbolTable {
+func NewSymbolTable(name string, parent SymbolTable) *symbolTable {
+
+	var par *symbolTable
+	if parent != nil {
+		par = parent.(*symbolTable)
+	}
 
 	return &symbolTable {
 		Name: name,
 		Symbols: map[string]Symbol {},
 		Operators: map[string]FunctionChoiceSymbol {},
-		Parent: parent,
+		Parent: par,
 	}
 }
 

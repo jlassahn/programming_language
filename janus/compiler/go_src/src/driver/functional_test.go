@@ -29,6 +29,7 @@ var definitionOKTests = []string {
 var codegenOKTests = []string {
 	"simple",
 	"main",
+	"factorial",
 }
 
 var basePath = ".."

@@ -51,6 +51,9 @@ var intrinsics = map[string] func(name string, args []DataValue) DataValue {
 	"div_IntReal": intrinsicDivIntReal,
 	"div_Real64": intrinsicDivReal,
 	"div_Real32": intrinsicDivReal,
+
+	//FIXME
+	//"cmp_le_Int64": intrinsicCmpLEInt,
 }
 
 var baseTypeConvert = map[tagPair] func(DataValue, DataType)DataValue  {

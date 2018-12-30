@@ -2,7 +2,6 @@
 package output
 
 import (
-	"os"
 	"io"
 	"fmt"
 )
@@ -53,7 +52,7 @@ type DefaultLogger struct {}
 
 func (self DefaultLogger) FatalError(msg string, args ...interface{}) {
 	fmt.Printf("FATAL " + msg + "\n", args...)
-	os.Exit(1)
+	panic("INTERNAL ERROR")
 }
 
 func (self DefaultLogger) Error(msg string, args ...interface{}) {

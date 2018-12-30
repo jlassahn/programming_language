@@ -63,7 +63,18 @@ func buildPredefinedSymbols() *symbolTable {
 	addBinaryIntrinsic(syms, "-", "sub_UInt16", UInt16Type)
 	addBinaryIntrinsic(syms, "-", "sub_UInt8", UInt8Type)
 	addBinaryIntrinsic(syms, "-", "sub_Real32", Real32Type)
-	addBinaryIntrinsic(syms, "+", "sub_Real64", Real64Type)
+	addBinaryIntrinsic(syms, "-", "sub_Real64", Real64Type)
+
+	addBinaryIntrinsic(syms, "*", "mul_Int64", Int64Type)
+	addBinaryIntrinsic(syms, "*", "mul_Int32", Int32Type)
+	addBinaryIntrinsic(syms, "*", "mul_Int16", Int16Type)
+	addBinaryIntrinsic(syms, "*", "mul_Int8", Int8Type)
+	addBinaryIntrinsic(syms, "*", "mul_UInt64", UInt64Type)
+	addBinaryIntrinsic(syms, "*", "mul_UInt32", UInt32Type)
+	addBinaryIntrinsic(syms, "*", "mul_UInt16", UInt16Type)
+	addBinaryIntrinsic(syms, "*", "mul_UInt8", UInt8Type)
+	addBinaryIntrinsic(syms, "*", "mul_Real32", Real32Type)
+	addBinaryIntrinsic(syms, "*", "mul_Real64", Real64Type)
 
 	addBinaryIntrinsic(syms, "/", "div_Real64", Real64Type)
 	addBinaryIntrinsic(syms, "/", "div_Real32", Real32Type)
@@ -72,6 +83,8 @@ func buildPredefinedSymbols() *symbolTable {
 	fnType.AddParam("a", Int64Type, true)
 	fnType.AddParam("b", Real64Type, true)
 	syms.AddOperator("/", fnType, true, &intrinsicDV{fnType, "div_IntReal"})
+
+	addCompareIntrinsic(syms, "<=", "cmp_le_Int64", Int64Type)
 
 	return syms
 }
@@ -124,6 +137,16 @@ func addUnaryIntrinsic(syms *symbolTable, name string, op string,
 
 	fnType := NewFunction(dtype)
 	fnType.AddParam("a", dtype, false)
+
+	syms.AddOperator(name, fnType, true, &intrinsicDV{fnType, op})
+}
+
+func addCompareIntrinsic(syms *symbolTable, name string, op string,
+	dtype DataType) {
+
+	fnType := NewFunction(BoolType)
+	fnType.AddParam("a", dtype, false)
+	fnType.AddParam("b", dtype, true)
 
 	syms.AddOperator(name, fnType, true, &intrinsicDV{fnType, op})
 }
