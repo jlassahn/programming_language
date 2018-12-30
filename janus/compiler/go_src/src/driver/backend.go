@@ -24,7 +24,8 @@ func runLLVM(basePath string, llvmName string, asmName string ) {
 func runAssembleLink(basePath string, asmName string, name string) {
 
 	cmd := "gcc"
-	ret, err := exec.Command(cmd, asmName, "-o", name, "library/clib/clib.o").CombinedOutput()
+	lib := filepath.Join(basePath, "library/clib/clib.o")
+	ret, err := exec.Command(cmd, asmName, "-o", name, lib).CombinedOutput()
 	if err != nil {
 		output.Error("GCC asm/link error: %v", string(ret))
 	}

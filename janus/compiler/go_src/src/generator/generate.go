@@ -181,7 +181,7 @@ func GenerateCode(fileSet *symbols.FileSet, objFile output.ObjectFile) {
 		genFile.EmitComment("")
 		genFile.EmitComment("main entrypoint")
 		genFile.EmitComment("")
-		genFile.Emit("@main = alias void(), void()* @%v", mainName)
+		genFile.Emit("@janus_main = alias void(), void()* @%v", mainName)
 	}
 
 }

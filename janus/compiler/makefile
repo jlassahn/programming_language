@@ -7,12 +7,15 @@ all:
 	go build go_src/src/janusc.go
 	gcc -c library/clib/clib.c -o library/clib/clib.o
 
-test:
+test: all
 	go test -v -coverpkg driver,output,parser,symbols,generator  -coverprofile=coverage.out driver
 	go tool cover -html=coverage.out -o coverage.html
 
 clean:
+	-rm tests/*.runout
+	-rm tests/*.buildout
 	-rm tests/*.out
+	-rm tests/*.exe
 	-rm tests/*.ll
 	-rm tests/*.s
 	-rm library/clib/clib.o

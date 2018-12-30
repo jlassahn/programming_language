@@ -3,6 +3,7 @@ package driver
 
 import (
 	"os"
+	"os/exec"
 	"fmt"
 	"bytes"
 	"io/ioutil"
@@ -29,6 +30,10 @@ var definitionOKTests = []string {
 var codegenOKTests = []string {
 	"simple",
 	"main",
+	"factorial",
+}
+
+var executionOKTests = []string {
 	"factorial",
 }
 
@@ -138,6 +143,66 @@ func runCodeGenTest(t *testing.T, name string) {
 	fp.Write(logger.errors.Bytes())
 	fp.Write(logger.warns.Bytes())
 	fp.Write(logger.info.Bytes())
+	fp.Close()
+}
+
+func TestExecution(t *testing.T) {
+
+	for _,name := range executionOKTests {
+		t.Run(name, func(t *testing.T) { runExecutionTest(t, name) })
+	}
+}
+
+func runExecutionTest(t *testing.T, name string) {
+
+	args := []string{
+		name+".janus",
+		"-name", name+".exe",
+	}
+
+	runExp,_ := ioutil.ReadFile(name+".run")
+
+	logger.errors.Reset()
+	logger.warns.Reset()
+	logger.info.Reset()
+
+	ret := Compile(basePath, args, nil)
+
+	if ret != 0 {
+		t.Errorf("compiler returned failure")
+	}
+
+	if logger.errors.Len() != 0 {
+		t.Errorf("compiler generated errors")
+	}
+
+	if logger.warns.Len() != 0 {
+		t.Errorf("compiler generated warnings")
+	}
+
+	/* FIXME do we care?
+	if logger.info.Len() != 0 {
+		t.Errorf("compiler generated info messages")
+	}
+	*/
+
+	runAct, err := exec.Command("./"+name+".exe").CombinedOutput()
+	if err != nil {
+		t.Errorf("execution error: %v", err)
+	}
+
+	if !bytes.Equal(runAct, runExp) {
+		t.Errorf("output doesn't match")
+	}
+
+	fp,_ := os.Create(name+".buildout")
+	fp.Write(logger.errors.Bytes())
+	fp.Write(logger.warns.Bytes())
+	fp.Write(logger.info.Bytes())
+	fp.Close()
+
+	fp,_ = os.Create(name+".runout")
+	fp.Write(runAct)
 	fp.Close()
 }
 

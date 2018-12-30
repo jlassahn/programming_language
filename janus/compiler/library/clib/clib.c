@@ -11,3 +11,11 @@ void clib_print_Int64(long long x)
 	printf("Int64: %lld\n", x);
 }
 
+extern void janus_main(void);
+
+int main(void)
+{
+	janus_main();
+	return 0;
+}
+

@@ -89,12 +89,10 @@ func genInvokeFunction(
 		argTypes[i] = args[i].Type()
 	}
 
-	//FIXME make this a function?
 	if opResult.IsFunctionChoice() {
 		functionChoice := opResult.FunctionChoice()
 		opName := functionChoice.Name()
 		fnSym := symbols.SelectFunctionChoice(functionChoice, argTypes)
-		output.FIXMEDebug("FIXME resolve function choice for %v = %v", opName, fnSym)
 		if fnSym == nil {
 			parser.Error(argList[0].FilePos(),
 				"Operator %v can't take these parameters", opName)
@@ -123,13 +121,9 @@ func genInvokeFunction(
 		}
 	}
 
-	output.FIXMEDebug("applying %v to %v", opResult.Name(), args)
+	//FIXME clean up naming
 	op := opResult
 
-	//FIXME combine with genOperator
-	output.FIXMEDebug("dtype = %v", op.Type())
-
-	//fp := genFunc.File()
 	convertedArgs := make([]Result, len(args))
 	dtype := op.Type().(symbols.FunctionDataType)
 	for i, dest := range dtype.Parameters() {
@@ -138,16 +132,10 @@ func genInvokeFunction(
 
 	retType := dtype.ReturnType()
 
-	//FIXME how do intrinsics work here?
-	//   intrinsics have symbols with DataValue of type IntrinsicDataValue
-	//   we can put that DataValue in a Result....
-
 	ret := NewTempVal(fp, retType)
 
 	if op.IsConst() && op.ConstVal().Tag() == symbols.INTRINSIC_VALUE {
 		opName := op.ConstVal().(symbols.IntrinsicDataValue).ValueAsString()
-
-		output.FIXMEDebug("applying intrinsic %v to %v", opName, convertedArgs)
 
 		genFunc.AddBody("%v", MakeIntrinsicOp(ret, opName, convertedArgs))
 		return ret
@@ -227,13 +215,8 @@ func genSymbol(genFunc GeneratedFunction,
 		return NewFunctionChoiceResult(fn)
 	}
 
-	output.FIXMEDebug("looking up %v %v", el.TokenString(), sym)
-	output.FIXMEDebug("Symbol %v %v %v", sym.Name(), sym.Type(), sym.InitialValue())
-	
 	ret, ok := sym.GetGenVal().(Result)
 	if ok {
-		output.FIXMEDebug("found value %v", ret)
-
 		return ret
 	}
 
@@ -332,8 +315,6 @@ func genDef(genFunc GeneratedFunction,
 		return nil
 	}
 
-	output.FIXMEDebug("def: %v %v %v", name, dtype, dval)
-
 	sym, err := ctx.Symbols.AddVar(name, dtype)
 	if err != nil {
 		parser.Error(el.FilePos(), "%v", err)
@@ -372,9 +353,7 @@ func genRHS(
 
 	ctx.InitializerType = dtype
 
-	output.FIXMEDebug("starting genRHS %v", el)
 	ret:= loopHandler(genFunc, ctx, el)
-	output.FIXMEDebug("finished genRHS %v", el)
 
 	ctx.InitializerType = nil
 
@@ -404,17 +383,13 @@ func genDotList(genFunc GeneratedFunction,
 		return nil
 	}
 
-	output.FIXMEDebug("getDotList %v %v", lhsEl, rhsEl)
-
 	if lhs.Type() == symbols.NamespaceType {
 		table := lhs.ConstVal().(symbols.NamespaceDataValue).AsSymbolTable()
 
 		impCtx := symbols.EvalContext { }
 		impCtx.Symbols = table
 
-		output.FIXMEDebug("push module context %v", table)
 		ret := loopHandler(genFunc,&impCtx, rhsEl)
-		output.FIXMEDebug("pop module context %v", table)
 
 		return ret
 	}
@@ -600,14 +575,77 @@ func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
 
 var LLVMOperator = map[string]string {
 	//FIXME add a bunch of stuff here
-	"add_Int64": "add",
+	"add_Int8": "add",
+	"add_Int16": "add",
 	"add_Int32": "add",
+	"add_Int64": "add",
+	"add_UInt8": "add",
+	"add_UInt16": "add",
+	"add_UInt32": "add",
+	"add_UInt64": "add",
+	"add_Real32": "fadd",
+	"add_Real64": "fadd",
 
+	"sub_Int8": "sub",
+	"sub_Int16": "sub",
+	"sub_Int32": "sub",
 	"sub_Int64": "sub",
+	"sub_UInt8": "sub",
+	"sub_UInt16": "sub",
+	"sub_UInt32": "sub",
+	"sub_UInt64": "sub",
+	"sub_Real32": "fsub",
+	"sub_Real64": "fsub",
 
+	"mul_Int8": "mul",
+	"mul_Int16": "mul",
+	"mul_Int32": "mul",
 	"mul_Int64": "mul",
+	"mul_UInt8": "mul",
+	"mul_UInt16": "mul",
+	"mul_UInt32": "mul",
+	"mul_UInt64": "mul",
+	"mul_Real32": "fmul",
+	"mul_Real64": "fmul",
 
+	"cmp_eq_Int8": "icmp eq",
+	"cmp_eq_Int16": "icmp eq",
+	"cmp_eq_Int32": "icmp eq",
+	"cmp_eq_Int64": "icmp eq",
+	"cmp_ne_Int8": "icmp ne",
+	"cmp_ne_Int16": "icmp ne",
+	"cmp_ne_Int32": "icmp ne",
+	"cmp_ne_Int64": "icmp ne",
+	"cmp_lt_Int8": "icmp slt",
+	"cmp_lt_Int16": "icmp slt",
+	"cmp_lt_Int32": "icmp slt",
+	"cmp_lt_Int64": "icmp slt",
+	"cmp_le_Int8": "icmp sle",
+	"cmp_le_Int16": "icmp sle",
+	"cmp_le_Int32": "icmp sle",
 	"cmp_le_Int64": "icmp sle",
+	"cmp_ge_Int8": "icmp sge",
+	"cmp_ge_Int16": "icmp sge",
+	"cmp_ge_Int32": "icmp sge",
+	"cmp_ge_Int64": "icmp sge",
+	"cmp_gt_Int8": "icmp sgt",
+	"cmp_gt_Int16": "icmp sgt",
+	"cmp_gt_Int32": "icmp sgt",
+	"cmp_gt_Int64": "icmp sgt",
+
+	"cmp_eq_Real64": "fcmp oeq",
+	"cmp_ne_Real64": "fcmp une",
+	"cmp_lt_Real64": "fcmp olt",
+	"cmp_le_Real64": "fcmp ole",
+	"cmp_ge_Real64": "fcmp oge",
+	"cmp_gt_Real64": "fcmp ogt",
+	"cmp_eq_Real32": "fcmp oeq",
+	"cmp_ne_Real32": "fcmp une",
+	"cmp_lt_Real32": "fcmp olt",
+	"cmp_le_Real32": "fcmp ole",
+	"cmp_ge_Real32": "fcmp oge",
+	"cmp_gt_Real32": "fcmp ogt",
+
 }
 
 var LLVMFunction = map[string]string {

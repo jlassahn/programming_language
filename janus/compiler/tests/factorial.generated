@@ -54,4 +54,4 @@ define void @f_factorial.Main-FUNCTION-VOID$$(
 ; 
 ; main entrypoint
 ; 
-@main = alias void(), void()* @f_factorial.Main-FUNCTION-VOID$$
+@janus_main = alias void(), void()* @f_factorial.Main-FUNCTION-VOID$$

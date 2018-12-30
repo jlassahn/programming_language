@@ -45,4 +45,4 @@ tmp_7:
 ; 
 ; main entrypoint
 ; 
-@main = alias void(), void()* @f_main.Main-FUNCTION-VOID$$
+@janus_main = alias void(), void()* @f_main.Main-FUNCTION-VOID$$
