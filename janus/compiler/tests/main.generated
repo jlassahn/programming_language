@@ -2,6 +2,8 @@
 ; global declarations
 ; 
 declare double @llvm.sqrt.f64(double)
+declare void @clib_print_Real64(double)
+declare void @clib_print_Int64(i64)
 ; 
 ; generating variables for main
 ; 

@@ -152,10 +152,17 @@ func genInvokeFunction(
 	}
 
 
-	callStr := fmt.Sprintf("\t%v = call %v %v(",
-		ret.LLVMVal(),
-		ret.LLVMType(),
-		op.LLVMVal())
+	var callStr string
+	if ret.Type() == symbols.VoidType {
+		callStr = fmt.Sprintf("\tcall %v %v(",
+			ret.LLVMType(),
+			op.LLVMVal())
+	} else {
+		callStr = fmt.Sprintf("\t%v = call %v %v(",
+			ret.LLVMVal(),
+			ret.LLVMType(),
+			op.LLVMVal())
+	}
 
 	for i,arg := range args {
 		if i > 0 {
@@ -415,7 +422,8 @@ func genDotList(genFunc GeneratedFunction,
 	return nil
 }
 
-//FIXME simplify control flow
+//FIXME rename -- this converts and loads any data access
+
 func ConvertParameter(genFunc GeneratedFunction,
 	arg Result, dtype symbols.DataType) Result {
 
@@ -498,10 +506,18 @@ func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
 	//   which could be injected into the intrinsic by SetGenVal
 	op, ok = LLVMFunction[opName]
 	if ok {
-		s := fmt.Sprintf("\t%v = call %v %v(",
-			ret.LLVMVal(),
-			ret.LLVMType(),
-			op)
+
+		var s string
+		if ret.Type() == symbols.VoidType {
+			s = fmt.Sprintf("\tcall %v %v(",
+				ret.LLVMType(),
+				op)
+		} else {
+			s = fmt.Sprintf("\t%v = call %v %v(",
+				ret.LLVMVal(),
+				ret.LLVMType(),
+				op)
+		}
 
 		for i,arg := range args {
 			if i > 0 {
@@ -526,6 +542,8 @@ var LLVMOperator = map[string]string {
 
 var LLVMFunction = map[string]string {
 	"sqrt_Real64": "@llvm.sqrt.f64",
+	"print_Real64": "@clib_print_Real64",
+	"print_Int64": "@clib_print_Int64",
 }
 
 //FIXME reorganize

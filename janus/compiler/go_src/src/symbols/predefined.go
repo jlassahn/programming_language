@@ -83,8 +83,19 @@ func buildInternalSymbols() *baseSymbol {
 
 	fnType := NewFunction(Real64Type)
 	fnType.AddParam("a", Real64Type, false) //FIXME should be true
-
 	newTable.AddFunction("sqrt", fnType, true, &intrinsicDV{fnType, "sqrt_Real64"})
+
+	//FIXME ---- fake print statements ----
+	fnType = NewFunction(VoidType)
+	fnType.AddParam("a", Real64Type, false)
+	newTable.AddFunction("print", fnType, false,
+		&intrinsicDV{fnType, "print_Real64"})
+
+	fnType = NewFunction(VoidType)
+	fnType.AddParam("a", Int64Type, false)
+	newTable.AddFunction("print", fnType, false,
+		&intrinsicDV{fnType, "print_Int64"})
+	// ------------------------------------
 
 	val := &namespaceDV {
 		value: newTable,

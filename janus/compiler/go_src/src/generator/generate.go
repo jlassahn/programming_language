@@ -193,6 +193,8 @@ func GenerateHeader(fp GeneratedFile) {
 
 	//FIXME organize better
 	fp.Emit("declare double @llvm.sqrt.f64(double)")
+	fp.Emit("declare void @clib_print_Real64(double)")
+	fp.Emit("declare void @clib_print_Int64(i64)")
 
 }
 
