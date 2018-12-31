@@ -42,3 +42,5 @@ A constant can be out of range for it's type, but if the result of an
 operation or assignment is out of range it will be truncated and generate
 a warning.
 
+![string type conversions](string_types.svg)
+

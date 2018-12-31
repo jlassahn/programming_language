@@ -1,0 +1,18 @@
+
+digraph G
+{
+	a [shape="box", label=< const MArray(UInt8) <br/> "string literal" >];
+	b [shape="box", label=< MArray(UInt8) >];
+	c [shape="box", label=< MSlice(UInt8) >];
+	d [shape="box", label=< CSlice(UInt8) >];
+	e [shape="box", label=< Array(UInt8) <br/> String >];
+	a -> b [color="red"];
+	a -> c [color="red"];
+	a -> d [color="green"];
+	a -> e [color="red"];
+	b -> c [color="green"];
+	b -> d [color="green"];
+	c -> d [color="green"];
+	b -> e [color="red"];
+}
+
