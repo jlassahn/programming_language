@@ -5,14 +5,14 @@ janus 1.0;
 # a Janus souce file is UTF-8 text
 
 def str = "Hello, World";
-# a string literal has type m_array(UInt8, length)
-# so here, str has type m_array(UInt8, 12)
+# a string literal has type MArray(UInt8, length)
+# so here, str has type MArray(UInt8, 12)
 
 def str2 StringObj = str;
 # not used in practice very often
 # StringObj is an alias for Array(UInt8)
 # defined like this:
-# alias StringObj String implements String;
+# alias StringObj Array(UInt8) implements String;
 
 def str3 String = str;
 # String is an interface implemented by StringObj
@@ -39,4 +39,18 @@ x.ToUpper();
 
 # iterators
 for c = x.Chars() { }
+
+
+# machine Janus operations
+#
+def mstr1 MSlice(UInt8) = str;
+# an MArray variable can be converted to an MSlice
+
+const cstr = "Hello, world";
+def mstr2 = cstr;  # this makes a writable copy 
+def mstr3 MSlice(UInt8) = cstr; # Makes a writable copy
+def mstr4 CSlice(UInt8) = cstr; # constant reference, no copy
+
+def fn2(s MSlice(UInt8));
+fn2("literal");  # makes a local copy at the scope of the function call
 

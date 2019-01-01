@@ -1,4 +1,6 @@
 
+// dot -Tsvg string_types.gv -o string_types.svg
+
 digraph G
 {
 	a [shape="box", label=< const MArray(UInt8) <br/> "string literal" >];
