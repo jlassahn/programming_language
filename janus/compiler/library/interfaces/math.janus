@@ -2,7 +2,7 @@
 janus 1.0
 {
 	module_name = math;
-	export_symbols = True;
+	export_symbols = TRUE;
 }
 
 # FIXME follow general math convention and make these lowercase, or

@@ -1,0 +1,18 @@
+
+janus 1.0;
+
+import math;
+
+
+def Main()
+{
+	def i Int64;
+
+	i = 0;
+	while i < 5
+	{
+		__system.print(i);
+		i = i+1;
+	}
+}
+

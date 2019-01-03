@@ -88,8 +88,21 @@ func InterpretHeaderOptions(file *SourceFile) {
 		}
 	}
 
+	val = file.Options.ByName["export_symbols"]
+	if val != nil {
+		val.Recognized = true
+		if val.DotName != nil {
+			pos := val.ParseTree.FilePos()
+			parser.Error(pos, "invalid value for export_symbols")
+		} else if val.Value.Type() != BoolType {
+			pos := val.ParseTree.FilePos()
+			parser.Error(pos, "invalid value for export_symbols")
+		} else {
+			file.Options.ExportSymbols = val.Value.(BoolDataValue).AsBool()
+		}
+	}
+
 	// FIXME add these
-	//ExportSymbols bool
 	//ObjectMode bool
 	//MachineMode bool
 

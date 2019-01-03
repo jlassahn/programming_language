@@ -21,6 +21,8 @@ var handlers = map[*parser.Tag] ExpressionGenerator {
 	parser.DOT_LIST: genDotList,
 	parser.IF: genIf,
 	parser.FUNCTION_CONTENT: genFunctionContent,
+	parser.ASSIGNMENT: genAssignment,
+	parser.WHILE: genWhile,
 }
 
 // indirect call to GenerateExpression, to avoid a circular dependency

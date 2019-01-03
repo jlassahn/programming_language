@@ -35,6 +35,7 @@ var codegenOKTests = []string {
 
 var executionOKTests = []string {
 	"factorial",
+	"while_loop",
 }
 
 var basePath = ".."
