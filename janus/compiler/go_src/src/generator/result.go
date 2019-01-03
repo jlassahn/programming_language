@@ -24,6 +24,8 @@ type Result interface {
 
 	IsFunctionChoice() bool
 	FunctionChoice() symbols.FunctionChoiceSymbol
+	HasBaseObject() bool
+	BaseObject() Result
 
 	IsVariableRef() bool
 	IsGlobalRef() bool
@@ -39,6 +41,7 @@ type result struct {
 	dtype symbols.DataType
 	constVal symbols.DataValue
 	functionChoice symbols.FunctionChoiceSymbol
+	baseObject Result
 	isVariableRef bool
 	isGlobalRef bool
 }
@@ -106,6 +109,16 @@ func NewFunctionChoiceResult(fn symbols.FunctionChoiceSymbol) Result {
 	return ret
 }
 
+func NewMethodChoiceResult(fn symbols.FunctionChoiceSymbol, base Result) Result {
+
+	ret := &result { }
+	ret.dtype = fn.Type()
+	ret.name = fn.Name()
+	ret.functionChoice = fn
+	ret.baseObject = base
+
+	return ret
+}
 
 func (self *result) String() string { return self.LLVMVal() }
 func (self *result) ID() int { return self.id }
@@ -122,6 +135,14 @@ func (self *result) IsFunctionChoice() bool {
 
 func (self *result) FunctionChoice() symbols.FunctionChoiceSymbol {
 	return self.functionChoice
+}
+
+func (self *result) HasBaseObject() bool {
+	return self.baseObject != nil
+}
+
+func (self *result) BaseObject() Result {
+	return self.baseObject
 }
 
 func (self *result) LLVMType() string {

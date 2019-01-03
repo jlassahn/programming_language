@@ -27,7 +27,8 @@ func genCall(genFunc GeneratedFunction,
 	//if opResult is method call
 	//  twiddle args to form non-method version
 
-	return genInvokeFunction(genFunc, ctx, opResult, argList)
+	pos := el.FilePos()
+	return genInvokeFunction(genFunc, ctx, pos, opResult, argList)
 }
 
 //FIXME clean this up
@@ -35,21 +36,34 @@ func genCall(genFunc GeneratedFunction,
 func genInvokeFunction(
 	genFunc GeneratedFunction,
 	ctx *symbols.EvalContext,
+	pos *parser.FilePosition,
 	opResult Result,
 	argList []parser.ParseElement,
 ) Result {
 
 	fp := genFunc.File()
 
-	args := make([]Result, len(argList))
-	argTypes := make([]symbols.DataType, len(argList))
+	baseIndex := 0
+	if opResult.HasBaseObject() {
+		output.FIXMEDebug("FIXME base object arg")
+		baseIndex = 1
+	}
+
+	args := make([]Result, len(argList) + baseIndex)
+	argTypes := make([]symbols.DataType, len(argList) + baseIndex)
 	for i, x := range(argList) {
-		args[i] = loopHandler(genFunc, ctx, x)
-		if args[i] == nil {
+		arg := loopHandler(genFunc, ctx, x)
+		if arg == nil {
 			output.FIXMEDebug("FIXME args not available")
 			return nil
 		}
-		argTypes[i] = args[i].Type()
+		args[i + baseIndex] = arg
+		argTypes[i + baseIndex] = arg.Type()
+	}
+
+	if opResult.HasBaseObject() {
+		args[0] = opResult.BaseObject()
+		argTypes[0] = args[0].Type()
 	}
 
 	if opResult.IsFunctionChoice() {
@@ -57,14 +71,17 @@ func genInvokeFunction(
 		opName := functionChoice.Name()
 		fnSym := symbols.SelectFunctionChoice(functionChoice, argTypes)
 		if fnSym == nil {
-			parser.Error(argList[0].FilePos(),
-				"Operator %v can't take these parameters", opName)
+			parser.Error(pos, "Operator %v can't take these parameters", opName)
 			return nil
 		}
 
 
 		if fnSym.GetGenVal() != nil {
 			opResult = fnSym.GetGenVal().(Result)
+
+		} else if fnSym.InitialValue() == nil {
+			parser.Error(pos, "no implementation for function %v", opName)
+			return nil
 
 		} else if fnSym.InitialValue().Tag() == symbols.INTRINSIC_VALUE {
 			//FIXME do we need Typed... ? InitialValue should have the right type.
@@ -96,6 +113,7 @@ func genInvokeFunction(
 	retType := dtype.ReturnType()
 
 	ret := NewTempVal(fp, retType)
+
 
 	if op.IsConst() && op.ConstVal().Tag() == symbols.INTRINSIC_VALUE {
 		opName := op.ConstVal().(symbols.IntrinsicDataValue).ValueAsString()

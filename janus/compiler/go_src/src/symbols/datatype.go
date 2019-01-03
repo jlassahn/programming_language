@@ -18,6 +18,7 @@ type DataType interface {
 	String() string
 	Base() *Tag
 	SubTypes() []DTypeParameter
+	Members() map[string]Symbol
 }
 
 type FunctionParameter struct {
@@ -101,6 +102,10 @@ func (self *functionDT) SubTypes() []DTypeParameter {
 	return nil
 }
 
+func (self *functionDT) Members() map[string]Symbol {
+	return nil
+}
+
 func (self *functionDT) ReturnType() DataType {
 	return self.returnType
 }
@@ -114,18 +119,23 @@ func (self *functionDT) IsMethod() bool {
 }
 
 type simpleDT struct {
-	*Tag
+	tag *Tag
+	members map[string]Symbol
 }
 
 func (self *simpleDT) Base() *Tag {
-	return self.Tag
+	return self.tag
 }
 
 func (self *simpleDT) SubTypes() []DTypeParameter {
 	return nil
 }
 
+func (self *simpleDT) Members() map[string]Symbol {
+	return self.members
+}
+
 func (self *simpleDT) String() string {
-	return self.string
+	return self.tag.string
 }
 

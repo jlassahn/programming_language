@@ -55,6 +55,9 @@ func Compile(basePath string, argsIn []string, envIn map[string]string) int {
 		return 1
 	}
 
+	symbols.InitializeTypes()
+	symbols.PredefinedSymbols() //initialize symbols
+
 	if args.Flags["show-predefined"] {
 		symbols.PredefinedSymbols().Emit(true)
 	}

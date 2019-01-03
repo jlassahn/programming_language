@@ -11,6 +11,10 @@ import (
 
 func MakeIntrinsicOp(ret Result, opName string, args []Result) string {
 
+	if opName == "convert" {
+		return MakeLLVMConvert(args[0], ret)
+	}
+
 	op, ok := LLVMOperator[opName]
 	if ok {
 		return  fmt.Sprintf("\t%v = %v %v %v, %v",
@@ -69,6 +73,7 @@ func MakeLLVMConvert(from Result, ret Result) string {
 			ret.LLVMType())
 	}
 
+	output.FatalError("Unimplemented intrinsic convert %v->%v", from.Type(), ret.Type())
 	return ""
 }
 
@@ -165,5 +170,7 @@ var baseTypeConvert = map[tagPair] string  {
 	{symbols.INT8_TYPE, symbols.INT64_TYPE}: "sext",
 	{symbols.INT16_TYPE, symbols.INT32_TYPE}: "sext",
 	{symbols.INT16_TYPE, symbols.INT64_TYPE}: "sext",
+
+	{symbols.INT64_TYPE, symbols.INT32_TYPE}: "trunc",
 }
 

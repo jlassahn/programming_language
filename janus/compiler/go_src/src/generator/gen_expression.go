@@ -12,6 +12,7 @@ func genExpression(genFunc GeneratedFunction,
 
 	children := el.Children()
 	opElement := children[0]
+	pos := el.FilePos()
 
 	if opElement.ElementType() == parser.OPERATOR {
 
@@ -24,7 +25,7 @@ func genExpression(genFunc GeneratedFunction,
 
 		opResult := NewFunctionChoiceResult(opChoices)
 		argList := children[1:]
-		return genInvokeFunction(genFunc, ctx, opResult, argList)
+		return genInvokeFunction(genFunc, ctx, pos, opResult, argList)
 	}
 
 	//FIXME implement  (what non-operator expressions are there???)

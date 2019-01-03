@@ -1,16 +1,17 @@
 
 package symbols
 
-//FIXME Real or Float????
-
-//FIXME do we need to expose bare tags for base types, or
-//      just DataType values?
-
 var VOID_TYPE = &Tag{"VOID"}
 var NAMESPACE_TYPE = &Tag{"NAMESPACE"}
 var FUNCTIONCHOICE_TYPE = &Tag{"FUNCTIONCHOICE"}
 var FUNCTION_TYPE = &Tag{"FUNCTION"}
 var LABEL_TYPE = &Tag{"LABEL"}
+
+var MREF_TYPE = &Tag{"MREF"}
+var REF_TYPE = &Tag{"REF"}
+var MSTRUCT_TYPE = &Tag{"MSTRUCT"}
+var STRUCT_TYPE = &Tag{"STRUCT"}
+var MARRAY_TYPE = &Tag{"MARRAY"}
 
 var CTYPE_TYPE = &Tag{"CTYPE"}
 
@@ -32,28 +33,61 @@ var REAL32_TYPE = &Tag{"REAL32"}
 var REAL64_TYPE = &Tag{"REAL64"}
 
 
-var VoidType = &simpleDT{VOID_TYPE}
-var NamespaceType = &simpleDT{NAMESPACE_TYPE}
-var FunctionChoiceType = &simpleDT{FUNCTIONCHOICE_TYPE}
-var LabelType = &simpleDT{LABEL_TYPE}
+var VoidType = &simpleDT{VOID_TYPE, nil}
+var NamespaceType = &simpleDT{NAMESPACE_TYPE, nil}
+var FunctionChoiceType = &simpleDT{FUNCTIONCHOICE_TYPE, nil}
+var LabelType = &simpleDT{LABEL_TYPE, nil}
 
-var CTypeType = &simpleDT{CTYPE_TYPE}
+var CTypeType = &simpleDT{CTYPE_TYPE, nil}
 
-var BoolType = &simpleDT{BOOL_TYPE}
+var BoolType = &simpleDT{BOOL_TYPE, nil}
 
-var IntegerType = &simpleDT{INTEGER_TYPE}
-var Int8Type = &simpleDT{INT8_TYPE}
-var Int16Type = &simpleDT{INT16_TYPE}
-var Int32Type = &simpleDT{INT32_TYPE}
-var Int64Type = &simpleDT{INT64_TYPE}
-var UInt8Type = &simpleDT{UINT8_TYPE}
-var UInt16Type = &simpleDT{UINT16_TYPE}
-var UInt32Type = &simpleDT{UINT32_TYPE}
-var UInt64Type = &simpleDT{UINT64_TYPE}
+var IntegerType = &simpleDT{INTEGER_TYPE, nil}
+var Int8Type = &simpleDT{INT8_TYPE, nil}
+var Int16Type = &simpleDT{INT16_TYPE, nil}
+var Int32Type = &simpleDT{INT32_TYPE, nil}
+var Int64Type = &simpleDT{INT64_TYPE, nil}
+var UInt8Type = &simpleDT{UINT8_TYPE, nil}
+var UInt16Type = &simpleDT{UINT16_TYPE, nil}
+var UInt32Type = &simpleDT{UINT32_TYPE, nil}
+var UInt64Type = &simpleDT{UINT64_TYPE, nil}
 
-var Real32Type = &simpleDT{REAL32_TYPE}
-var Real64Type = &simpleDT{REAL64_TYPE}
+var Real32Type = &simpleDT{REAL32_TYPE, nil}
+var Real64Type = &simpleDT{REAL64_TYPE, nil}
 
 var TrueValue = &boolDV{ true }
 var FalseValue = &boolDV{ false }
+
+func InitializeTypes() {
+
+	addTypeConvert("ToInt32", Int64Type, Int32Type)
+	addTypeConvert("ToInt16", Int64Type, Int16Type)
+	addTypeConvert("ToInt8", Int64Type, Int8Type)
+	addTypeConvert("ToInt16", Int32Type, Int16Type)
+	addTypeConvert("ToInt8", Int32Type, Int8Type)
+	addTypeConvert("ToInt8", Int16Type, Int8Type)
+
+}
+
+func addTypeConvert(name string, from *simpleDT, to DataType) {
+
+	if from.members == nil {
+		from.members = map[string]Symbol { }
+	}
+
+	choices := &functionChoiceSymbol {name, nil}
+
+	fnType := NewFunction(to)
+	fnType.AddParam("a", from, false)
+	choices.Add(
+		&baseSymbol {
+			name,
+			fnType,
+			&intrinsicDV{fnType, "convert"},
+			true,
+			nil, //genVal
+		})
+
+	from.members[name] = choices
+}
 

@@ -108,6 +108,22 @@ func CanConvert(argType DataType, paramType DataType) bool {
 	}
 
 	//FIXME check composite types, refs, etc
+	if argType.Base() == MREF_TYPE {
+		output.FatalError("FIXME implement MREF conversions")
+	}
+	if argType.Base() == REF_TYPE {
+		output.FatalError("FIXME implement REF conversions")
+	}
+	if argType.Base() == MSTRUCT_TYPE {
+		output.FatalError("FIXME implement MSTRUCT conversions")
+	}
+	if argType.Base() == STRUCT_TYPE {
+		output.FatalError("FIXME implement STRUCT conversions")
+	}
+	if argType.Base() == MARRAY_TYPE {
+		output.FatalError("FIXME implement MARRAY conversions")
+	}
+
 	return false
 }
 
@@ -173,6 +189,14 @@ func TypeMatches(a DataType, b DataType) bool {
 		}
 	}
 
+	//FIXME handle struct types
+	if a.Base() == MSTRUCT_TYPE {
+		output.FatalError("FIXME implement MSTRUCT conversions")
+	}
+	if a.Base() == STRUCT_TYPE {
+		output.FatalError("FIXME implement STRUCT conversions")
+	}
+
 	return true
 }
 
@@ -211,6 +235,21 @@ func ConvertConstant(from DataValue, to DataType) DataValue {
 	}
 
 	//FIXME handle composite types, etc
+	if from.Type().Base() == MREF_TYPE {
+		output.FatalError("FIXME implement MREF conversions")
+	}
+	if from.Type().Base() == REF_TYPE {
+		output.FatalError("FIXME implement REF conversions")
+	}
+	if from.Type().Base() == MSTRUCT_TYPE {
+		output.FatalError("FIXME implement MSTRUCT conversions")
+	}
+	if from.Type().Base() == STRUCT_TYPE {
+		output.FatalError("FIXME implement STRUCT conversions")
+	}
+	if from.Type().Base() == MARRAY_TYPE {
+		output.FatalError("FIXME implement MARRAY conversions")
+	}
 
 	//FIXME better context for errors
 	output.Error("no const conversion from %v to %v", from, to)

@@ -2,6 +2,7 @@
 package generator
 
 import (
+	"output"
 	"parser"
 	"symbols"
 )
@@ -29,8 +30,25 @@ func genDotList(genFunc GeneratedFunction,
 		return ret
 	}
 
+	if rhsEl.ElementType() == parser.SYMBOL {
+		name := rhsEl.TokenString()
+		sym := lhs.Type().Members()[name]
+		if sym != nil {
+			output.FIXMEDebug("FIXME dot found member %v", sym)
+
+			if sym.Type() == symbols.FunctionChoiceType {
+				fn := sym.(symbols.FunctionChoiceSymbol)
+				return NewMethodChoiceResult(fn, lhs)
+			}
+
+			output.FatalError("unimplemented dot operator %v", sym)
+		}
+		parser.Error(rhsEl.FilePos(), "unknown member or method %v", name)
+		return nil
+	}
+
 	//FIXME implement member access, etc
-	parser.Error(el.FilePos(), "FIXME unimplemented dot operator %v, rhsEl")
+	parser.Error(el.FilePos(), "FIXME unimplemented dot operator %v", rhsEl)
 	return nil
 }
 
