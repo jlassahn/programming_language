@@ -13,18 +13,21 @@ import (
 
 type uninitializedSymbol struct {
 	name string
-	declarations []parser.ParseElement
 	isConst bool
+	modulePath []string
+	declarations []parser.ParseElement
 	elementType *parser.Tag
 
 	needs *uninitializedSymbol
 	initialized Symbol
+	isBroken bool
 }
 
 func (self *uninitializedSymbol) Name() string { return self.name; }
 func (self *uninitializedSymbol) Type() DataType { return nil; }
 func (self *uninitializedSymbol) InitialValue() DataValue { return nil; }
 func (self *uninitializedSymbol) IsConst() bool { return false }
+func (self *uninitializedSymbol) ModulePath()[]string {return self.modulePath}
 func (self *uninitializedSymbol) SetGenVal(val interface{}) { }
 func (self *uninitializedSymbol) GetGenVal() interface{} { return nil }
 
@@ -194,9 +197,12 @@ func getSymbol(name string, file *SourceFile,
 	if mod.LocalSymbols.Symbols[name] == nil {
 		sym := &uninitializedSymbol {
 			name: name,
+			isConst: false,
+			modulePath: mod.Path,
 			declarations: nil,
 			needs: nil,
 			initialized: nil,
+			isBroken: false,
 		}
 		mod.LocalSymbols.Symbols[name] = sym
 	}
@@ -283,6 +289,10 @@ func resolveConstValue(value Symbol) Symbol {
 		return value
 	}
 
+	if uninit.isBroken {
+		return nil
+	}
+
 	if uninit.needs != nil {
 		output.Error("definition loop")
 		x := uninit
@@ -302,6 +312,9 @@ func resolveConstValue(value Symbol) Symbol {
 	if uninit.initialized != nil {
 		return uninit.initialized
 	}
+
+	//FIXME find a cleaner way to track errors on symbols
+	uninit.isBroken = true
 
 	var dtypeMatch DataType
 	var dvalMatch DataValue
@@ -339,6 +352,7 @@ func resolveConstValue(value Symbol) Symbol {
 				funcSymbol = &functionChoiceSymbol {
 					name: uninit.Name(),
 					choices: []Symbol { },
+					modulePath: uninit.ModulePath(),
 				}
 			}
 
@@ -347,6 +361,7 @@ func resolveConstValue(value Symbol) Symbol {
 				dtype: dtype,
 				initialValue: dval,
 				isConst: uninit.isConst,
+				modulePath: uninit.ModulePath(),
 				genVal: nil,
 			}
 			err := funcSymbol.Add(sym)
@@ -396,10 +411,13 @@ func resolveConstValue(value Symbol) Symbol {
 			dtype: dtypeMatch,
 			initialValue: dvalMatch,
 			isConst: uninit.isConst,
+			modulePath: uninit.ModulePath(),
 			genVal: nil,
 		}
 	}
 
+	//FIXME find a cleaner way to track errors on symbols
+	uninit.isBroken = false
 	uninit.initialized = sym
 	return sym
 }
@@ -434,9 +452,16 @@ func resolveVariableValue(value Symbol) Symbol {
 		return value
 	}
 
+	if uninit.isBroken {
+		return nil
+	}
+
 	if uninit.initialized != nil {
 		return uninit.initialized
 	}
+
+	//FIXME find a cleaner way to track errors on symbols
+	uninit.isBroken = true
 
 	//FIXME below is nearly identical to resolveConstValues
 	var dtypeMatch DataType
@@ -473,6 +498,7 @@ func resolveVariableValue(value Symbol) Symbol {
 				funcSymbol = &functionChoiceSymbol {
 					name: uninit.Name(),
 					choices: []Symbol { },
+					modulePath: uninit.ModulePath(),
 				}
 			}
 
@@ -481,6 +507,7 @@ func resolveVariableValue(value Symbol) Symbol {
 				dtype: dtype,
 				initialValue: dval,
 				isConst: uninit.isConst,
+				modulePath: uninit.ModulePath(),
 				genVal: nil,
 			}
 
@@ -530,9 +557,13 @@ func resolveVariableValue(value Symbol) Symbol {
 			dtype: dtypeMatch,
 			initialValue: dvalMatch,
 			isConst: uninit.isConst,
+			modulePath: uninit.ModulePath(),
 			genVal: nil,
 		}
 	}
+
+	//FIXME find a cleaner way to track errors on symbols
+	uninit.isBroken = false
 
 	uninit.initialized = sym
 	return sym
@@ -584,7 +615,7 @@ func replaceUninitializedInMap(syms map[string]Symbol) {
 		}
 		if uninit.initialized == nil {
 			//FIXME is error here always redundant?
-			output.Error("symbol %v remains uninitialized", key)
+			output.FIXMEDebug("symbol %v remains uninitialized", key)
 			continue
 		}
 		replace[key] = uninit.initialized

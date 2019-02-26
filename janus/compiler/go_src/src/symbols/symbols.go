@@ -14,6 +14,7 @@ type Symbol interface {
 	Type() DataType
 	InitialValue() DataValue
 	IsConst() bool
+	ModulePath() []string
 	SetGenVal(val interface{})
 	GetGenVal() interface{}
 }
@@ -95,7 +96,14 @@ func (self *symbolTable) AddConst(
 		return fmt.Errorf("redefinition of symbol %v", name)
 	}
 
-	self.Symbols[name] = &baseSymbol { name, dtype, val, true, nil }
+	self.Symbols[name] = &baseSymbol {
+		name: name,
+		dtype: dtype,
+		initialValue: val,
+		isConst: true,
+		modulePath: nil,
+		genVal: nil,
+	}
 	return nil
 }
 
@@ -105,7 +113,14 @@ func (self *symbolTable) AddVar(name string, dtype DataType) (Symbol, error) {
 		return nil, fmt.Errorf("redefinition of symbol %v", name)
 	}
 
-	sym := &baseSymbol { name, dtype, nil, false, nil }
+	sym := &baseSymbol {
+		name: name,
+		dtype: dtype,
+		initialValue: nil,
+		isConst:false,
+		modulePath: nil,
+		genVal: nil,
+	}
 	self.Symbols[name] = sym
 	return sym, nil
 }
@@ -114,18 +129,23 @@ func (self *symbolTable) AddOperator(name string, dtype DataType,
 	isConst bool, impl DataValue) error {
 
 	if self.Operators[name] == nil {
-		self.Operators[name] = &functionChoiceSymbol {name, nil}
+		self.Operators[name] = &functionChoiceSymbol {
+			name: name,
+			choices: nil,
+			modulePath: nil,
+		}
 	}
 
 	choices := self.Operators[name]
 
 	return choices.Add(
 		&baseSymbol {
-			name,
-			dtype,
-			impl,
-			isConst,
-			nil,
+			name: name,
+			dtype: dtype,
+			initialValue: impl,
+			isConst: isConst,
+			modulePath: nil,
+			genVal: nil,
 		})
 
 }
@@ -136,7 +156,11 @@ func (self *symbolTable) AddFunction(
 	isConst bool, impl DataValue) error {
 
 	if self.Symbols[name] == nil {
-		self.Symbols[name] = &functionChoiceSymbol {name, nil}
+		self.Symbols[name] = &functionChoiceSymbol {
+			name: name,
+			choices: nil,
+			modulePath: nil,
+		}
 	}
 
 	choices, ok := self.Symbols[name].(FunctionChoiceSymbol)
@@ -146,11 +170,12 @@ func (self *symbolTable) AddFunction(
 
 	return choices.Add(
 		&baseSymbol {
-			name,
-			dtype,
-			impl,
-			isConst,
-			nil,
+			name: name,
+			dtype: dtype,
+			initialValue: impl,
+			isConst: isConst,
+			modulePath: nil,
+			genVal: nil,
 		})
 
 }
@@ -215,6 +240,7 @@ type baseSymbol struct {
 	dtype DataType
 	initialValue DataValue
 	isConst bool
+	modulePath []string
 	genVal interface{}
 }
 
@@ -222,6 +248,7 @@ func (self *baseSymbol) Name() string { return self.name }
 func (self *baseSymbol) Type() DataType { return self.dtype }
 func (self *baseSymbol) InitialValue() DataValue { return self.initialValue }
 func (self *baseSymbol) IsConst() bool { return self.isConst }
+func (self *baseSymbol) ModulePath() []string { return self.modulePath }
 func (self *baseSymbol) SetGenVal(val interface{}) { self.genVal = val }
 func (self *baseSymbol) GetGenVal() interface{} { return self.genVal }
 
@@ -233,12 +260,14 @@ func (self *baseSymbol) String() string {
 type functionChoiceSymbol struct {
 	name string
 	choices []Symbol
+	modulePath []string
 }
 
-func (self *functionChoiceSymbol) Name() string { return self.name; }
-func (self *functionChoiceSymbol) Type() DataType { return FunctionChoiceType; }
-func (self *functionChoiceSymbol) IsConst() bool { return true; }
-func (self *functionChoiceSymbol) Choices() []Symbol { return self.choices; }
+func (self *functionChoiceSymbol) Name() string { return self.name }
+func (self *functionChoiceSymbol) Type() DataType { return FunctionChoiceType }
+func (self *functionChoiceSymbol) IsConst() bool { return true }
+func (self *functionChoiceSymbol) ModulePath() []string {return self.modulePath}
+func (self *functionChoiceSymbol) Choices() []Symbol { return self.choices }
 func (self *functionChoiceSymbol) SetGenVal(val interface{}) { }
 func (self *functionChoiceSymbol) GetGenVal() interface{} { return nil }
 

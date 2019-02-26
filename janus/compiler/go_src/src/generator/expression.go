@@ -62,7 +62,7 @@ func genNumber(genFunc GeneratedFunction,
 func ConvertParameter(genFunc GeneratedFunction,
 	arg Result, dtype symbols.DataType) Result {
 
-	if arg.IsVariableRef() {
+	if arg.IsVariableRef() || arg.IsGlobalRef() {
 		arg = DereferenceVariable(genFunc, arg)
 	}
 

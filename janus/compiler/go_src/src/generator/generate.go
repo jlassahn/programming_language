@@ -59,12 +59,27 @@ func GenerateVariables(fileSet *symbols.FileSet, fp GeneratedFile, mod *symbols.
 	//FIXME may need to totally rethink how variable assignments happen,
 	//      e.g. we want def fn() = thing; to not generate a second copy
 	//      of the code.
+	*/
+
 	for _,name := range symbols.SortedKeys(mod.LocalSymbols.Symbols) {
 
 		sym := mod.LocalSymbols.Symbols[name]
+		if sym.Type() == symbols.FunctionChoiceType {
+			continue
+		}
+
 		output.FIXMEDebug("FIXME generate global %v", sym)
+		//FIXME if InitialValue...
+
+		val := "zeroinitializer"
+		if sym.InitialValue() != nil {
+			val = MakeLLVMConst(sym.InitialValue())
+		}
+
+		name := MakeSymbolName(mod.Path, sym.Type(), sym.Name())
+		ltype := MakeLLVMType(sym.Type())
+		fp.Emit("@%v = global %v %v", name, ltype, val)
 	}
-	*/
 
 }
 

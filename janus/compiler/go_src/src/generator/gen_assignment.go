@@ -15,8 +15,16 @@ func genAssignment(genFunc GeneratedFunction,
 	rhsEl := el.Children()[1]
 
 	lhs := loopHandler(genFunc, ctx, lhsEl)
+	if lhs == nil {
+		return nil
+	}
+
 	dtype := lhs.Type()
 	rhs := genRHS(genFunc, ctx, dtype, rhsEl)
+	if rhs == nil {
+		return nil
+	}
+
 
 	if lhs.IsVariableRef() {
 		output.FIXMEDebug("lhs is variable ref")

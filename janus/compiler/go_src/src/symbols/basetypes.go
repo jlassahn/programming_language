@@ -1,11 +1,11 @@
 
 package symbols
 
-var VOID_TYPE = &Tag{"VOID"}
 var NAMESPACE_TYPE = &Tag{"NAMESPACE"}
 var FUNCTIONCHOICE_TYPE = &Tag{"FUNCTIONCHOICE"}
 var FUNCTION_TYPE = &Tag{"FUNCTION"}
 var LABEL_TYPE = &Tag{"LABEL"}
+var METATYPE_TYPE = &Tag{"METATYPE"}
 
 var MREF_TYPE = &Tag{"MREF"}
 var REF_TYPE = &Tag{"REF"}
@@ -13,6 +13,7 @@ var MSTRUCT_TYPE = &Tag{"MSTRUCT"}
 var STRUCT_TYPE = &Tag{"STRUCT"}
 var MARRAY_TYPE = &Tag{"MARRAY"}
 
+var VOID_TYPE = &Tag{"VOID"}
 var CTYPE_TYPE = &Tag{"CTYPE"}
 
 var BOOL_TYPE = &Tag{"BOOL"}
@@ -33,11 +34,12 @@ var REAL32_TYPE = &Tag{"REAL32"}
 var REAL64_TYPE = &Tag{"REAL64"}
 
 
-var VoidType = &simpleDT{VOID_TYPE, nil}
 var NamespaceType = &simpleDT{NAMESPACE_TYPE, nil}
 var FunctionChoiceType = &simpleDT{FUNCTIONCHOICE_TYPE, nil}
 var LabelType = &simpleDT{LABEL_TYPE, nil}
+var MetaTypeType = &simpleDT{METATYPE_TYPE, nil}
 
+var VoidType = &simpleDT{VOID_TYPE, nil}
 var CTypeType = &simpleDT{CTYPE_TYPE, nil}
 
 var BoolType = &simpleDT{BOOL_TYPE, nil}
@@ -75,17 +77,22 @@ func addTypeConvert(name string, from *simpleDT, to DataType) {
 		from.members = map[string]Symbol { }
 	}
 
-	choices := &functionChoiceSymbol {name, nil}
+	choices := &functionChoiceSymbol {
+		name: name,
+		choices: nil,
+		modulePath: nil,
+	}
 
 	fnType := NewFunction(to)
 	fnType.AddParam("a", from, false)
 	choices.Add(
 		&baseSymbol {
-			name,
-			fnType,
-			&intrinsicDV{fnType, "convert"},
-			true,
-			nil, //genVal
+			name: name,
+			dtype: fnType,
+			initialValue: &intrinsicDV{fnType, "convert"},
+			isConst: true,
+			modulePath: nil,
+			genVal: nil,
 		})
 
 	from.members[name] = choices

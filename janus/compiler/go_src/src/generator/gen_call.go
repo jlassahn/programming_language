@@ -23,10 +23,6 @@ func genCall(genFunc GeneratedFunction,
 		return nil
 	}
 
-	//FIXME
-	//if opResult is method call
-	//  twiddle args to form non-method version
-
 	pos := el.FilePos()
 	return genInvokeFunction(genFunc, ctx, pos, opResult, argList)
 }
@@ -66,6 +62,7 @@ func genInvokeFunction(
 		argTypes[0] = args[0].Type()
 	}
 
+	//FIXME may need to reuse FunctionChoice lookup for e.g. func variables
 	if opResult.IsFunctionChoice() {
 		functionChoice := opResult.FunctionChoice()
 		opName := functionChoice.Name()
@@ -88,10 +85,7 @@ func genInvokeFunction(
 			opResult = NewTypedDataVal(fnSym.Type(), fnSym.InitialValue())
 
 		} else if fnSym.InitialValue().Tag() == symbols.CODE_VALUE  {
-
-			//FIXME messy, should have something like Symbol.ModulePath()
-
-			modPath := fnSym.InitialValue().(symbols.CodeDataValue).AsSourceFile().Options.ModuleName
+			modPath := fnSym.ModulePath()
 			name := MakeSymbolName(modPath, fnSym.Type(), fnSym.Name())
 			opResult = NewGlobalVal(fp, fnSym.Type(), name)
 

@@ -31,6 +31,12 @@ func genSymbol(genFunc GeneratedFunction,
 		return NewDataVal(sym.InitialValue())
 	}
 
+	if sym.ModulePath() != nil {
+		modPath := sym.ModulePath()
+		name := MakeSymbolName(modPath, sym.Type(), sym.Name())
+		return NewGlobalVal(genFunc.File(), sym.Type(), name)
+	}
+
 	output.FIXMEDebug("NO VALUE FOUND")
 	return nil
 }
