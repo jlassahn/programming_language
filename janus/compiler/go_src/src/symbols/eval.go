@@ -50,18 +50,21 @@ var handlers = map[*parser.Tag] ConstEvaluator {
 	parser.FUNCTION_TYPE: evalFunctionType,
 	parser.TYPE: evalType,
 	parser.FUNCTION_CONTENT: evalFunctionContent,
+	parser.LIST: evalList,
 }
 
 
+//FIXME rename and cleanup loopHandler!
+
 // indirect call to EvalConstExpression, to avoid a circular dependency
 var loopHandler ConstEvaluator
+func init() {
+	loopHandler = EvaluateConstExpression
+}
 
 func EvaluateConstExpression(
 	el parser.ParseElement, ctx *EvalContext) DataValue {
 
-	loopHandler = EvaluateConstExpression
-
-	//eval := evaluators[*el.ElementType()]
 	eval := handlers[el.ElementType()]
 	if eval == nil {
 		//FIXME implement
@@ -78,7 +81,7 @@ func EvaluateConstRHS(el parser.ParseElement, ctx *EvalContext) DataValue {
 
 	initDT := ctx.InitializerType
 
-	ret := EvaluateConstExpression(el, ctx)
+	ret := loopHandler(el, ctx)
 	if ret == nil {
 		return nil
 	}

@@ -337,7 +337,7 @@ func resolveConstValue(value Symbol) Symbol {
 		}
 
 		if dtype == nil {
-			parser.Error(el.FilePos(), "no data type for %v", value)
+			parser.Error(el.FilePos(), "no data type for %v", value.Name())
 			return nil
 		}
 
@@ -484,7 +484,7 @@ func resolveVariableValue(value Symbol) Symbol {
 		}
 
 		if dtype == nil {
-			parser.Error(el.FilePos(), "no data type for %v", value)
+			parser.Error(el.FilePos(), "no data type for %v", value.Name())
 			return nil
 		}
 

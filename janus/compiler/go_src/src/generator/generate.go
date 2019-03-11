@@ -270,6 +270,12 @@ func MakeLLVMType(dtype symbols.DataType) string {
 	//case symbols.IntegerType:
 	}
 
+	if dtype.Base() == symbols.MARRAY_TYPE {
+		return fmt.Sprintf("[%v x %v]",
+			dtype.SubTypes()[1].Number,
+			MakeLLVMType(dtype.SubTypes()[0].DType))
+	}
+
 	output.FatalError("Unimplemented constant type: %v", dtype)
 	return "INVALID"
 }
@@ -297,6 +303,26 @@ func MakeLLVMConst(val symbols.DataValue) string {
 	case symbols.Real64Type: return MakeLLVMReal(val)
 
 	//case symbols.IntegerType:
+	}
+
+	if val.Type().Base() == symbols.MARRAY_TYPE {
+		typename := MakeLLVMType(val.Type().SubTypes()[0].DType)
+		ret := "["
+		for i, x := range val.(symbols.ListDataValue).AsSlice() {
+
+			if i > 0 {
+				ret = ret + ", "
+			}
+
+			ret = ret + typename + " "
+			if x == nil {
+				ret = ret + "zeroinitializer"
+			} else {
+				ret = ret + MakeLLVMConst(x)
+			}
+		}
+		ret = ret + "]"
+		return ret
 	}
 
 	output.FatalError("Unimplemented constant type: %v", val)

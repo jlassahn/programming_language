@@ -50,7 +50,7 @@ var UNSIGNED_VALUE = &ValueTag{"UNSIGNED_VALUE"}
 var NAMESPACE_VALUE = &ValueTag{"NAMESPACE_VALUE"}
 var GLOBAL_DATA_VALUE = &ValueTag{"GLOBAL_DATA_VALUE"}
 var FUNCTION_CHOICE_VALUE = &ValueTag{"FUNCTION_CHOICE_VALUE"}
-
+var LIST_VALUE = &ValueTag{"LIST_VALUE"}
 
 type DataValue interface {
 	Tag() *ValueTag
@@ -330,5 +330,40 @@ func (self *functionChoiceDV) ValueAsString() string {
 
 func (self *functionChoiceDV) String() string {
 	return DataValueString(self)
+}
+
+type ListDataValue interface {
+	DataValue
+	AsSlice() []DataValue
+	Length() int
+	GetElement(n int) DataValue
+}
+
+type listDV struct {
+	dtype DataType
+	value []DataValue
+}
+
+func (self *listDV) Tag() *ValueTag { return LIST_VALUE }
+func (self *listDV) Type() DataType { return self.dtype }
+
+func (self *listDV) ValueAsString() string {
+	return fmt.Sprintf("%v", self.value)
+}
+
+func (self *listDV) String() string {
+	return DataValueString(self)
+}
+
+func (self *listDV) AsSlice() []DataValue {
+	return self.value
+}
+
+func (self *listDV)  Length() int {
+	return len(self.value)
+}
+
+func (self *listDV) GetElement(n int) DataValue {
+	return self.value[n]
 }
 

@@ -31,6 +31,7 @@ var codegenOKTests = []string {
 	"simple",
 	"main",
 	"factorial",
+	"marray",
 }
 
 var executionOKTests = []string {

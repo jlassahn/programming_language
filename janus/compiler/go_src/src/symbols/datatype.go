@@ -2,6 +2,7 @@
 package symbols
 
 import (
+	"fmt"
 )
 
 type Tag struct { string }
@@ -137,5 +138,65 @@ func (self *simpleDT) Members() map[string]Symbol {
 
 func (self *simpleDT) String() string {
 	return self.tag.string
+}
+
+type paramDT struct {
+	tag *Tag
+	params []DTypeParameter
+	members map[string]Symbol
+}
+
+func (self *paramDT) Base() *Tag {
+	return self.tag
+}
+
+func (self *paramDT) SubTypes() []DTypeParameter {
+	return self.params
+}
+
+func (self *paramDT) Members() map[string]Symbol {
+	return self.members
+}
+
+func (self *paramDT) String() string {
+	ret := self.tag.string
+	ret = ret + "("
+	for i, p := range self.params {
+		if i > 0 {
+			ret = ret + ","
+		}
+		if p.DType == nil {
+			ret = ret + fmt.Sprintf("%d", p.Number)
+		} else {
+			ret = ret + p.DType.String()
+		}
+	}
+	ret = ret + ")"
+	return ret
+}
+
+type typevarDT struct {
+	id int
+	numeric bool
+}
+
+func (self *typevarDT) Base() *Tag {
+	return TYPEVAR_TYPE
+}
+
+func (self *typevarDT) SubTypes() []DTypeParameter {
+	return nil
+}
+
+func (self *typevarDT) Members() map[string]Symbol {
+	return nil
+}
+
+func (self *typevarDT) String() string {
+	if self.numeric {
+		return fmt.Sprintf("#%d", self.id)
+	} else {
+		return fmt.Sprintf("@%d", self.id)
+	}
 }
 

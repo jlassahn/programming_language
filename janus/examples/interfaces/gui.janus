@@ -6,17 +6,17 @@
 
 janus 1.0;
 
+import gui.drawing;
 
-# Creates a default GUI Controller, with whatever the normal settings
+# A default GUI Controller, with whatever the normal settings
 # are.  Some implementations might also provide custom CreateControlerXXX
 # functions that give more control over the connection.
 #
-def CreateController() -> Controller;
+def default_controller m_ref(m_Controller);
 
 
 # a Controller is a connection to the graphics system.
-# Typically a program will create a single Controller at startup and
-# continue using it forever.
+# Typically a program will use default_controller.
 #
 # For things like remote desktop systems, it may be useful to create
 # multiple Controllers that manage different displays.
@@ -26,7 +26,9 @@ def CreateController() -> Controller;
 #
 interface Controller
 {
-	def CreateWindow() -> Window;
+	# GetContentSize returns the available screen area for windows.
+	#
+	def GetContentSize() -> Rectangle;
 
 	# Run with no parameters does not return until Break is called
 	# even if all windows have been destroyed.
@@ -36,57 +38,92 @@ interface Controller
 	# to prevent the GUI from freezing.
 	#
 	def Run() -> Void;
-	def Run(seconds Float64) -> Void;
+	def Run(seconds Real64) -> Void;
 
 	# Break() can be called to make Run return
 	# can be called from an event handler in an Element
 	# or from another thread
+	#
 	def Break() -> Void;
+
+	def Destroy() -> Void;
 }
+
+m_struct m_Controller implements Controller;
+method m_Controller.CreateWindow() -> m_ref(MWindow);
+method m_Controller.GetContentSize() -> Rectangle;
+method m_Controller.Run() -> Void;
+method m_Controller.Run(seconds Real64) -> Void;
+method m_Controller.Break() -> Void;
+method m_Controller.Destroy() -> Void;
+
 
 interface Element
 {
 	def Destroy() -> Void;
 	def Show() -> Void;
 	def Hide() -> Void;
+	def IsVisible() -> Bool;
 
 	def SetOutsideSize(x0 Int32, y0, Int32, dx Int32, dy Int32) -> Void;
 	def SetOutsideSize(rect Rectangle) -> Void;
 	def GetOutsideSize() -> Rectangle;
 
-	def SetContentSize(x0 Int32, y0, Int32, dx Int32, dy Int32) -> Void;
-	def SetContentSize(rect Rectangle) -> Void;
 	def GetContentSize() -> Rectangle;
-
-	# an event can have multiple handlers, but a given function
-	# can only be in the list once.
-	#
-	def Subscribe(event EventID, handler Handler) -> Void;
-	def Unsubscribe(event EventID, handler Handler) -> Void;
-	def SendEvent(event Event) -> Void;
+	def GetParent() -> Element;
 }
 
+def CreateWindow(controller Controller) -> m_ref(m_Window);
 interface Window extends Element
 {
 	def SetDecorations(x DecorationFlags) -> Void;
 	def GetDecorations() -> DecorationFlags;
 
+	def handle_resize function() -> Void;
+	def handle_close function() -> Void;
 }
 
-interface Widget extends Element
+def CreateMainMenu(window Window) -> m_ref(m_Menu);
+def CreatePopupMenu(el Element) -> m_ref(m_Menu);
+interface Menu
 {
-	def parent Element;
+	def Destroy() -> Void;
+
+	def AddSubmenu(icon gui.bitmap.Image, text String, state Int32) -> Menu;
+	def AddItem(icon gui.bitmap.Image, text String, state Int32) -> MenuItem;
+	def AddRule() -> MenuItem;
 }
 
-
-interface Event
+interface MenuItem
 {
-	id EventID;
+	def Destroy() -> Void;
+	def SetState(state Int32) -> Void;
+	def GetState() -> Int32;
+	def GetIcon() -> gui.bitmap.Image;
+	def GetText() -> String;
+
+	def handle_select function(item MenuItem) -> Void;
 }
 
-alias EventID Int32;
+# a region is an unstructured rectangle which receives events
+# and can act as a drawing context.
+#
+def CreateRegion(window Window) -> m_ref(m_Region);
+interface Region extends Element
+{
+	def handle_mouse_in function(x Int32, y Int32) -> Void;
+	def handle_mouse_out function(x Int32, y Int32) -> Void;
+	def handle_mouse_down function(x Int32, y Int32, btn Int32) -> Void;
+	def handle_mouse_up function(x Int32, y Int32, btn Int32) -> Void;
+	def handle_mouse_move function(x Int32, y Int32, btn Int32) -> Void;
+	def handle_key_down function(keycode Int32, mods Int32) -> Void;
+	def handle_key_up function(keycode Int32, mods Int32) -> Void;
 
-alias Handler Ref(function(event Event) -> Bool);
+	def SetCursorStyle(style CursorStyle) -> Void;
+	def GetDrawingContext() -> gui.drawing.Context;
+}
+
+def CharFromKeycode(keycode Int32, mods Int32) -> Char;
 
 m_struct Rectangle
 {
@@ -103,4 +140,6 @@ const CLOSE_DECORATION  DecorationFlags = 0x0002;
 const RESIZE_DECORATION DecorationFlags = 0x0004;
 const MENU_DECORATION   DecorationFlags = 0x0008;
 
+alias CursorStyle Int32;
+# FIXME what are standard cursor styles?
 

@@ -1,0 +1,11 @@
+
+janus 1.0;
+
+
+def ar MArray(Int32, 5) = [1_s32, 2_s32, 3_s32, 4_s32, 5_s32];
+def ar2 MArray(Real64, 3) = [1.0, 2.0, 3.0];
+
+def Main()
+{
+}
+

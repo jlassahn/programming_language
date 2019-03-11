@@ -36,6 +36,17 @@ func buildPredefinedSymbols() *symbolTable {
 	syms.AddConst("Real32", CTypeType, &typeDV{CTypeType, Real32Type})
 	syms.AddConst("Real64", CTypeType, &typeDV{CTypeType, Real64Type})
 
+	//FIXME where should this live
+	marray := &paramDT{
+		tag: MARRAY_TYPE,
+		params: []DTypeParameter{
+			{0, &typevarDT{1, false}},
+			{0, &typevarDT{2, true}},
+		},
+		members: nil, //FIXME add conversions, etc
+	}
+	syms.AddConst("MArray", MetaTypeType, &typeDV{MetaTypeType, marray})
+
 	addUnaryIntrinsic(syms, "-", "negate_Int8", Int8Type)
 	addUnaryIntrinsic(syms, "-", "negate_Int16", Int16Type)
 	addUnaryIntrinsic(syms, "-", "negate_Int32", Int32Type)
