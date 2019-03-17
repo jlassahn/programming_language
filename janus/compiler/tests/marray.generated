@@ -17,7 +17,14 @@ declare void @clib_print_Int64(i64)
 ; 
 define void @f_marray.Main-FUNCTION-VOID$$(
 ) {
+	%x_0 = alloca i32
+	%loc_4 = alloca [2 x i32]
 
+	store i32 93, i32* %x_0
+	%tmp_1 = insertvalue [2 x i32] zeroinitializer, i32 1, 0
+	%tmp_2 = load i32, i32* %x_0
+	%tmp_3 = insertvalue [2 x i32] %tmp_1, i32 %tmp_2, 1
+	store [2 x i32] %tmp_3, [2 x i32]* %loc_4
 
 	ret void
 }

@@ -28,7 +28,7 @@ func genSymbol(genFunc GeneratedFunction,
 	}
 
 	if sym.IsConst() {
-		return NewDataVal(sym.InitialValue())
+		return NewConstVal(sym.InitialValue())
 	}
 
 	if sym.ModulePath() != nil {

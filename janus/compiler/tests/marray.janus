@@ -7,5 +7,7 @@ def ar2 MArray(Real64, 3) = [1.0, 2.0, 3.0];
 
 def Main()
 {
+	def x = 93_s32;
+	def loc MArray(Int32,2) = [1_s32, x];
 }
 

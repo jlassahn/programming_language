@@ -84,7 +84,7 @@ func (self *generatedFunction) SetReturnType(dtype symbols.DataType) {
 
 func (self *generatedFunction) AddParameter(name string, dtype symbols.DataType) Result {
 
-	ret := NewNamedVal(self.fp, dtype, name)
+	ret := NewLocalVal(self.fp, dtype, name)
 	self.params = append(self.params, ret)
 
 	return ret

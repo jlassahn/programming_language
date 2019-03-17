@@ -23,19 +23,20 @@ var handlers = map[*parser.Tag] ExpressionGenerator {
 	parser.FUNCTION_CONTENT: genFunctionContent,
 	parser.ASSIGNMENT: genAssignment,
 	parser.WHILE: genWhile,
+	parser.LIST: genList,
 }
 
 // indirect call to GenerateExpression, to avoid a circular dependency
 var loopHandler ExpressionGenerator
-
+func init() {
+	loopHandler = GenerateExpression
+}
 
 
 func GenerateExpression(genFunc GeneratedFunction,
 	ctx *symbols.EvalContext, el parser.ParseElement) Result {
 
 	output.FIXMEDebug("GenerateExpression: %v", el)
-
-	loopHandler = GenerateExpression
 
 	handler := handlers[el.ElementType()]
 	if handler == nil {
@@ -54,7 +55,7 @@ func genNumber(genFunc GeneratedFunction,
 	if dv == nil {
 		return nil
 	}
-	return NewDataVal(dv)
+	return NewConstVal(dv)
 }
 
 //FIXME rename -- this converts and loads any data access
@@ -62,7 +63,9 @@ func genNumber(genFunc GeneratedFunction,
 func ConvertParameter(genFunc GeneratedFunction,
 	arg Result, dtype symbols.DataType) Result {
 
-	if arg.IsVariableRef() || arg.IsGlobalRef() {
+	//FIXME if it's a ref and dtype is MRef(argType)
+	//      don't deref, build an MRef instead
+	if arg.IsVariableRef() {
 		arg = DereferenceVariable(genFunc, arg)
 	}
 
@@ -99,7 +102,7 @@ func ConvertValue(genFunc GeneratedFunction,
 	if from.IsConst() {
 		dval := from.ConstVal()
 		dval = symbols.ConvertConstant(dval, to)
-		return NewDataVal(dval)
+		return NewConstVal(dval)
 	}
 
 	fp := genFunc.File()

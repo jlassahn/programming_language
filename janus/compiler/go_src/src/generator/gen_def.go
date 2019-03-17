@@ -51,7 +51,7 @@ func genDef(genFunc GeneratedFunction,
 		return nil
 	}
 
-	genVal := NewNamedVal(genFunc.File(), dtype, name)
+	genVal := NewLocalVal(genFunc.File(), dtype, name)
 	sym.SetGenVal(genVal)
 
 	genFunc.AddPrologue("\t%v = alloca %v", genVal.LLVMVal(), genVal.LLVMType())

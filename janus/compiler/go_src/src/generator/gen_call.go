@@ -81,8 +81,7 @@ func genInvokeFunction(
 			return nil
 
 		} else if fnSym.InitialValue().Tag() == symbols.INTRINSIC_VALUE {
-			//FIXME do we need Typed... ? InitialValue should have the right type.
-			opResult = NewTypedDataVal(fnSym.Type(), fnSym.InitialValue())
+			opResult = NewConstVal(fnSym.InitialValue())
 
 		} else if fnSym.InitialValue().Tag() == symbols.CODE_VALUE  {
 			modPath := fnSym.ModulePath()

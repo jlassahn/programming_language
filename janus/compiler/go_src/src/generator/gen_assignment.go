@@ -29,9 +29,6 @@ func genAssignment(genFunc GeneratedFunction,
 	if lhs.IsVariableRef() {
 		output.FIXMEDebug("lhs is variable ref")
 	}
-	if lhs.IsGlobalRef() {
-		output.FIXMEDebug("lhs is global def")
-	}
 	output.FIXMEDebug("lhs = %v", lhs.LLVMVal())
 	output.FIXMEDebug("rhs = %v", rhs.LLVMVal())
 
