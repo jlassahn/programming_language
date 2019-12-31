@@ -21,6 +21,14 @@ Bit twiddling and logic
  |
  ^| (XOR)
  !
+FIXME separate "early out" operators '&&' and '||' ?
+      and maybe a casting early out OR named ? optimized for error handling:
+      err ?= ThingThatReturnsError();
+      means err = err ? ThingThatReturnsError();
+      which means if err converts to true, keep err, otherwise
+      run ThingThatReturnsError() and assign the result to err
+      This should work for non-bool types that have a conversion to bool
+
 
 Comparisons
  ==  <=  >=  !=   value comparison (works on primitives and when defined)
