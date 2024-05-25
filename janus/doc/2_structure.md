@@ -9,6 +9,79 @@ locations.
 FIXME what about libraries???  Is there a .jlib file to describe linkable
 objects?
 
+FIXME what about accessing symbols that aren't exported, e.g. for tests?
+maybe allow
+```
+def some.other.module.FunctionToTest();
+```
+but only in a non-exported context.  Can we also use that to inject methods
+into other modules?
+
+## The Namespace
+
+Named symbols exist in a hierarchical namespace.
+FIXME the root of the namespace should be called something like "global"
+	we're using . or other special notations for the global namespace but
+	we should probably change everything to use global instead.
+
+When each source file is processed, it builds up its own global namespace.
+Things usually tend to be in the same place in different files' namespaces,
+but things like import module name overrides can make different files
+have things in different places.
+
+When the main program is compiled it puts its top-level symbols into global.
+FIXME how to tell which files are the "main program"?
+FIXME would it be better to put all symbols into nested namespaces?
+	maybe any file listed on the command line of the compiler that
+	doesn't explicitly call out a module name is in global?
+
+When a file is imported, it can only put things into the namespace it is
+importing into. so
+```
+import containers.vector;
+```
+will only add things to global.containers.vector, while
+```
+import global = containers.vector;
+```
+will add the same things to global instead.
+
+FIXME what happens to imports inside of imported files?  Do they get
+added to the top-level file's namespace?  If so, where?
+FIXME are two copies of a type which get added to the namespace in different
+places still the same type?
+```
+#application
+import module1;
+
+# Can I access module2.Thing here?
+# or is it module1.module2.Thing?
+# what if I did import alias = module1; ?
+```
+
+```
+#module1
+import module2;
+def doStuff(module2.Thing a, Int32 b) -> Module2.Thing;
+```
+
+Probably there's a "canonical" namespace, where each symbol has it's full
+unaliased name.  Things that have the same canonical name refer to the same
+object.  It's an error for the canonical namespace to be inconsistent.
+e.g. having multiple files that claim to describe the same full module path
+but don't have consistent definitions for everything.
+
+Probably imports inside of imports don't populate the top-level caller's
+namespace, which means the compile has to deal with symbols that are used
+in the code but aren't active in the namespace.  E.g. a function in module1
+takes a parameter type declared in module2.  The module1 code must import
+module2, but an application that imports module1 has access to the function
+even though it hasn't imported module2.  So the compiler has to reason about
+types in module2 which aren't in the application namespace.
+
+FIXME consider making imports always put things in the canonical spot, then
+having a separate alias feature that makes links to things.
+
 ## Modules, Names, and Paths
 
 Symbols from one source file can be made visible in another using the
@@ -187,7 +260,7 @@ def SomeComplicatedFunction()
 }
 
 # alias a complete function definition from a subpackage
-def AnotherComplicatedFuncion() =
+def AnotherComplicatedFunction() =
 	example.another_function.AnotherComplicatedFunction;
 ```
 
