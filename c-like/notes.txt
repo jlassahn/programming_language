@@ -1,0 +1,18 @@
+
+Goals
+
+* familiar to C programmers
+* good for "bare metal" programming, no runtime system requirements
+* little or no hidden overhead, doesn't run a lot of implicit code
+* get rid of the preprocessor
+* code import system that's semantically simpler than #include
+* order of global definitions and imports doesn't matter
+* interface and implementation in separate files
+* data hiding through interface files, not private keyword
+* namespaces
+* recommended consistent file organization, build procedure, package deployment
+* clearer, easier to parse type syntax
+* code can be parsed without a symbol table
+* constants that are usable at compile time
+* constant functions usable at compile time
+* stricter enums, and different enum types

@@ -1,0 +1,38 @@
+
+import system.stdio;
+import private my.stuff.to.test;
+
+// these are file scoped.  It's safe to use them in import files
+// because they don't apply to the importing file.
+use io = system.io;
+use system.io;
+
+void test_function()
+{
+	use io = system.io;
+	use test = my.stuff.to.test;
+	io.printf("stuff = %d\n", test.stuff);
+}
+
+
+typedef pointer readonly uint8 utf8_string;
+typedef pointer uint8 utf8_buffer;
+
+array(*) uint8 str = "This is some text.";
+array(3, 3) float64 matrix;
+
+voltile uint64 addr = volatile uint64(&matrix);
+
+void assert(bool test, utf8_string file = __FILE__, int line = __LINE__);
+
+
+// this is a primitive provided by the compiler
+constant void static_assert(constant bool test);
+
+
+int main(int argc, pointer utf8_string args)
+{
+	system.stdio.printf("Hello world\n");
+	return 0;
+}
+

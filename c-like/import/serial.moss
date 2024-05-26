@@ -1,0 +1,28 @@
+
+struct Registers
+{
+	uint32 status;
+	uint32 control;
+	uint32 data_rx;
+	uint32 data_tx;
+}
+
+constant uint32 RX_READY = 0x0001;
+constant uint32 TX_READY = 0x0002;
+
+constant uint32 RX_CLEAR = 0x0100;
+constant uint32 TX_SEND = 0x0200;
+
+struct Port
+{
+	pointer volatile Registers registers;
+}
+
+Port COM1;
+Port COM2;
+
+bool CanReceive(Port port);
+bool CanSend(Port port);
+uint8 Receive(Port port);
+void Send(Port port, uint8 data);
+

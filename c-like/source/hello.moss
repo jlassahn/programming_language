@@ -1,0 +1,21 @@
+
+import system.string;
+import serial;
+
+int Main()
+{
+	Port port = serial.COM1;
+
+	system.string.utf8_string text = "Hello, world!\n";
+	int length = system.string.strlen(text);
+
+	for (int i=0; i<length; i++)
+	{
+		while (!serial.CanSend(port))
+			;
+		serial.Send(port, text[i]);
+	}
+
+	return 0;
+}
+
