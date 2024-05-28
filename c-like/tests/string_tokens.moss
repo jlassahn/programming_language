@@ -1,0 +1,10 @@
+
+""
+"This has some \"quotes\" inside it"
+
+
+"Malformed string with line end
+
+"xxx \n"
+
+"Malformed string with end of file
