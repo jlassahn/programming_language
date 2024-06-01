@@ -4,8 +4,8 @@ import private my.stuff.to.test;
 
 // these are file scoped.  It's safe to use them in import files
 // because they don't apply to the importing file.
-use io = system.io;
-use system.io;
+using io = system.io;
+using system.io;
 
 void test_function()
 {

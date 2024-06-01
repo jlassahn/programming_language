@@ -16,3 +16,14 @@ Goals
 * constants that are usable at compile time
 * constant functions usable at compile time
 * stricter enums, and different enum types
+
+
+extensions for classes and templates
+* maybe use type_name[param, param] for type parameters.
+* static and file scope classes must have constant constructors
+* a constant constructor has special permission to write to this
+* possible syntaxes for constructors
+	type variable = create(...);
+	type variable.create(...);
+	pointer type variable = allocate[type]().create(...);
+
