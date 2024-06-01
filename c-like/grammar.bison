@@ -9,6 +9,14 @@ void yyerror(const char *s);
 
 %}
 
+/* punctuators
+  ; = { } , . [ ] ( ) :
+   conditional op
+  ? :
+   other uses of operator characters
+  * for autodetect array size
+*/
+
 %token IDENTIFIER;
 %token NUMBER;
 %token CHARCONST;
@@ -33,6 +41,7 @@ void yyerror(const char *s);
 %token GOTO
 %token IF
 %token IMPORT
+%token INLINE
 %token LINKAGE
 %token LINKNAME
 %token POINTER
@@ -57,14 +66,15 @@ void yyerror(const char *s);
 %token LOG_OR_OP /* || */
 %token LOG_AND_OP /* && */
 %token OR_OP /* | */
-%token AND_OP /* & */
+%token AND_ADDR_OP /* & */
 %token XOR_OP /* ^ */
 %token EQUAL_OP /* == != */
 %token RELATIONAL_OP /* < > <= >= */
 %token SHIFT_OP /* << >> */
 %token ADD_OP /* + - */
-%token MULT_OP /* * / % */
-%token PREFIX_OP /* & * + - ~ ! */
+%token DIV_OP /* / % */
+%token MULT_PTR_OP /* * */
+%token NOT_OP /* ~ ! */
 %token INC_OP /* ++ -- */
 
 %token ELIPSIS
@@ -355,7 +365,7 @@ exclusive_or_expression:
 
 and_expression:
   equality_expression
-| and_expression AND_OP equality_expression
+| and_expression AND_ADDR_OP equality_expression
 ;
 
 equality_expression:
@@ -380,14 +390,18 @@ additive_expression:
 
 multiplicative_expression:
   unary_expression
-| multiplicative_expression MULT_OP unary_expression
+| multiplicative_expression DIV_OP unary_expression
+| multiplicative_expression MULT_PTR_OP unary_expression
   //no cast expression, casts look like function calls now
 ;
 
 unary_expression:
   postfix_expression
 | SIZEOF unary_expression
-| PREFIX_OP unary_expression
+| NOT_OP unary_expression
+| MULT_PTR_OP unary_expression
+| AND_ADDR_OP unary_expression
+| ADD_OP unary_expression
 | INC_OP unary_expression
 ;
 
@@ -442,6 +456,7 @@ type_modifier:
 | READONLY
 | VOLATILE
 | ARRAY '(' expressions ')' // FIXME does this need to be constant ?
+| ARRAY '(' '*' ')'
 | BITFIELD '(' constant_expression ')'
 ;
 
@@ -470,6 +485,7 @@ function_properties:
  /* empty */
 | LINKAGE '(' string_const ')' // FIXME maybe these are any constant expression
 | LINKNAME '(' string_const ')'
+| INLINE
 // FIXME more...
 ;
 
