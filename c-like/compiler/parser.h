@@ -14,6 +14,7 @@ typedef struct ParserContext ParserContext;
 struct ParserSymbol
 {
 	const char *rule_name;
+	// FIXME include actions for generators here.
 };
 
 struct ParserNode

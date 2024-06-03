@@ -6,6 +6,20 @@ int yylex(void);
 void yyerror(const char *s);
 
 #define YYSTYPE double
+#define YYCALLBACK MakeNode
+
+
+double MakeNode(int len, double *args);
+
+/*
+// per rule behavior appears inside
+// switch (yyn)
+// in the output file
+// byacc
+#define MkNode yyval = MakeNode(yym, &yystack.l_mark[1-yym])
+//bison
+//#define MkNode yyval = MakeNode(yylen, &yyvsp[1-yylen])
+*/
 
 %}
 
@@ -95,7 +109,7 @@ file_element:
 
 import_statement:
   IMPORT namespace_expression ';'
-| IMPORT PRIVATE namespace_expression ';'
+| IMPORT PRIVATE namespace_expression ';' { MkNode; }
 ;
 
 using_statement:
@@ -458,6 +472,7 @@ type_modifier:
 | ARRAY '(' expressions ')' // FIXME does this need to be constant ?
 | ARRAY '(' '*' ')'
 | BITFIELD '(' constant_expression ')'
+//FIXME maybe noaddress to prevent making pointers to it
 ;
 
 storage_specifier:
@@ -478,6 +493,8 @@ variable_properties:
  /* empty */
 | LINKAGE '(' string_const ')' // FIXME maybe these are any constant expression
 | LINKNAME '(' string_const ')'
+// extern("image.jpg", "binary")
+// extern("helpfile.txt", "utf-8") // adds zero terminator to string
 // FIXME more...
 ;
 
@@ -504,6 +521,7 @@ union_properties:
 enum_properties:
   /* empty */
 | ALLIGNMENT
+// size(constant_expression)
 // FIXME more ...
 ;
 
@@ -523,6 +541,11 @@ void yyerror(const char *s)
 int main(void)
 {
 	printf("return value = %d\n", yyparse());
+	return 0;
+}
+
+double MakeNode(int count, double *params)
+{
 	return 0;
 }
 

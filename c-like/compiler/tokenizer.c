@@ -12,32 +12,39 @@ const TokenType TOKEN_STRINGCONST = { "STRINGCONST", 0x0000 };
 const TokenType TOKEN_OPERATOR = { "OPERATOR", 0x0000 };
 const TokenType TOKEN_OTHER = { "OTHER", 0x0000 };
 
-// shorter tokens must follow longer tokens which have the same prefix
-const char *operator_list[] =
+typedef struct TokenInfo TokenInfo;
+struct TokenInfo
 {
-	"...",
-	"<<=",
-	">>=",
-	"->",
-	"++",
-	"--",
-	"<<",
-	">>",
-	"<=",
-	">=",
-	"==",
-	"!=",
-	"&&",
-	"||",
-	"*=",
-	"/=",
-	"%=",
-	"+=",
-	"-=",
-	"&=",
-	"^=",
-	"|=",
-	NULL
+	const char *text;
+	int id;
+};
+
+// shorter tokens must follow longer tokens which have the same prefix
+TokenInfo operator_list[] =
+{
+	{ "...", 0 },
+	{ "<<=", 0 },
+	{ ">>=", 0 },
+	{ "->", 0 },
+	{ "++", 0 },
+	{ "--", 0 },
+	{ "<<", 0 },
+	{ ">>", 0 },
+	{ "<=", 0 },
+	{ ">=", 0 },
+	{ "==", 0 },
+	{ "!=", 0 },
+	{ "&&", 0 },
+	{ "||", 0 },
+	{ "*=", 0 },
+	{ "/=", 0 },
+	{ "%=", 0 },
+	{ "+=", 0 },
+	{ "-=", 0 },
+	{ "&=", 0 },
+	{ "^=", 0 },
+	{ "|=", 0 },
+	{ NULL, 0 }
 };
 
 static bool IsSpace(char x);
@@ -49,7 +56,7 @@ static void ConsumePPIdentifier(Tokenizer *tokenizer);
 static void ConsumePPNumber(Tokenizer *tokenizer);
 static void ConsumeStringLiteral(Tokenizer *tokenizer);
 static void ConsumeCharLiteral(Tokenizer *tokenizer);
-static bool MatchAndConsumeList(ParserFile *file, const char **list);
+static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, int *id_out);
 
 void TokenizerStart(Tokenizer *tokenizer, ParserFile* file)
 {
@@ -70,6 +77,7 @@ void TokenizerConsume(Tokenizer *tokenizer)
 	tokenizer->current_token.position.start = file->current_pos;
 	tokenizer->current_token.position.file = file;
 
+	int id = 0;
 	const char *cur = FileGet(file);
 	if (cur[0] == 0)
 	{
@@ -95,7 +103,7 @@ void TokenizerConsume(Tokenizer *tokenizer)
 		tokenizer->current_token.token_type = &TOKEN_CHARCONST;
 		ConsumeCharLiteral(tokenizer);
 	}
-	else if (MatchAndConsumeList(file, operator_list))
+	else if (MatchAndConsumeList(file, operator_list, &id))
 	{
 		tokenizer->current_token.token_type = &TOKEN_OPERATOR;
 	}
@@ -337,13 +345,17 @@ static void ConsumeCharLiteral(Tokenizer *tokenizer)
 }
 
 
-static bool MatchAndConsumeList(ParserFile *file, const char **list)
+static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, int *id_out)
 {
-	for (int i=0; list[i] != NULL; i++)
+	for (int i=0; list[i].text != NULL; i++)
 	{
-		if (FileMatchAndConsume(file, list[i]))
+		if (FileMatchAndConsume(file, list[i].text))
+		{
+			*id_out = list[i].id;
 			return true;
+		}
 	}
+	*id_out = -1;
 	return false;
 }
 
