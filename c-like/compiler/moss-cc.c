@@ -22,7 +22,7 @@ struct CompilerSettings
 
 int main(int argc, const char *argv[])
 {
-	const char * filename = "../source/hello.moss";
+	const char * filename = "examples/source/hello.moss";
 	if (argc == 2)
 		filename = argv[1];
 
