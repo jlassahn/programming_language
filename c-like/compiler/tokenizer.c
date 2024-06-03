@@ -1,7 +1,7 @@
 
-#include "errors.h"
-#include "tokenizer.h"
-#include "parser_file.h"
+#include "compiler/errors.h"
+#include "compiler/tokenizer.h"
+#include "compiler/parser_file.h"
 #include <string.h>
 
 const TokenType TOKEN_EOF = { "EOF", 0x0000 };

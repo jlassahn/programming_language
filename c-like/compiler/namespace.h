@@ -1,4 +1,6 @@
 
+#ifndef INCLUDED_NAMESPACE_H
+#define INCLUDED_NAMESPACE_H
 
 typedef struct Namespace Namespace;
 
@@ -14,4 +16,6 @@ struct SymbolTable
 	Namespace file_scope;
 	NamespaceStack local_scope;
 };
+
+#endif
 

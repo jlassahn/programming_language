@@ -1,13 +1,17 @@
 
 all: build/bin/moss-cc
 
+build/generated/grammar.c: grammar.bison
+	bison -d -o $@ $^
+
 build/bin/moss-cc: \
+	build/generated/grammar.c \
 	compiler/moss-cc.c \
 	compiler/parser_file.c \
 	compiler/tokenizer.c \
 	compiler/errors.c \
 
-	gcc -I compiler -Wall -o $@ $^
+	gcc -I . -Wall -o $@ $^
 
 clean:
 	rm build/bin/moss-cc

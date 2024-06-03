@@ -1,6 +1,6 @@
 
-#include "errors.h"
-#include "parser_file.h"
+#include "compiler/errors.h"
+#include "compiler/parser_file.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>

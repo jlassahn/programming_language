@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "compiler/tokenizer.h"
 
 typedef struct ParserSymbol ParserSymbol;
 typedef struct ParserNode ParserNode;

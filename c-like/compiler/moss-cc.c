@@ -1,6 +1,6 @@
 
-#include "parser_file.h"
-#include "tokenizer.h"
+#include "compiler/parser_file.h"
+#include "compiler/tokenizer.h"
 #include <stdio.h>
 
 typedef struct StringList StringList;

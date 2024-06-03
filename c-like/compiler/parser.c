@@ -1,7 +1,7 @@
 
-#include "parser_file.h"
-#include "tokenizer.h"
-#include "parser.h"
+#include "compiler/parser_file.h"
+#include "compiler/tokenizer.h"
+#include "compiler/parser.h"
 #include <stdio.h>
 
 

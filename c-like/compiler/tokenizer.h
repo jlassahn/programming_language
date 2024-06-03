@@ -2,7 +2,7 @@
 #ifndef INCLUDED_TOKENIZER_H
 #define INCLUDED_TOKENIZER_H
 
-#include "parser_file.h"
+#include "compiler/parser_file.h"
 
 #include <stdint.h>
 #include <stdbool.h>

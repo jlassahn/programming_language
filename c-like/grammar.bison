@@ -1,25 +1,11 @@
 
 %{
-#include <stdio.h>
+#include "compiler/parser.h"
 
 int yylex(void);
 void yyerror(const char *s);
 
-#define YYSTYPE double
-#define YYCALLBACK MakeNode
-
-
-double MakeNode(int len, double *args);
-
-/*
-// per rule behavior appears inside
-// switch (yyn)
-// in the output file
-// byacc
-#define MkNode yyval = MakeNode(yym, &yystack.l_mark[1-yym])
-//bison
-//#define MkNode yyval = MakeNode(yylen, &yyvsp[1-yylen])
-*/
+#define YYSTYPE ParserNode *
 
 %}
 
@@ -109,7 +95,7 @@ file_element:
 
 import_statement:
   IMPORT namespace_expression ';'
-| IMPORT PRIVATE namespace_expression ';' { MkNode; }
+| IMPORT PRIVATE namespace_expression ';'
 ;
 
 using_statement:
@@ -529,23 +515,12 @@ enum_properties:
 
 int yylex(void)
 {
-	yylval = 1234;
+	yylval = NULL;
 	return 0;
 }
 
 void yyerror(const char *s)
 {
 	printf("ERROR: %s\n", s);
-}
-
-int main(void)
-{
-	printf("return value = %d\n", yyparse());
-	return 0;
-}
-
-double MakeNode(int count, double *params)
-{
-	return 0;
 }
 
