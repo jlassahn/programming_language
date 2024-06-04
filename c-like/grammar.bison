@@ -1,5 +1,6 @@
 
 %{
+#include <stdio.h>
 #include "compiler/parser.h"
 
 int yylex(void);
@@ -10,11 +11,9 @@ void yyerror(const char *s);
 %}
 
 /* punctuators
-  ; = { } , . [ ] ( ) :
+  ; { } , . [ ] ( ) :
    conditional op
   ? :
-   other uses of operator characters
-  * for autodetect array size
 */
 
 %token IDENTIFIER;
@@ -62,20 +61,39 @@ void yyerror(const char *s);
 // reserve TEMPLATE and CLASS for future...
 
 // operators
-%token ASSIGNMENT_OP /* = *= /= %= += -= <<= >>= &= ^= |= */
-%token LOG_OR_OP /* || */
-%token LOG_AND_OP /* && */
-%token OR_OP /* | */
-%token AND_ADDR_OP /* & */
-%token XOR_OP /* ^ */
-%token EQUAL_OP /* == != */
-%token RELATIONAL_OP /* < > <= >= */
-%token SHIFT_OP /* << >> */
-%token ADD_OP /* + - */
-%token DIV_OP /* / % */
-%token MULT_PTR_OP /* * */
-%token NOT_OP /* ~ ! */
-%token INC_OP /* ++ -- */
+%token ASSIGN_OP      /* = */
+%token ASSIGN_MULT_OP /* *= */
+%token ASSIGN_DIV_OP  /* /= */
+%token ASSIGN_MOD_OP  /* %= */
+%token ASSIGN_ADD_OP  /* += */
+%token ASSIGN_SUB_OP  /* -= */
+%token ASSIGN_SHR_OP  /* >>= */
+%token ASSIGN_SHL_OP  /* <<= */
+%token ASSIGN_AND_OP  /* &= */
+%token ASSIGN_OR_OP   /* |= */
+%token ASSIGN_XOR_OP  /* ^= */
+%token LOG_OR_OP      /* || */
+%token LOG_AND_OP     /* && */
+%token OR_OP          /* | */
+%token AND_ADDR_OP    /* & */
+%token XOR_OP         /* ^ */
+%token EQUAL_OP       /* == */
+%token NEQUAL_OP      /* != */
+%token LESS_OP        /* < */
+%token GREATER_OP     /* > */
+%token LESSEQ_OP      /* <= */
+%token GREATEREQ_OP   /* >= */
+%token SHL_OP         /* << */
+%token SHR_OP         /* >> */
+%token ADD_OP         /* + */
+%token SUB_OP         /* - */
+%token DIV_OP         /* / */
+%token MOD_OP         /* % */
+%token MULT_PTR_OP    /* * */
+%token NOT_OP         /* ! */
+%token BITNOT_OP      /* ~ */
+%token INC_OP         /* ++ */
+%token DEC_OP         /* -- */
 
 %token ELIPSIS
 
@@ -132,8 +150,8 @@ declaration_type:
 
 initializer:
   /* empty */
-| '=' expression
-| '=' '{' initializers '}'
+| ASSIGN_OP expression
+| ASSIGN_OP '{' initializers '}'
 ;
 
 initializers:
@@ -155,11 +173,11 @@ initializer_element:
 ;
 
 struct_initializer:
-  '.' IDENTIFIER '=' constant_expression
+  '.' IDENTIFIER ASSIGN_OP constant_expression
 ;
 
 array_initializer:
-  '[' constant_expression ']' '=' constant_expression
+  '[' constant_expression ']' ASSIGN_OP constant_expression
 ;
 
 compound_statement:
@@ -205,7 +223,7 @@ enum_element_list:
 
 enum_element:
   IDENTIFIER ';'
-| IDENTIFIER '=' constant_expression ';'
+| IDENTIFIER ASSIGN_OP constant_expression ';'
 ;
 
 external_declaration:
@@ -333,9 +351,21 @@ expression:
 
 assignment_expression:
   conditional_expression
-| unary_expression ASSIGNMENT_OP assignment_expression
-	// probably doesn't have to be unary, could be 
-	// conditional_expression ASSIGNMENT_OP assignment_expression
+| unary_expression assignment_op assignment_expression
+;
+
+assignment_op:
+  ASSIGN_OP
+| ASSIGN_MULT_OP
+| ASSIGN_DIV_OP
+| ASSIGN_MOD_OP
+| ASSIGN_ADD_OP
+| ASSIGN_SUB_OP
+| ASSIGN_SHR_OP
+| ASSIGN_SHL_OP
+| ASSIGN_AND_OP
+| ASSIGN_OR_OP
+| ASSIGN_XOR_OP
 ;
 
 conditional_expression:
@@ -371,26 +401,33 @@ and_expression:
 equality_expression:
   relational_expression
 | equality_expression EQUAL_OP relational_expression
+| equality_expression NEQUAL_OP relational_expression
 ;
 
 relational_expression:
   shift_expression
-| relational_expression RELATIONAL_OP shift_expression
+| relational_expression LESS_OP shift_expression
+| relational_expression GREATER_OP shift_expression
+| relational_expression LESSEQ_OP shift_expression
+| relational_expression GREATEREQ_OP shift_expression
 ;
 
 shift_expression:
   additive_expression
-| shift_expression SHIFT_OP additive_expression
+| shift_expression SHL_OP additive_expression
+| shift_expression SHR_OP additive_expression
 ;
 
 additive_expression:
   multiplicative_expression
 | additive_expression ADD_OP multiplicative_expression
+| additive_expression SUB_OP multiplicative_expression
 ;
 
 multiplicative_expression:
   unary_expression
 | multiplicative_expression DIV_OP unary_expression
+| multiplicative_expression MOD_OP unary_expression
 | multiplicative_expression MULT_PTR_OP unary_expression
   //no cast expression, casts look like function calls now
 ;
@@ -399,10 +436,13 @@ unary_expression:
   postfix_expression
 | SIZEOF unary_expression
 | NOT_OP unary_expression
+| BITNOT_OP unary_expression
 | MULT_PTR_OP unary_expression
 | AND_ADDR_OP unary_expression
 | ADD_OP unary_expression
+| SUB_OP unary_expression
 | INC_OP unary_expression
+| DEC_OP unary_expression
 ;
 
 postfix_expression:
@@ -412,6 +452,7 @@ postfix_expression:
 | postfix_expression '{' initializers '}'
 | postfix_expression '.' IDENTIFIER // ambiguous with namespace_expression
 | postfix_expression INC_OP
+| postfix_expression DEC_OP
 // no arrow operator postfix_expression -> IDENTIFIER
 ;
 
@@ -456,7 +497,7 @@ type_modifier:
 | READONLY
 | VOLATILE
 | ARRAY '(' expressions ')' // FIXME does this need to be constant ?
-| ARRAY '(' '*' ')'
+| ARRAY '(' MULT_PTR_OP ')'
 | BITFIELD '(' constant_expression ')'
 //FIXME maybe noaddress to prevent making pointers to it
 ;

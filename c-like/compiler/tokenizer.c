@@ -4,46 +4,64 @@
 #include "compiler/parser_file.h"
 #include <string.h>
 
-const TokenType TOKEN_EOF = { "EOF", 0x0000 };
-const TokenType TOKEN_PPIDENTIFIER = { "IDENTIFIER", 0x0000 };
-const TokenType TOKEN_PPNUMBER = { "PPNUMBER", 0x0000 };
-const TokenType TOKEN_CHARCONST = { "CHARCONST", 0x0000 };
-const TokenType TOKEN_STRINGCONST = { "STRINGCONST", 0x0000 };
-const TokenType TOKEN_OPERATOR = { "OPERATOR", 0x0000 };
-const TokenType TOKEN_OTHER = { "OTHER", 0x0000 };
 
 typedef struct TokenInfo TokenInfo;
 struct TokenInfo
 {
 	const char *text;
-	int id;
+	const TokenType *token_type;
 };
 
 // shorter tokens must follow longer tokens which have the same prefix
 TokenInfo operator_list[] =
 {
-	{ "...", 0 },
-	{ "<<=", 0 },
-	{ ">>=", 0 },
-	{ "->", 0 },
-	{ "++", 0 },
-	{ "--", 0 },
-	{ "<<", 0 },
-	{ ">>", 0 },
-	{ "<=", 0 },
-	{ ">=", 0 },
-	{ "==", 0 },
-	{ "!=", 0 },
-	{ "&&", 0 },
-	{ "||", 0 },
-	{ "*=", 0 },
-	{ "/=", 0 },
-	{ "%=", 0 },
-	{ "+=", 0 },
-	{ "-=", 0 },
-	{ "&=", 0 },
-	{ "^=", 0 },
-	{ "|=", 0 },
+	{"...", &TOKEN_ELIPSIS },
+	{">>=", &TOKEN_ASSIGN_SHR_OP },
+	{"<<=", &TOKEN_ASSIGN_SHL_OP },
+	{"*=", &TOKEN_ASSIGN_MULT_OP },
+	{"/=", &TOKEN_ASSIGN_DIV_OP },
+	{"%=", &TOKEN_ASSIGN_MOD_OP },
+	{"+=", &TOKEN_ASSIGN_ADD_OP },
+	{"-=", &TOKEN_ASSIGN_SUB_OP },
+	{"&=", &TOKEN_ASSIGN_AND_OP },
+	{"|=", &TOKEN_ASSIGN_OR_OP },
+	{"^=", &TOKEN_ASSIGN_XOR_OP },
+	{"||", &TOKEN_LOG_OR_OP },
+	{"&&", &TOKEN_LOG_AND_OP },
+	{"==", &TOKEN_EQUAL_OP },
+	{"!=", &TOKEN_NEQUAL_OP },
+	{"<=", &TOKEN_LESSEQ_OP },
+	{">=", &TOKEN_GREATEREQ_OP },
+	{"<<", &TOKEN_SHL_OP },
+	{">>", &TOKEN_SHR_OP },
+	{"++", &TOKEN_INC_OP },
+	{"--", &TOKEN_DEC_OP },
+	{"=", &TOKEN_ASSIGN_OP },
+	{"|", &TOKEN_OR_OP },
+	{"&", &TOKEN_AND_ADDR_OP },
+	{"^", &TOKEN_XOR_OP },
+	{"<", &TOKEN_LESS_OP },
+	{">", &TOKEN_GREATER_OP },
+	{"+", &TOKEN_ADD_OP },
+	{"-", &TOKEN_SUB_OP },
+	{"/", &TOKEN_DIV_OP },
+	{"%", &TOKEN_MOD_OP },
+	{"*", &TOKEN_MULT_PTR_OP },
+	{"!", &TOKEN_NOT_OP },
+	{"~", &TOKEN_BITNOT_OP },
+
+	{";", &TOKEN_SEMICOLON },
+	{"{", &TOKEN_LCURLY },
+	{"}", &TOKEN_RCURLY },
+	{",", &TOKEN_COMMA },
+	{".", &TOKEN_DOT },
+	{"[", &TOKEN_LSQUARE },
+	{"]", &TOKEN_RSQUARE },
+	{"(", &TOKEN_LPAREN },
+	{")", &TOKEN_RPAREN },
+	{":", &TOKEN_COLON },
+	{"?", &TOKEN_QUESTION },
+
 	{ NULL, 0 }
 };
 
@@ -56,7 +74,7 @@ static void ConsumePPIdentifier(Tokenizer *tokenizer);
 static void ConsumePPNumber(Tokenizer *tokenizer);
 static void ConsumeStringLiteral(Tokenizer *tokenizer);
 static void ConsumeCharLiteral(Tokenizer *tokenizer);
-static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, int *id_out);
+static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, const TokenType **tt_out);
 
 void TokenizerStart(Tokenizer *tokenizer, ParserFile* file)
 {
@@ -77,7 +95,7 @@ void TokenizerConsume(Tokenizer *tokenizer)
 	tokenizer->current_token.position.start = file->current_pos;
 	tokenizer->current_token.position.file = file;
 
-	int id = 0;
+	const TokenType *tt = NULL;
 	const char *cur = FileGet(file);
 	if (cur[0] == 0)
 	{
@@ -85,12 +103,12 @@ void TokenizerConsume(Tokenizer *tokenizer)
 	}
 	else if (IsLetter(cur[0]))
 	{
-		tokenizer->current_token.token_type = &TOKEN_PPIDENTIFIER;
+		tokenizer->current_token.token_type = &TOKEN_IDENTIFIER;
 		ConsumePPIdentifier(tokenizer);
 	}
 	else if (IsDigit(cur[0]) || (cur[0] == '.' && IsDigit(cur[1])))
 	{
-		tokenizer->current_token.token_type = &TOKEN_PPNUMBER;
+		tokenizer->current_token.token_type = &TOKEN_NUMBER;
 		ConsumePPNumber(tokenizer);
 	}
 	else if (cur[0] == '\"')
@@ -103,13 +121,13 @@ void TokenizerConsume(Tokenizer *tokenizer)
 		tokenizer->current_token.token_type = &TOKEN_CHARCONST;
 		ConsumeCharLiteral(tokenizer);
 	}
-	else if (MatchAndConsumeList(file, operator_list, &id))
+	else if (MatchAndConsumeList(file, operator_list, &tt))
 	{
-		tokenizer->current_token.token_type = &TOKEN_OPERATOR;
+		tokenizer->current_token.token_type = tt;
 	}
 	else
 	{
-		tokenizer->current_token.token_type = &TOKEN_OTHER;
+		tokenizer->current_token.token_type = &TOKEN_UNKNOWN;
 		FileConsume(file, 1);
 	}
 
@@ -128,11 +146,12 @@ bool TokenizerIsEOF(Tokenizer *tokenizer)
 
 void TokenPrint(FILE *fp, Token *token)
 {
-	fprintf(fp, "[%s:%ld:%ld]%s[%ld:%ld] = [%.*s]\n",
+	fprintf(fp, "[%s:%ld:%ld]%s(%d)[%ld:%ld] = [%.*s]\n",
 			token->position.file->filename,
 			token->position.start.line+1,
 			token->position.start.byte_in_line+1,
 			token->token_type->name,
+			token->token_type->id,
 			token->position.end.line+1,
 			token->position.end.byte_in_line+1,
 			(int)(token->position.end.offset - token->position.start.offset),
@@ -345,17 +364,17 @@ static void ConsumeCharLiteral(Tokenizer *tokenizer)
 }
 
 
-static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, int *id_out)
+static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, const TokenType **tt_out)
 {
 	for (int i=0; list[i].text != NULL; i++)
 	{
 		if (FileMatchAndConsume(file, list[i].text))
 		{
-			*id_out = list[i].id;
+			*tt_out = list[i].token_type;
 			return true;
 		}
 	}
-	*id_out = -1;
+	*tt_out = NULL;
 	return false;
 }
 

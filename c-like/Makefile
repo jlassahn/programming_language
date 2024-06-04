@@ -9,6 +9,7 @@ build/bin/moss-cc: \
 	compiler/moss-cc.c \
 	compiler/parser_file.c \
 	compiler/tokenizer.c \
+	compiler/token_defs.c \
 	compiler/errors.c \
 
 	gcc -I . -Wall -o $@ $^

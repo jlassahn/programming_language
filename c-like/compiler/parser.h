@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "compiler/tokenizer.h"
+#include "compiler/parser_file.h"
 
 typedef struct ParserSymbol ParserSymbol;
 typedef struct ParserNode ParserNode;
@@ -32,7 +32,7 @@ struct ParserNode
 	// error information
 };
 
-ParserNode *ParseFile(ParserContext *context);
+ParserNode *ParseFile(ParserFile *file, ParserContext *context);
 
 extern ParserSymbol *SYM_FILE;
 
