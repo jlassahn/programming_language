@@ -10,9 +10,10 @@ build/bin/moss-cc: \
 	compiler/parser_file.c \
 	compiler/tokenizer.c \
 	compiler/token_defs.c \
+	compiler/parser.c \
 	compiler/errors.c \
 
-	gcc -I . -Wall -o $@ $^
+	gcc -DYYDEBUG -I . -Wall -o $@ $^
 
 clean:
 	rm build/bin/moss-cc

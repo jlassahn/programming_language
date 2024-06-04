@@ -5,9 +5,57 @@
 #include <stdio.h>
 
 
+// Bison parser interface
+int yyparse (void);
 
-ParserNode *ParseFile(ParserContext *context);
+typedef struct BisonConnector BisonConnector;
+struct BisonConnector
+{
+	Tokenizer tokenizer;
+	ParserFile *file;
+};
 
+static BisonConnector bison_connector;
+ParserNode * yylval = NULL;
+
+ParserNode *ParseFile(ParserFile *file, ParserContext *context)
+{
+	bison_connector.file = file;
+	TokenizerStart(&bison_connector.tokenizer, file);
+
+	int ret = yyparse();
+	printf("parser return = %d\n", ret);
+
+	return NULL; // FIXME get nodes
+}
+
+int yylex(void)
+{
+	if (TokenizerIsEOF(&bison_connector.tokenizer))
+	{
+		yylval = NULL;
+		return 0;
+	}
+	else
+	{
+		Token token;
+		GetCurrentToken(&bison_connector.tokenizer, &token);
+		TokenizerConsume(&bison_connector.tokenizer);
+
+		yylval = NULL; // FIXME build ParserNode from token
+		int id = token.token_type->id;
+
+		return id;
+	}
+}
+
+void yyerror(const char *s)
+{
+	printf("ERROR: %s\n", s);
+}
+
+
+// writing a recursive descent parser by hand would look like...
 #if 0
 /*
 STATEMENT:

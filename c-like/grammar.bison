@@ -259,7 +259,12 @@ label_statement:
 ;
 
 for_statement:
-  FOR '(' expression ';' expression ';' expression ')' statement
+  FOR '(' for_initializer ';' expression ';' expression ')' statement
+;
+
+for_initializer:
+  expression
+| declaration_type IDENTIFIER variable_properties initializer
 ;
 
 while_statement:
@@ -553,15 +558,4 @@ enum_properties:
 ;
 
 %%
-
-int yylex(void)
-{
-	yylval = NULL;
-	return 0;
-}
-
-void yyerror(const char *s)
-{
-	printf("ERROR: %s\n", s);
-}
 

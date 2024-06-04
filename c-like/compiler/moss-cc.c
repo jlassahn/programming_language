@@ -1,6 +1,7 @@
 
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
+#include "compiler/parser.h"
 #include <stdio.h>
 
 typedef struct StringList StringList;
@@ -20,8 +21,11 @@ struct CompilerSettings
 	StringList targets;
 };
 
+extern int yydebug;
+
 int main(int argc, const char *argv[])
 {
+	//yydebug = 1;
 	const char * filename = "examples/source/hello.moss";
 	if (argc == 2)
 		filename = argv[1];
@@ -33,17 +37,7 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
-	Tokenizer tokenizer;
-	Token token;
-
-	TokenizerStart(&tokenizer, file);
-	while (!TokenizerIsEOF(&tokenizer))
-	{
-		GetCurrentToken(&tokenizer, &token);
-		TokenizerConsume(&tokenizer);
-
-		TokenPrint(stdout, &token);
-	}
+	ParserNode *root = ParseFile(file, NULL);
 
 	FileFree(file);
 

@@ -62,7 +62,48 @@ TokenInfo operator_list[] =
 	{":", &TOKEN_COLON },
 	{"?", &TOKEN_QUESTION },
 
-	{ NULL, 0 }
+	{ NULL, NULL }
+};
+
+TokenInfo keyword_list[] =
+{
+	{ "alias", &TOKEN_ALIAS },
+	{ "allignment", &TOKEN_ALLIGNMENT }, // FIXME maybe not real
+	{ "as", &TOKEN_AS },
+	{ "array", &TOKEN_ARRAY },
+	{ "auto", &TOKEN_AUTO },
+	{ "bitfield", &TOKEN_BITFIELD },
+	{ "break", &TOKEN_BREAK },
+	{ "case", &TOKEN_CASE },
+	{ "constant", &TOKEN_CONSTANT },
+	{ "continue", &TOKEN_CONTINUE },
+	{ "default", &TOKEN_DEFAULT },
+	{ "do", &TOKEN_DO },
+	{ "else", &TOKEN_ELSE },
+	{ "enum", &TOKEN_ENUM },
+	{ "for", &TOKEN_FOR },
+	{ "goto", &TOKEN_GOTO },
+	{ "if", &TOKEN_IF },
+	{ "import", &TOKEN_IMPORT },
+	{ "inline", &TOKEN_INLINE },
+	{ "linkage", &TOKEN_LINKAGE },
+	{ "linkname", &TOKEN_LINKNAME },
+	{ "pointer", &TOKEN_POINTER },
+	{ "private", &TOKEN_PRIVATE },
+	{ "readonly", &TOKEN_READONLY },
+	{ "register", &TOKEN_REGISTER },
+	{ "restrict", &TOKEN_RESTRICT },
+	{ "return", &TOKEN_RETURN },
+	{ "sizeof", &TOKEN_SIZEOF },
+	{ "static", &TOKEN_STATIC },
+	{ "struct", &TOKEN_STRUCT },
+	{ "switch", &TOKEN_SWITCH },
+	{ "typedef", &TOKEN_TYPEDEF },
+	{ "union", &TOKEN_UNION },
+	{ "using", &TOKEN_USING },
+	{ "volatile", &TOKEN_VOLATILE },
+	{ "while", &TOKEN_WHILE },
+	{ NULL, NULL }
 };
 
 static bool IsSpace(char x);
@@ -75,6 +116,7 @@ static void ConsumePPNumber(Tokenizer *tokenizer);
 static void ConsumeStringLiteral(Tokenizer *tokenizer);
 static void ConsumeCharLiteral(Tokenizer *tokenizer);
 static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, const TokenType **tt_out);
+static const TokenType *MatchTokenList(TokenInfo *list, const char *text, int length);
 
 void TokenizerStart(Tokenizer *tokenizer, ParserFile* file)
 {
@@ -103,8 +145,16 @@ void TokenizerConsume(Tokenizer *tokenizer)
 	}
 	else if (IsLetter(cur[0]))
 	{
-		tokenizer->current_token.token_type = &TOKEN_IDENTIFIER;
 		ConsumePPIdentifier(tokenizer);
+
+		const char *text = cur;
+		int length = file->current_pos.offset -
+			tokenizer->current_token.position.start.offset;
+		tt = MatchTokenList(keyword_list, text, length);
+		if (tt)
+			tokenizer->current_token.token_type = tt;
+		else
+			tokenizer->current_token.token_type = &TOKEN_IDENTIFIER;
 	}
 	else if (IsDigit(cur[0]) || (cur[0] == '.' && IsDigit(cur[1])))
 	{
@@ -376,5 +426,18 @@ static bool MatchAndConsumeList(ParserFile *file, TokenInfo *list, const TokenTy
 	}
 	*tt_out = NULL;
 	return false;
+}
+
+static const TokenType *MatchTokenList(TokenInfo *list, const char *text, int length)
+{
+	for (int i=0; list[i].text != NULL; i++)
+	{
+		if ((strncmp(list[i].text, text, length) == 0)
+				&& (list[i].text[length] == 0))
+		{
+			return list[i].token_type;
+		}
+	}
+	return NULL;
 }
 
