@@ -3,8 +3,15 @@
 #include <stdio.h>
 #include "compiler/parser.h"
 
+// Bison C interface adjustments
 int yylex(void);
 void yyerror(const char *s);
+
+// yylen is an internal symbol that counts the number of inputs to the rule.
+// yyvsp is the internal stack holding semantic values.
+#define MkNode(kind) ((yyval) = MakeNode(kind, yylen, &yyvsp[1-yylen]))
+#define MkEmpty ((yyval) = MakeNode(&SYM_EMPTY, 0, NULL))
+#define MkMove ((yyval) = yyvsp[1-yylen])
 
 #define YYSTYPE ParserNode *
 
@@ -100,383 +107,389 @@ void yyerror(const char *s);
 %%
 
 file:
-  /* empty */
-| file file_element
+  /* empty */       { MkEmpty; }
+| file file_element { MkNode(&SYM_FIXME); }
 // FIXME maybe a file header?
 ;
 
 file_element:
-  import_statement
-| using_statement
-| external_declaration
+  import_statement     { MkMove; }
+| using_statement      { MkMove; }
+| external_declaration { MkMove; }
 ;
 
 import_statement:
-  IMPORT namespace_expression ';'
-| IMPORT PRIVATE namespace_expression ';'
+  IMPORT namespace_expression ';'         { MkNode(&SYM_FIXME); }
+| IMPORT PRIVATE namespace_expression ';' { MkNode(&SYM_FIXME); }
 ;
 
 using_statement:
-  USING namespace_expression ';'
-| USING namespace_expression AS namespace_expression ';'
+  USING namespace_expression ';'                         { MkNode(&SYM_FIXME); }
+| USING namespace_expression AS namespace_expression ';' { MkNode(&SYM_FIXME); }
 ;
 
+// extra trailing comma allowed
 proto_params:
-  /* empty */
-| proto_param_list
-| proto_param_list ',' // extra trailing comma allowed
-| proto_param_list ',' ELIPSIS
+  /* empty */                  { MkEmpty; }
+| proto_param_list             { MkMove; }
+| proto_param_list ','         { MkNode(&SYM_FIXME); }
+| proto_param_list ',' ELIPSIS { MkNode(&SYM_FIXME); }
 ;
 
 proto_param_list:
-  proto_param
-| proto_param_list ',' proto_param
+  proto_param                      { MkMove; }
+| proto_param_list ',' proto_param { MkNode(&SYM_FIXME); }
 ;
 
 proto_param:
-  param_type
-| param_type IDENTIFIER initializer
+  param_type                        { MkMove; }
+| param_type IDENTIFIER initializer { MkNode(&SYM_FIXME); }
 ;
 
 param_type:
-  type_expression
-| parameter_specifier type_expression
+  type_expression                     { MkMove; }
+| parameter_specifier type_expression { MkNode(&SYM_FIXME); }
 ;
 
 declaration_type:
-  type_expression
-| storage_specifier type_expression
+  type_expression                   { MkMove; }
+| storage_specifier type_expression { MkNode(&SYM_FIXME); }
 ;
 
 initializer:
-  /* empty */
-| ASSIGN_OP expression
-| ASSIGN_OP '{' initializers '}'
+  /* empty */                    { MkEmpty; }
+| ASSIGN_OP expression           { MkNode(&SYM_FIXME); }
+| ASSIGN_OP '{' initializers '}' { MkNode(&SYM_FIXME); }
 ;
 
+// extra trailing comma allowed
 initializers:
-  /* empty */
-| initializer_list
-| initializer_list ','  // extra trailing comma allowed
+  /* empty */           { MkEmpty; }
+| initializer_list      { MkMove; }
+| initializer_list ','  { MkNode(&SYM_FIXME); }
 ;
 
 initializer_list:
-  initializer_element
-| initializer_list ',' initializer_element
+  initializer_element                      { MkMove; }
+| initializer_list ',' initializer_element { MkNode(&SYM_FIXME); }
 ;
 
 initializer_element:
-  '{' initializers '}'
-| struct_initializer
-| array_initializer
-| constant_expression
+  '{' initializers '}' { MkNode(&SYM_FIXME); }
+| struct_initializer   { MkNode(&SYM_FIXME); }
+| array_initializer    { MkNode(&SYM_FIXME); }
+| constant_expression  { MkNode(&SYM_FIXME); }
 ;
 
 struct_initializer:
-  '.' IDENTIFIER ASSIGN_OP constant_expression
+  '.' IDENTIFIER ASSIGN_OP constant_expression { MkNode(&SYM_FIXME); }
 ;
 
 array_initializer:
-  '[' constant_expression ']' ASSIGN_OP constant_expression
+  '[' constant_expression ']' ASSIGN_OP constant_expression { MkNode(&SYM_FIXME); }
 ;
 
 compound_statement:
-  '{' statement_list '}'
+  '{' statement_list '}' { MkNode(&SYM_FIXME); }
 ;
 
 struct_body:
-  '{' struct_contents '}'
+  '{' struct_contents '}' { MkNode(&SYM_FIXME); }
 ;
 
 union_body:
-  '{' struct_contents '}'
+  '{' struct_contents '}' { MkNode(&SYM_FIXME); }
 ;
 
 enum_body:
-  '{' enum_element_list '}'
+  '{' enum_element_list '}' { MkNode(&SYM_FIXME); }
 ;
 
+// allows local scopes to define, types, functions, etc
 statement_list:
-  /*empty */
-| statement_list statement
-| statement_list external_declaration  // allows local scopes to define, types, functions, etc
+  /*empty */                           { MkEmpty; }
+| statement_list statement             { MkNode(&SYM_FIXME); }
+| statement_list external_declaration  { MkNode(&SYM_FIXME); }
 ;
 
 struct_contents:
-  struct_element_list
-| struct_element_list ELIPSIS
+  struct_element_list         { MkMove; }
+| struct_element_list ELIPSIS { MkNode(&SYM_FIXME); }
 ;
 
 struct_element_list:
-  /* empty */
-| struct_element_list struct_element
+  /* empty */                        { MkEmpty; }
+| struct_element_list struct_element { MkNode(&SYM_FIXME); }
 ;
 
 struct_element:
-  declaration_type IDENTIFIER variable_properties initializer ';'
+  declaration_type IDENTIFIER variable_properties initializer ';' { MkNode(&SYM_FIXME); }
 ;
 
 enum_element_list:
-  /* empty */
-| enum_element
+  /* empty */                    { MkEmpty; }
+| enum_element_list enum_element { MkNode(&SYM_FIXME); }
 ;
 
 enum_element:
-  IDENTIFIER ';'
-| IDENTIFIER ASSIGN_OP constant_expression ';'
+  IDENTIFIER ';'                               { MkNode(&SYM_FIXME); }
+| IDENTIFIER ASSIGN_OP constant_expression ';' { MkNode(&SYM_FIXME); }
 ;
 
 external_declaration:
-  declaration_type IDENTIFIER variable_properties initializer ';'
-| declaration_type IDENTIFIER '(' proto_params ')' function_properties ';'
-| declaration_type IDENTIFIER '(' proto_params ')' function_properties compound_statement
-| STRUCT IDENTIFIER struct_properties ';'
-| STRUCT IDENTIFIER struct_properties struct_body
-| UNION IDENTIFIER union_properties ';'
-| UNION IDENTIFIER union_properties union_body
-| ENUM type_expression IDENTIFIER enum_properties ';'
-| ENUM type_expression IDENTIFIER enum_properties enum_body
+  declaration_type IDENTIFIER variable_properties initializer ';'                         { MkNode(&SYM_FIXME); }
+| declaration_type IDENTIFIER '(' proto_params ')' function_properties ';'                { MkNode(&SYM_FIXME); }
+| declaration_type IDENTIFIER '(' proto_params ')' function_properties compound_statement { MkNode(&SYM_FIXME); }
+| STRUCT IDENTIFIER struct_properties ';'                                                 { MkNode(&SYM_FIXME); }
+| STRUCT IDENTIFIER struct_properties struct_body                                         { MkNode(&SYM_FIXME); }
+| UNION IDENTIFIER union_properties ';'                                                   { MkNode(&SYM_FIXME); }
+| UNION IDENTIFIER union_properties union_body                                            { MkNode(&SYM_FIXME); }
+| ENUM type_expression IDENTIFIER enum_properties ';'                                     { MkNode(&SYM_FIXME); }
+| ENUM type_expression IDENTIFIER enum_properties enum_body                               { MkNode(&SYM_FIXME); }
 ;
 
 statement:
-  compound_statement
-| expression ';'
-| label_statement
-| for_statement
-| while_statement
-| do_statement
-| if_statement
-| switch_statement
-| break_statement
-| continue_statement
-| goto_statement
-| return_statement
-| ';'
+  compound_statement { MkMove; }
+| expression ';'     { MkNode(&SYM_FIXME); }
+| label_statement    { MkMove; }
+| for_statement      { MkMove; }
+| while_statement    { MkMove; }
+| do_statement       { MkMove; }
+| if_statement       { MkMove; }
+| switch_statement   { MkMove; }
+| break_statement    { MkMove; }
+| continue_statement { MkMove; }
+| goto_statement     { MkMove; }
+| return_statement   { MkMove; }
+| ';'                { MkNode(&SYM_FIXME); }
 ;
 
 label_statement:
-  IDENTIFIER ':' statement
+  IDENTIFIER ':' statement { MkNode(&SYM_FIXME); }
 ;
 
 for_statement:
-  FOR '(' for_initializer ';' expression ';' expression ')' statement
+  FOR '(' for_initializer ';' expression ';' expression ')' statement { MkNode(&SYM_FIXME); }
 ;
 
 for_initializer:
-  expression
-| declaration_type IDENTIFIER variable_properties initializer
+  expression                                                  { MkMove; }
+| declaration_type IDENTIFIER variable_properties initializer { MkNode(&SYM_FIXME); }
 ;
 
 while_statement:
-  WHILE '(' expression ')' statement
+  WHILE '(' expression ')' statement { MkNode(&SYM_FIXME); }
 ;
 
 do_statement:
-  DO statement WHILE '(' expression ')' ';'
+  DO statement WHILE '(' expression ')' ';' { MkNode(&SYM_FIXME); }
 ;
 
+//ambiguous, use greedy parse
 if_statement:
-  IF '(' expression ')' statement
-| IF '(' expression ')' statement ELSE statement //ambiguous, use greedy parse
+  IF '(' expression ')' statement                 { MkNode(&SYM_FIXME); }
+| IF '(' expression ')' statement ELSE statement  { MkNode(&SYM_FIXME); }
 ;
 
 switch_statement:
-  SWITCH '(' expression ')' '{' cases '}'
+  SWITCH '(' expression ')' '{' cases '}' { MkNode(&SYM_FIXME); }
 ;
 
 break_statement:
-  BREAK ';'
+  BREAK ';' { MkNode(&SYM_FIXME); }
   // FIXME think about other break rules
 ;
 
 continue_statement:
-  CONTINUE ';'
+  CONTINUE ';' { MkNode(&SYM_FIXME); }
   // FIXME think about nested loop continue rules
 ;
 
 goto_statement:
-  GOTO IDENTIFIER ';'
+  GOTO IDENTIFIER ';' { MkNode(&SYM_FIXME); }
 // FIXME think about goto rules
 ;
 
 return_statement:
-  RETURN ';'
-| RETURN expression ';'
+  RETURN ';' { MkNode(&SYM_FIXME); }
+| RETURN expression ';' { MkNode(&SYM_FIXME); }
 ;
 
 cases:
-  /* empty */
-| case_list case_last_element
+  /* empty */                 { MkEmpty; }
+| case_list case_last_element { MkNode(&SYM_FIXME); }
 ;
 
 case_list:
-  /* empty */
-| case_list case_element
+  /* empty */            { MkEmpty; }
+| case_list case_element { MkNode(&SYM_FIXME); }
 ;
 
 case_element:
-  case_start_statement statement_list case_end_statement
+  case_start_statement statement_list case_end_statement { MkNode(&SYM_FIXME); }
 ;
 
 case_last_element:
-  case_start_statement statement_list
+  case_start_statement statement_list { MkNode(&SYM_FIXME); }
 ;
 
 case_start_statement:
-  DEFAULT ':'
-| CASE IDENTIFIER ':'
+  DEFAULT ':'         { MkNode(&SYM_FIXME); }
+| CASE IDENTIFIER ':' { MkNode(&SYM_FIXME); }
 ;
 
 case_end_statement:
-  break_statement
-| return_statement
-| continue_statement
-| goto_statement
+  break_statement    { MkMove; }
+| return_statement   { MkMove; }
+| continue_statement { MkMove; }
+| goto_statement     { MkMove; }
 ;
 
+// extra trailing comma allowed
 expressions:
-  /* empty */
-| expression_list
-| expression_list ',' // extra trailing comma allowed
+  /* empty */          { MkEmpty; }
+| expression_list      { MkMove; }
+| expression_list ','  { MkNode(&SYM_FIXME); }
 ;
 
 expression_list:
-  conditional_expression
-| expression_list ',' conditional_expression
+  conditional_expression                     { MkMove; }
+| expression_list ',' conditional_expression { MkNode(&SYM_FIXME); }
 ;
 
 constant_expression:
-  conditional_expression
+  conditional_expression { MkNode(&SYM_FIXME); }
 ;
 
 expression:
-  assignment_expression
+  assignment_expression { MkMove; }
 // no comma operator
 ;
 
 assignment_expression:
-  conditional_expression
-| unary_expression assignment_op assignment_expression
+  conditional_expression                               { MkMove; }
+| unary_expression assignment_op assignment_expression { MkNode(&SYM_FIXME); }
 ;
 
 assignment_op:
-  ASSIGN_OP
-| ASSIGN_MULT_OP
-| ASSIGN_DIV_OP
-| ASSIGN_MOD_OP
-| ASSIGN_ADD_OP
-| ASSIGN_SUB_OP
-| ASSIGN_SHR_OP
-| ASSIGN_SHL_OP
-| ASSIGN_AND_OP
-| ASSIGN_OR_OP
-| ASSIGN_XOR_OP
+  ASSIGN_OP      { MkMove; }
+| ASSIGN_MULT_OP { MkMove; }
+| ASSIGN_DIV_OP  { MkMove; }
+| ASSIGN_MOD_OP  { MkMove; }
+| ASSIGN_ADD_OP  { MkMove; }
+| ASSIGN_SUB_OP  { MkMove; }
+| ASSIGN_SHR_OP  { MkMove; }
+| ASSIGN_SHL_OP  { MkMove; }
+| ASSIGN_AND_OP  { MkMove; }
+| ASSIGN_OR_OP   { MkMove; }
+| ASSIGN_XOR_OP  { MkMove; }
 ;
 
 conditional_expression:
-  logical_or_expression
-| logical_or_expression '?' expression ':' conditional_expression
+  logical_or_expression                                           { MkMove; }
+| logical_or_expression '?' expression ':' conditional_expression { MkNode(&SYM_FIXME); }
 ;
 
 logical_or_expression:
-  logical_and_expression
-| logical_or_expression LOG_OR_OP logical_and_expression
+  logical_and_expression                                 { MkMove; }
+| logical_or_expression LOG_OR_OP logical_and_expression { MkNode(&SYM_FIXME); }
 ;
 
 logical_and_expression:
-  inclusive_or_expression
-| logical_and_expression LOG_AND_OP inclusive_or_expression
+  inclusive_or_expression                                   { MkMove; }
+| logical_and_expression LOG_AND_OP inclusive_or_expression { MkNode(&SYM_FIXME); }
 ;
 
 inclusive_or_expression:
-  exclusive_or_expression
-| inclusive_or_expression OR_OP exclusive_or_expression
+  exclusive_or_expression                               { MkMove; }
+| inclusive_or_expression OR_OP exclusive_or_expression { MkNode(&SYM_FIXME); }
 ;
 
 exclusive_or_expression:
-  and_expression
-| exclusive_or_expression XOR_OP and_expression
+  and_expression                                { MkMove; }
+| exclusive_or_expression XOR_OP and_expression { MkNode(&SYM_FIXME); }
 ;
 
 and_expression:
-  equality_expression
-| and_expression AND_ADDR_OP equality_expression
+  equality_expression                            { MkMove; }
+| and_expression AND_ADDR_OP equality_expression { MkNode(&SYM_FIXME); }
 ;
 
 equality_expression:
-  relational_expression
-| equality_expression EQUAL_OP relational_expression
-| equality_expression NEQUAL_OP relational_expression
+  relational_expression                               { MkMove; }
+| equality_expression EQUAL_OP relational_expression  { MkNode(&SYM_FIXME); }
+| equality_expression NEQUAL_OP relational_expression { MkNode(&SYM_FIXME); }
 ;
 
 relational_expression:
-  shift_expression
-| relational_expression LESS_OP shift_expression
-| relational_expression GREATER_OP shift_expression
-| relational_expression LESSEQ_OP shift_expression
-| relational_expression GREATEREQ_OP shift_expression
+  shift_expression                                    { MkMove; }
+| relational_expression LESS_OP shift_expression      { MkNode(&SYM_FIXME); }
+| relational_expression GREATER_OP shift_expression   { MkNode(&SYM_FIXME); }
+| relational_expression LESSEQ_OP shift_expression    { MkNode(&SYM_FIXME); }
+| relational_expression GREATEREQ_OP shift_expression { MkNode(&SYM_FIXME); }
 ;
 
 shift_expression:
-  additive_expression
-| shift_expression SHL_OP additive_expression
-| shift_expression SHR_OP additive_expression
+  additive_expression                         { MkMove; }
+| shift_expression SHL_OP additive_expression { MkNode(&SYM_FIXME); }
+| shift_expression SHR_OP additive_expression { MkNode(&SYM_FIXME); }
 ;
 
 additive_expression:
-  multiplicative_expression
-| additive_expression ADD_OP multiplicative_expression
-| additive_expression SUB_OP multiplicative_expression
+  multiplicative_expression                            { MkMove; }
+| additive_expression ADD_OP multiplicative_expression { MkNode(&SYM_FIXME); }
+| additive_expression SUB_OP multiplicative_expression { MkNode(&SYM_FIXME); }
 ;
 
 multiplicative_expression:
-  unary_expression
-| multiplicative_expression DIV_OP unary_expression
-| multiplicative_expression MOD_OP unary_expression
-| multiplicative_expression MULT_PTR_OP unary_expression
+  unary_expression                                  { MkMove; }
+| multiplicative_expression DIV_OP unary_expression { MkNode(&SYM_FIXME); }
+| multiplicative_expression MOD_OP unary_expression { MkNode(&SYM_FIXME); }
+| multiplicative_expression MULT_PTR_OP unary_expression { MkNode(&SYM_FIXME); }
   //no cast expression, casts look like function calls now
 ;
 
 unary_expression:
-  postfix_expression
-| SIZEOF unary_expression
-| NOT_OP unary_expression
-| BITNOT_OP unary_expression
-| MULT_PTR_OP unary_expression
-| AND_ADDR_OP unary_expression
-| ADD_OP unary_expression
-| SUB_OP unary_expression
-| INC_OP unary_expression
-| DEC_OP unary_expression
+  postfix_expression           { MkMove; }
+| SIZEOF unary_expression      { MkNode(&SYM_FIXME); }
+| NOT_OP unary_expression      { MkNode(&SYM_FIXME); }
+| BITNOT_OP unary_expression   { MkNode(&SYM_FIXME); }
+| MULT_PTR_OP unary_expression { MkNode(&SYM_FIXME); }
+| AND_ADDR_OP unary_expression { MkNode(&SYM_FIXME); }
+| ADD_OP unary_expression      { MkNode(&SYM_FIXME); }
+| SUB_OP unary_expression      { MkNode(&SYM_FIXME); }
+| INC_OP unary_expression      { MkNode(&SYM_FIXME); }
+| DEC_OP unary_expression      { MkNode(&SYM_FIXME); }
 ;
 
+// dot operator ambiguous with namespace_expression
 postfix_expression:
-  primary_expression
-| postfix_expression '[' expressions ']'
-| postfix_expression '(' expressions ')'
-| postfix_expression '{' initializers '}'
-| postfix_expression '.' IDENTIFIER // ambiguous with namespace_expression
-| postfix_expression INC_OP
-| postfix_expression DEC_OP
+  primary_expression                      { MkMove; }
+| postfix_expression '[' expressions ']'  { MkNode(&SYM_FIXME); }
+| postfix_expression '(' expressions ')'  { MkNode(&SYM_FIXME); }
+| postfix_expression '{' initializers '}' { MkNode(&SYM_FIXME); }
+| postfix_expression '.' IDENTIFIER       { MkNode(&SYM_FIXME); }
+| postfix_expression INC_OP               { MkNode(&SYM_FIXME); }
+| postfix_expression DEC_OP               { MkNode(&SYM_FIXME); }
 // no arrow operator postfix_expression -> IDENTIFIER
 ;
 
 primary_expression:
-  type_expression
-| NUMBER
-| CHARCONST
-| string_const
-| '(' expression ')'
+  type_expression    { MkMove; }
+| NUMBER             { MkMove; }
+| CHARCONST          { MkMove; }
+| string_const       { MkMove; }
+| '(' expression ')' { MkNode(&SYM_FIXME); }
 ;
 
 string_const:
-  STRINGCONST
-| string_const STRINGCONST
+  STRINGCONST              { MkMove; }
+| string_const STRINGCONST { MkNode(&SYM_FIXME); }
 ;
 
 type_expression:
-  namespace_expression
-| type_modifier type_expression
+  namespace_expression          { MkMove; }
+| type_modifier type_expression { MkNode(&SYM_FIXME); }
 ;
 
 	// ambiguity resolution:
@@ -492,67 +505,71 @@ type_expression:
 	// difference between a dot operator in a NAMESPACE_EXPRESSION node
 	// and the dot operator in a POSTFIX_EXPRESSION node)
 
+// dot operator ambiguous with postfix_expression
 namespace_expression:
-  IDENTIFIER
-| namespace_expression '.' IDENTIFIER // ambiguous with postfix_expression
+  IDENTIFIER                           { MkMove; }
+| namespace_expression '.' IDENTIFIER  { MkNode(&SYM_FIXME); }
 ;
 
+// FIXME do array sizes need to be constant ?
 type_modifier:
-  POINTER
-| READONLY
-| VOLATILE
-| ARRAY '(' expressions ')' // FIXME does this need to be constant ?
-| ARRAY '(' MULT_PTR_OP ')'
-| BITFIELD '(' constant_expression ')'
+  POINTER                              { MkMove; }
+| READONLY                             { MkMove; }
+| VOLATILE                             { MkMove; }
+| ARRAY '(' expressions ')'            { MkNode(&SYM_FIXME); }
+| ARRAY '(' MULT_PTR_OP ')'            { MkNode(&SYM_FIXME); }
+| BITFIELD '(' constant_expression ')' { MkNode(&SYM_FIXME); }
 //FIXME maybe noaddress to prevent making pointers to it
 ;
 
 storage_specifier:
-  CONSTANT
-| TYPEDEF
-| ALIAS
-| REGISTER
-| STATIC    // not allowed at file scope
-| AUTO
+  CONSTANT { MkMove; }
+| TYPEDEF  { MkMove; }
+| ALIAS    { MkMove; }
+| REGISTER { MkMove; }
+| STATIC   { MkMove; }  // not allowed at file scope
+| AUTO     { MkMove; }
 ;
 
 parameter_specifier:
-  RESTRICT
-| REGISTER
+  RESTRICT { MkMove; }
+| REGISTER { MkMove; }
 ;
 
+// FIXME maybe parameters are any constant expression
 variable_properties:
- /* empty */
-| LINKAGE '(' string_const ')' // FIXME maybe these are any constant expression
-| LINKNAME '(' string_const ')'
+ /* empty */                    { MkEmpty; }
+| LINKAGE '(' string_const ')'  { MkNode(&SYM_FIXME); }
+| LINKNAME '(' string_const ')' { MkNode(&SYM_FIXME); }
 // extern("image.jpg", "binary")
 // extern("helpfile.txt", "utf-8") // adds zero terminator to string
 // FIXME more...
 ;
 
+// FIXME maybe parameters are any constant expression
 function_properties:
- /* empty */
-| LINKAGE '(' string_const ')' // FIXME maybe these are any constant expression
-| LINKNAME '(' string_const ')'
-| INLINE
+ /* empty */                    { MkEmpty; }
+| LINKAGE '(' string_const ')'  { MkNode(&SYM_FIXME); }
+| LINKNAME '(' string_const ')' { MkNode(&SYM_FIXME); }
+| INLINE                        { MkMove; }
 // FIXME more...
 ;
 
 struct_properties:
-  /* empty */
-| ALLIGNMENT
+  /* empty */  { MkEmpty; }
+| ALLIGNMENT   { MkMove; }
 // FIXME more ...
 ;
 
 union_properties:
-  /* empty */
-| ALLIGNMENT
+  /* empty */  { MkEmpty; }
+| ALLIGNMENT   { MkMove; }
 // FIXME more ...
 ;
 
 enum_properties:
-  /* empty */
-| ALLIGNMENT
+  /* empty */  { MkEmpty; }
+| ALLIGNMENT   { MkMove; }
 // size(constant_expression)
 // FIXME more ...
 ;

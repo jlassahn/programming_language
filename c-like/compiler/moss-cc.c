@@ -38,6 +38,7 @@ int main(int argc, const char *argv[])
 	}
 
 	ParserNode *root = ParseFile(file, NULL);
+	PrintNodeTree(stdout, root);
 
 	FileFree(file);
 
