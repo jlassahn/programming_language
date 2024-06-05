@@ -6,17 +6,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-ParserSymbol SYM_UNDEF = { "UNDEFINED" };
-ParserSymbol SYM_IDENTIFIER = { "IDENTIFIER" };
-ParserSymbol SYM_NUMBER = { "NUMBER" };
-ParserSymbol SYM_CHARCONST = { "CHARCONST" };
-ParserSymbol SYM_STRINGCONST = { "STRINGCONST" };
-ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION" };
-ParserSymbol SYM_KEYWORD = { "KEYWORD" };
-ParserSymbol SYM_OPERATOR = { "OPERATOR" };
+ParserSymbol SYM_UNDEF = { "UNDEFINED", 0 };
+ParserSymbol SYM_IDENTIFIER = { "IDENTIFIER", PRINT_CONTENT };
+ParserSymbol SYM_NUMBER = { "NUMBER", PRINT_CONTENT };
+ParserSymbol SYM_CHARCONST = { "CHARCONST", PRINT_CONTENT };
+ParserSymbol SYM_STRINGCONST = { "STRINGCONST", PRINT_CONTENT };
+ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION", PRINT_CONTENT };
+ParserSymbol SYM_KEYWORD = { "KEYWORD", PRINT_CONTENT };
+ParserSymbol SYM_OPERATOR = { "OPERATOR", PRINT_CONTENT };
 
-ParserSymbol SYM_EMPTY = { "EMPTY" };
-ParserSymbol SYM_FIXME = { "FIXME" };
+ParserSymbol SYM_EMPTY = { "EMPTY", 0 };
+ParserSymbol SYM_FIXME = { "FIXME", 0 };
 
 // hacky global state for finding the top of the parse tree in Bison
 static ParserNode *last_node = NULL;
@@ -34,37 +34,51 @@ ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 	memset(node, 0, sizeof(ParserNode));
 
 	node->symbol = kind;
-	printf("%s <-", kind->rule_name);
-
 	node->count = count;
 	for (int i=0; i<count; i++)
 	{
 		node->children[i] = params[i];
-		if (params[i])
-			printf(" %s", params[i]->symbol->rule_name);
-		else
-			printf(" NULL");
 	}
-	if (count == 0)
-	{
-		printf(" (empty)");
-	}
-	else
+	if (count != 0)
 	{
 		node->position.file = node->children[0]->position.file;
 		node->position.start = node->children[0]->position.start;
 		node->position.end = node->children[count-1]->position.end;
 	}
-	printf("\n");
 
-	last_node = node;
+	last_node = node; // FIXME hack for tracking Bison results
 	return node;
 }
 
-static void PrintNodeTreeDepth(FILE *fp, ParserNode *node, int depth)
+typedef struct Indent Indent;
+struct Indent
 {
-	for (int i=0; i<depth; i++)
-		fprintf(fp, "  ");
+	int node_count;
+	Indent *parent;
+};
+
+static void PrintIndent(Indent *indent, bool top)
+{
+	if (!indent)
+		return;
+
+	PrintIndent(indent->parent, false);
+	if (indent->node_count > 0)
+	{
+		if (top)
+			printf("+-");
+		else
+			printf("| ");
+	}
+	else
+	{
+		printf("  ");
+	}
+}
+
+static void PrintNodeTreeDepth(FILE *fp, ParserNode *node, Indent *parent)
+{
+	PrintIndent(parent, true);
 	if (node == NULL)
 	{
 		fprintf(fp, "(null)\n");
@@ -75,19 +89,25 @@ static void PrintNodeTreeDepth(FILE *fp, ParserNode *node, int depth)
 	uint64_t start = node->position.start.offset;
 	uint64_t end = node->position.end.offset;
 	fprintf(fp, "%s", node->symbol->rule_name);
-	if (file)
+	if (file && (node->symbol->flags & PRINT_CONTENT))
 		fprintf(fp," [%.*s]", (int)(end - start), &file->data[start]);
 	if (node->count > 0)
 		fprintf(fp, ":");
 	fprintf(fp, "\n");
 
+	Indent indent;
+	indent.parent = parent;
+	indent.node_count = node->count;
+	if (parent && (parent->node_count > 0))
+		parent->node_count --;
+
 	for (int i=0; i<node->count; i++)
-		PrintNodeTreeDepth(fp, node->children[i], depth + 1);
+		PrintNodeTreeDepth(fp, node->children[i], &indent);
 }
 
 void PrintNodeTree(FILE *fp, ParserNode *node)
 {
-	PrintNodeTreeDepth(fp, node, 0);
+	PrintNodeTreeDepth(fp, node, NULL);
 }
 
 // Bison parser interface

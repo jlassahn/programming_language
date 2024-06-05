@@ -13,9 +13,15 @@ typedef struct ParserContext ParserContext;
 
 #define MAX_CHILDREN 10
 
+enum ParseSymbolFlags
+{
+	PRINT_CONTENT = 0x0001,
+};
+
 struct ParserSymbol
 {
 	const char *rule_name;
+	uint32_t flags;
 	// FIXME include actions for generators here.
 };
 
