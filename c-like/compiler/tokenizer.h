@@ -125,7 +125,7 @@ extern const TokenType TOKEN_BITNOT_OP;      /* ~ */
 extern const TokenType TOKEN_INC_OP;         /* ++ */
 extern const TokenType TOKEN_DEC_OP;         /* -- */
 
-extern const TokenType TOKEN_ELIPSIS;
+extern const TokenType TOKEN_ELLIPSIS;
 
 extern const TokenType TOKEN_SEMICOLON;
 extern const TokenType TOKEN_LCURLY;

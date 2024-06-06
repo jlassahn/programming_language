@@ -15,7 +15,7 @@ struct TokenInfo
 // shorter tokens must follow longer tokens which have the same prefix
 TokenInfo operator_list[] =
 {
-	{"...", &TOKEN_ELIPSIS },
+	{"...", &TOKEN_ELLIPSIS },
 	{">>=", &TOKEN_ASSIGN_SHR_OP },
 	{"<<=", &TOKEN_ASSIGN_SHL_OP },
 	{"*=", &TOKEN_ASSIGN_MULT_OP },

@@ -15,8 +15,54 @@ ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION", PRINT_CONTENT };
 ParserSymbol SYM_KEYWORD = { "KEYWORD", PRINT_CONTENT };
 ParserSymbol SYM_OPERATOR = { "OPERATOR", PRINT_CONTENT };
 
-ParserSymbol SYM_EMPTY = { "EMPTY", 0 };
 ParserSymbol SYM_FIXME = { "FIXME", 0 };
+
+ParserSymbol SYM_EMPTY = { "EMPTY", 0 };
+ParserSymbol SYM_LIST = { "LIST", 0 };
+ParserSymbol SYM_DOT_OP = { "DOT_OP", 0 };
+ParserSymbol SYM_IMPORT = { "IMPORT", 0 };
+ParserSymbol SYM_IMPORT_PRIVATE = { "IMPORT_PRIVATE", 0 };
+ParserSymbol SYM_PROTOTYPE = { "PROTOTYPE", 0 };
+ParserSymbol SYM_FUNC = { "FUNC", 0 };
+ParserSymbol SYM_DECLARATION = { "DECLARATION", 0 };
+ParserSymbol SYM_USING = { "USING", 0 };
+ParserSymbol SYM_USING_AS = { "USING_AS", 0 };
+ParserSymbol SYM_TRAILING_COMMA = { "TRAILING_COMMA", 0 };
+ParserSymbol SYM_ELLIPSIS = { "ELLIPSIS", 0 };
+ParserSymbol SYM_PARAMETER = { "PARAMETER", 0 };
+ParserSymbol SYM_PARAM_TYPE = { "PARAM_TYPE", 0 };
+ParserSymbol SYM_DECL_TYPE = { "DECL_TYPE", 0 };
+ParserSymbol SYM_INITIALIZE = { "INITIALIZE", 0 };
+ParserSymbol SYM_INIT_STRUCT = { "INIT_STRUCT", 0 };
+ParserSymbol SYM_INIT_ARRAY = { "INIT_ARRAY", 0 };
+ParserSymbol SYM_STATEMENT_LIST = { "STATEMENT_LIST", 0 };
+ParserSymbol SYM_STRUCT_LIST = { "STRUCT_LIST", 0 };
+ParserSymbol SYM_ENUM_LIST = { "ENUM_LIST", 0 };
+ParserSymbol SYM_ENUM_ELEMENT = { "ENUM_ELEMENT", 0 };
+ParserSymbol SYM_STRUCT_DEC = { "STRUCT_DEC", 0 };
+ParserSymbol SYM_STRUCT_DEF = { "STRUCT_DEF", 0 };
+ParserSymbol SYM_UNION_DEC = { "UNION_DEC", 0 };
+ParserSymbol SYM_UNION_DEF = { "UNION_DEF", 0 };
+ParserSymbol SYM_ENUM_DEC = { "ENUM_DEC", 0 };
+ParserSymbol SYM_ENUM_DEF = { "ENUM_DEF", 0 };
+ParserSymbol SYM_EXPRESSION_STATEMENT = { "EXPRESSION_STATEMENT", 0 };
+ParserSymbol SYM_EMPTY_STATEMENT = { "EMPTY_STATEMENT", 0 };
+ParserSymbol SYM_LABEL_STATEMENT = { "LABEL_STATEMENT", 0 };
+ParserSymbol SYM_FOR_STATEMENT = { "FOR_STATEMENT", 0 };
+ParserSymbol SYM_WHILE_STATEMENT = { "WHILE_STATEMENT", 0 };
+ParserSymbol SYM_DO_STATEMENT = { "DO_STATEMENT", 0 };
+ParserSymbol SYM_IF_STATEMENT = { "IF_STATEMENT", 0 };
+ParserSymbol SYM_IF_ELSE = { "IF_ELSE", 0 };
+ParserSymbol SYM_SWITCH_STATEMENT = { "SWITCH_STATEMENT", 0 };
+ParserSymbol SYM_BREAK_STATEMENT = { "BREAK_STATEMENT", 0 };
+ParserSymbol SYM_CONTINUE_STATEMENT = { "CONTINUE_STATEMENT", 0 };
+ParserSymbol SYM_GOTO_STATEMENT = { "GOTO_STATEMENT", 0 };
+ParserSymbol SYM_RETURN_STATEMENT = { "RETURN_STATEMENT", 0 };
+ParserSymbol SYM_RETURN_VOID = { "RETURN_VOID", 0 };
+ParserSymbol SYM_CASE_ELEMENT = { "CASE_ELEMENT", 0 };
+ParserSymbol SYM_CASE_END_ELEMENT = { "CASE_END_ELEMENT", 0 };
+ParserSymbol SYM_DEFAULT_LABEL = { "DEFAULT_LABEL", 0 };
+ParserSymbol SYM_CASE_LABEL = { "CASE_LABEL", 0 };
 
 // hacky global state for finding the top of the parse tree in Bison
 static ParserNode *last_node = NULL;
@@ -176,7 +222,12 @@ int yylex(void)
 void yyerror(const char *s)
 {
 	// FIXME hook up error handling system
-	printf("ERROR: %s\n", s);
+	printf("ERROR: %s yylval = %p\n", s, yylval);
+	printf("error at [%s:%ld:%ld]%s\n",
+			yylval->position.file->filename,
+			yylval->position.start.line+1,
+			yylval->position.start.byte_in_line+1,
+			yylval->symbol->rule_name);
 }
 
 

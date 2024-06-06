@@ -1,0 +1,21 @@
+
+int main()
+{
+	int i;
+
+	switch (i)
+	{
+		case 0:
+			break;
+		case 1:
+		case 2:
+			do_something();
+			do_something_else();
+			return;
+		default:
+		case 3:
+	}
+
+	return 0;
+}
+
