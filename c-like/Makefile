@@ -17,4 +17,5 @@ build/bin/moss-cc: \
 
 clean:
 	rm build/bin/moss-cc
-
+	rm build/generated/*.c
+	rm build/generated/*.h
