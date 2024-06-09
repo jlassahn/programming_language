@@ -147,12 +147,12 @@ int main(void)
 	puts("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
 	puts("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
 
-	puts("<svg width=\"100\" height=\"100\" viewBox=\"-10 -10 120 120\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n");
+	puts("<svg width=\"120px\" height=\"120px\" viewBox=\"-10 -10 120 120\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n");
 
 	printf("<polyline points=\"\n");
 
 	Transform t = {
-		.v = { 0, 0 },
+		.v = { 0, 0.5 },
 		.m = {
 			1, 0,
 			0, 1
@@ -163,6 +163,7 @@ int main(void)
 
 	printf("\" stroke=\"green\" stroke-width=\"2\" stroke-linejoin=\"round\" fill=\"none\" />\n");
 
+	puts("<text x=\"7\" y=\"80\" font-size=\"30\" font-family=\"Arial\">MOSS</text>");
 	puts("</svg>");
 
 	return 0;
