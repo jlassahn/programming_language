@@ -9,6 +9,9 @@ using system.io;
 
 void test_function()
 {
+	stuff = 1 + 2*3/4;
+	thing += stuff;
+
 	;;
 	io.printf("stuff = %d\n", test.stuff);
 }

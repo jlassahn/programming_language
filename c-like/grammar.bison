@@ -362,7 +362,7 @@ expression_list:
 ;
 
 constant_expression:
-  conditional_expression { MkNode(&SYM_FIXME); }
+  conditional_expression { MkNode(&SYM_CONSTANT); }
 ;
 
 expression:
@@ -371,110 +371,106 @@ expression:
 ;
 
 assignment_expression:
-  conditional_expression                               { MkMove; }
-| unary_expression assignment_op assignment_expression { MkNode(&SYM_FIXME); }
-;
-
-assignment_op:
-  ASSIGN_OP      { MkMove; }
-| ASSIGN_MULT_OP { MkMove; }
-| ASSIGN_DIV_OP  { MkMove; }
-| ASSIGN_MOD_OP  { MkMove; }
-| ASSIGN_ADD_OP  { MkMove; }
-| ASSIGN_SUB_OP  { MkMove; }
-| ASSIGN_SHR_OP  { MkMove; }
-| ASSIGN_SHL_OP  { MkMove; }
-| ASSIGN_AND_OP  { MkMove; }
-| ASSIGN_OR_OP   { MkMove; }
-| ASSIGN_XOR_OP  { MkMove; }
+  conditional_expression                                { MkMove; }
+| unary_expression ASSIGN_OP assignment_expression      { MkNode(&SYM_ASSIGN_OP); }
+| unary_expression ASSIGN_MULT_OP assignment_expression { MkNode(&SYM_ASSIGN_MULT_OP); }
+| unary_expression ASSIGN_DIV_OP assignment_expression  { MkNode(&SYM_ASSIGN_DIV_OP); }
+| unary_expression ASSIGN_MOD_OP assignment_expression  { MkNode(&SYM_ASSIGN_MOD_OP); }
+| unary_expression ASSIGN_ADD_OP assignment_expression  { MkNode(&SYM_ASSIGN_ADD_OP); }
+| unary_expression ASSIGN_SUB_OP assignment_expression  { MkNode(&SYM_ASSIGN_SUB_OP); }
+| unary_expression ASSIGN_SHR_OP assignment_expression  { MkNode(&SYM_ASSIGN_SHR_OP); }
+| unary_expression ASSIGN_SHL_OP assignment_expression  { MkNode(&SYM_ASSIGN_SHL_OP); }
+| unary_expression ASSIGN_AND_OP assignment_expression  { MkNode(&SYM_ASSIGN_AND_OP); }
+| unary_expression ASSIGN_OR_OP assignment_expression   { MkNode(&SYM_ASSIGN_OR_OP); }
+| unary_expression ASSIGN_XOR_OP assignment_expression  { MkNode(&SYM_ASSIGN_XOR_OP); }
 ;
 
 conditional_expression:
   logical_or_expression                                           { MkMove; }
-| logical_or_expression '?' expression ':' conditional_expression { MkNode(&SYM_FIXME); }
+| logical_or_expression '?' expression ':' conditional_expression { MkNode(&SYM_CONDITIONAL); }
 ;
 
 logical_or_expression:
   logical_and_expression                                 { MkMove; }
-| logical_or_expression LOG_OR_OP logical_and_expression { MkNode(&SYM_FIXME); }
+| logical_or_expression LOG_OR_OP logical_and_expression { MkNode(&SYM_LOG_OR_OP); }
 ;
 
 logical_and_expression:
   inclusive_or_expression                                   { MkMove; }
-| logical_and_expression LOG_AND_OP inclusive_or_expression { MkNode(&SYM_FIXME); }
+| logical_and_expression LOG_AND_OP inclusive_or_expression { MkNode(&SYM_LOG_AND_OP); }
 ;
 
 inclusive_or_expression:
   exclusive_or_expression                               { MkMove; }
-| inclusive_or_expression OR_OP exclusive_or_expression { MkNode(&SYM_FIXME); }
+| inclusive_or_expression OR_OP exclusive_or_expression { MkNode(&SYM_OR_OP); }
 ;
 
 exclusive_or_expression:
   and_expression                                { MkMove; }
-| exclusive_or_expression XOR_OP and_expression { MkNode(&SYM_FIXME); }
+| exclusive_or_expression XOR_OP and_expression { MkNode(&SYM_XOR_OP); }
 ;
 
 and_expression:
   equality_expression                            { MkMove; }
-| and_expression AND_ADDR_OP equality_expression { MkNode(&SYM_FIXME); }
+| and_expression AND_ADDR_OP equality_expression { MkNode(&SYM_AND_OP); }
 ;
 
 equality_expression:
   relational_expression                               { MkMove; }
-| equality_expression EQUAL_OP relational_expression  { MkNode(&SYM_FIXME); }
-| equality_expression NEQUAL_OP relational_expression { MkNode(&SYM_FIXME); }
+| equality_expression EQUAL_OP relational_expression  { MkNode(&SYM_EQUAL_OP); }
+| equality_expression NEQUAL_OP relational_expression { MkNode(&SYM_NEQUAL_OP); }
 ;
 
 relational_expression:
   shift_expression                                    { MkMove; }
-| relational_expression LESS_OP shift_expression      { MkNode(&SYM_FIXME); }
-| relational_expression GREATER_OP shift_expression   { MkNode(&SYM_FIXME); }
-| relational_expression LESSEQ_OP shift_expression    { MkNode(&SYM_FIXME); }
-| relational_expression GREATEREQ_OP shift_expression { MkNode(&SYM_FIXME); }
+| relational_expression LESS_OP shift_expression      { MkNode(&SYM_LESS_OP); }
+| relational_expression GREATER_OP shift_expression   { MkNode(&SYM_GREATER_OP); }
+| relational_expression LESSEQ_OP shift_expression    { MkNode(&SYM_LESSEQ_OP); }
+| relational_expression GREATEREQ_OP shift_expression { MkNode(&SYM_GREATEREQ_OP); }
 ;
 
 shift_expression:
   additive_expression                         { MkMove; }
-| shift_expression SHL_OP additive_expression { MkNode(&SYM_FIXME); }
-| shift_expression SHR_OP additive_expression { MkNode(&SYM_FIXME); }
+| shift_expression SHL_OP additive_expression { MkNode(&SYM_SHL_OP); }
+| shift_expression SHR_OP additive_expression { MkNode(&SYM_SHR_OP); }
 ;
 
 additive_expression:
   multiplicative_expression                            { MkMove; }
-| additive_expression ADD_OP multiplicative_expression { MkNode(&SYM_FIXME); }
-| additive_expression SUB_OP multiplicative_expression { MkNode(&SYM_FIXME); }
+| additive_expression ADD_OP multiplicative_expression { MkNode(&SYM_ADD_OP); }
+| additive_expression SUB_OP multiplicative_expression { MkNode(&SYM_SUB_OP); }
 ;
 
 multiplicative_expression:
   unary_expression                                  { MkMove; }
-| multiplicative_expression DIV_OP unary_expression { MkNode(&SYM_FIXME); }
-| multiplicative_expression MOD_OP unary_expression { MkNode(&SYM_FIXME); }
-| multiplicative_expression MULT_PTR_OP unary_expression { MkNode(&SYM_FIXME); }
+| multiplicative_expression DIV_OP unary_expression { MkNode(&SYM_DIV_OP); }
+| multiplicative_expression MOD_OP unary_expression { MkNode(&SYM_MOD_OP); }
+| multiplicative_expression MULT_PTR_OP unary_expression { MkNode(&SYM_MULT_OP); }
   //no cast expression, casts look like function calls now
 ;
 
 unary_expression:
   postfix_expression           { MkMove; }
-| SIZEOF unary_expression      { MkNode(&SYM_FIXME); }
-| NOT_OP unary_expression      { MkNode(&SYM_FIXME); }
-| BITNOT_OP unary_expression   { MkNode(&SYM_FIXME); }
-| MULT_PTR_OP unary_expression { MkNode(&SYM_FIXME); }
-| AND_ADDR_OP unary_expression { MkNode(&SYM_FIXME); }
-| ADD_OP unary_expression      { MkNode(&SYM_FIXME); }
-| SUB_OP unary_expression      { MkNode(&SYM_FIXME); }
-| INC_OP unary_expression      { MkNode(&SYM_FIXME); }
-| DEC_OP unary_expression      { MkNode(&SYM_FIXME); }
+| SIZEOF unary_expression      { MkNode(&SYM_SIZEOF_OP); }
+| NOT_OP unary_expression      { MkNode(&SYM_NOT_OP); }
+| BITNOT_OP unary_expression   { MkNode(&SYM_BITNOT_OP); }
+| MULT_PTR_OP unary_expression { MkNode(&SYM_PTR_OP); }
+| AND_ADDR_OP unary_expression { MkNode(&SYM_ADDR_OP); }
+| ADD_OP unary_expression      { MkNode(&SYM_POS_OP); }
+| SUB_OP unary_expression      { MkNode(&SYM_NEG_OP); }
+| INC_OP unary_expression      { MkNode(&SYM_PREINC_OP); }
+| DEC_OP unary_expression      { MkNode(&SYM_PREDEC_OP); }
 ;
 
 // dot operator ambiguous with namespace_expression
 postfix_expression:
   primary_expression                      { MkMove; }
-| postfix_expression '[' expressions ']'  { MkNode(&SYM_FIXME); }
-| postfix_expression '(' expressions ')'  { MkNode(&SYM_FIXME); }
-| postfix_expression '{' initializers '}' { MkNode(&SYM_FIXME); }
+| postfix_expression '[' expressions ']'  { MkNode(&SYM_ARRAY_OP); }
+| postfix_expression '(' expressions ')'  { MkNode(&SYM_CALL_OP); }
+| postfix_expression '{' initializers '}' { MkNode(&SYM_INIT_OP); }
 | postfix_expression '.' IDENTIFIER       { MkNode(&SYM_DOT_OP); }
-| postfix_expression INC_OP               { MkNode(&SYM_FIXME); }
-| postfix_expression DEC_OP               { MkNode(&SYM_FIXME); }
+| postfix_expression INC_OP               { MkNode(&SYM_POSTINC_OP); }
+| postfix_expression DEC_OP               { MkNode(&SYM_POSTDEC_OP); }
 // no arrow operator postfix_expression -> IDENTIFIER
 ;
 
@@ -483,17 +479,17 @@ primary_expression:
 | NUMBER             { MkMove; }
 | CHARCONST          { MkMove; }
 | string_const       { MkMove; }
-| '(' expression ')' { MkNode(&SYM_FIXME); }
+| '(' expression ')' { MkNode(&SYM_PAREN_EXPRESSION); }
 ;
 
 string_const:
   STRINGCONST              { MkMove; }
-| string_const STRINGCONST { MkNode(&SYM_FIXME); }
+| string_const STRINGCONST { MkNode(&SYM_STRING); }
 ;
 
 type_expression:
   namespace_expression          { MkMove; }
-| type_modifier type_expression { MkNode(&SYM_FIXME); }
+| type_modifier type_expression { MkNode(&SYM_TYPE_EXPRESSION); }
 ;
 
 	// ambiguity resolution:
@@ -520,9 +516,9 @@ type_modifier:
   POINTER                              { MkMove; }
 | READONLY                             { MkMove; }
 | VOLATILE                             { MkMove; }
-| ARRAY '(' expressions ')'            { MkNode(&SYM_FIXME); }
-| ARRAY '(' MULT_PTR_OP ')'            { MkNode(&SYM_FIXME); }
-| BITFIELD '(' constant_expression ')' { MkNode(&SYM_FIXME); }
+| ARRAY '(' expressions ')'            { MkNode(&SYM_TYPE_ARRAY); }
+| ARRAY '(' MULT_PTR_OP ')'            { MkNode(&SYM_TYPE_ARRAY_MATCH); }
+| BITFIELD '(' constant_expression ')' { MkNode(&SYM_TYPE_BITFIELD); }
 //FIXME maybe noaddress to prevent making pointers to it
 ;
 
@@ -543,18 +539,20 @@ parameter_specifier:
 // FIXME maybe parameters are any constant expression
 variable_properties:
  /* empty */                    { MkEmpty; }
-| LINKAGE '(' string_const ')'  { MkNode(&SYM_FIXME); }
-| LINKNAME '(' string_const ')' { MkNode(&SYM_FIXME); }
+| LINKAGE '(' string_const ')'  { MkNode(&SYM_TYPE_LINKAGE); }
+| LINKNAME '(' string_const ')' { MkNode(&SYM_TYPE_LINKNAME); }
 // extern("image.jpg", "binary")
 // extern("helpfile.txt", "utf-8") // adds zero terminator to string
+// extern("DEBUG", "option") // allows compile-time options
+// noinit
 // FIXME more...
 ;
 
 // FIXME maybe parameters are any constant expression
 function_properties:
  /* empty */                    { MkEmpty; }
-| LINKAGE '(' string_const ')'  { MkNode(&SYM_FIXME); }
-| LINKNAME '(' string_const ')' { MkNode(&SYM_FIXME); }
+| LINKAGE '(' string_const ')'  { MkNode(&SYM_TYPE_LINKAGE); }
+| LINKNAME '(' string_const ')' { MkNode(&SYM_TYPE_LINKNAME); }
 | INLINE                        { MkMove; }
 // FIXME more...
 ;
