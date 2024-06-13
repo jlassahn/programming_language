@@ -12,6 +12,7 @@ build/bin/moss-cc: \
 	compiler/token_defs.c \
 	compiler/parser.c \
 	compiler/errors.c \
+	compiler/types.c \
 
 	gcc -DYYDEBUG -I . -Wall -o $@ $^
 
@@ -19,3 +20,14 @@ clean:
 	rm build/bin/moss-cc
 	rm build/generated/*.c
 	rm build/generated/*.h
+
+
+tests: \
+	build/bin/map_test \
+
+
+build/bin/map_test: \
+	tests/unit/map_test.c \
+	compiler/types.c \
+
+	gcc -DYYDEBUG -I . -Wall -o $@ $^

@@ -11,9 +11,9 @@ ParserSymbol SYM_IDENTIFIER = { "IDENTIFIER", PRINT_CONTENT };
 ParserSymbol SYM_NUMBER = { "NUMBER", PRINT_CONTENT };
 ParserSymbol SYM_CHARCONST = { "CHARCONST", PRINT_CONTENT };
 ParserSymbol SYM_STRINGCONST = { "STRINGCONST", PRINT_CONTENT };
-ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION", PRINT_CONTENT };
-ParserSymbol SYM_KEYWORD = { "KEYWORD", PRINT_CONTENT };
-ParserSymbol SYM_OPERATOR = { "OPERATOR", PRINT_CONTENT };
+ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION", PRINT_CONTENT | SYM_DISCARD };
+ParserSymbol SYM_KEYWORD = { "KEYWORD", PRINT_CONTENT | SYM_DISCARD };
+ParserSymbol SYM_OPERATOR = { "OPERATOR", PRINT_CONTENT | SYM_DISCARD };
 
 ParserSymbol SYM_FIXME = { "FIXME", 0 };
 
@@ -120,6 +120,8 @@ ParserSymbol SYM_TYPE_LINKNAME = { "TYPE_LINKNAME", 0 };
 // hacky global state for finding the top of the parse tree in Bison
 static ParserNode *last_node = NULL;
 
+static int allocated_nodes = 0;
+
 // FIXME strategy for freeing allocated nodes?
 ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 {
@@ -133,20 +135,44 @@ ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 	memset(node, 0, sizeof(ParserNode));
 
 	node->symbol = kind;
-	node->count = count;
-	for (int i=0; i<count; i++)
-	{
-		node->children[i] = params[i];
-	}
 	if (count != 0)
 	{
-		node->position.file = node->children[0]->position.file;
-		node->position.start = node->children[0]->position.start;
-		node->position.end = node->children[count-1]->position.end;
+		node->position.file = params[0]->position.file;
+		node->position.start = params[0]->position.start;
+		node->position.end = params[count-1]->position.end;
 	}
 
+	int child_count = 0;
+	for (int i=0; i<count; i++)
+	{
+		if (params[i]->symbol->flags & SYM_DISCARD)
+		{
+			FreeNode(params[i]);
+		}
+		else
+		{
+			node->children[child_count] = params[i];
+			child_count ++;
+		}
+	}
+	node->count = child_count;
 	last_node = node; // FIXME hack for tracking Bison results
+
+	allocated_nodes ++;
 	return node;
+}
+
+void FreeNode(ParserNode *node)
+{
+	for(int i=0; i<node->count; i++)
+		FreeNode(node->children[i]);
+	free(node);
+	allocated_nodes --;
+}
+
+int GetNodeCount(void)
+{
+	return allocated_nodes;
 }
 
 typedef struct Indent Indent;
@@ -276,11 +302,18 @@ void yyerror(const char *s)
 {
 	// FIXME hook up error handling system
 	printf("ERROR: %s yylval = %p\n", s, yylval);
-	printf("error at [%s:%ld:%ld]%s\n",
-			yylval->position.file->filename,
-			yylval->position.start.line+1,
-			yylval->position.start.byte_in_line+1,
-			yylval->symbol->rule_name);
+	if (yylval)
+	{
+		printf("error at [%s:%ld:%ld]%s\n",
+				yylval->position.file->filename,
+				yylval->position.start.line+1,
+				yylval->position.start.byte_in_line+1,
+				yylval->symbol->rule_name);
+	}
+	else
+	{
+		printf("error at EOF\n");
+	}
 }
 
 

@@ -9,13 +9,14 @@
 
 typedef struct ParserSymbol ParserSymbol;
 typedef struct ParserNode ParserNode;
-typedef struct ParserContext ParserContext;
+typedef struct ParserContext ParserContext; // FIXME maybe not needed?
 
 #define MAX_CHILDREN 10
 
 enum ParseSymbolFlags
 {
 	PRINT_CONTENT = 0x0001,
+	SYM_DISCARD = 0x0100,
 };
 
 struct ParserSymbol
@@ -43,7 +44,10 @@ struct ParserNode
 ParserNode *ParseFile(ParserFile *file, ParserContext *context);
 
 ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params);
+void FreeNode(ParserNode *node);
+
 void PrintNodeTree(FILE *fp, ParserNode *root);
+int GetNodeCount(void);
 
 // symbols created from tokens
 extern ParserSymbol SYM_UNDEF;

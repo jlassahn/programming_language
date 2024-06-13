@@ -2,6 +2,7 @@
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
+#include "compiler/types.h"
 #include <stdio.h>
 
 typedef struct StringList StringList;
@@ -39,6 +40,9 @@ int main(int argc, const char *argv[])
 
 	ParserNode *root = ParseFile(file, NULL);
 	PrintNodeTree(stdout, root);
+	printf("nodes = %d\n", GetNodeCount());
+	FreeNode(root);
+	printf("nodes = %d\n", GetNodeCount());
 
 	FileFree(file);
 
