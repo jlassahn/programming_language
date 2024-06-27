@@ -1,4 +1,5 @@
 
+#include "compiler/commandargs.h"
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
@@ -26,6 +27,18 @@ extern int yydebug;
 
 int main(int argc, const char *argv[])
 {
+	const CompilerArgs *args = ParseArgs(argc, argv);
+	if (args == NULL)
+		return -1;
+
+	printf("inputs:\n");
+	PrintArgList(args->inputs);
+	printf("defines:\n");
+	PrintArgList(args->defines);
+
+	FreeArgs(args);
+	return 0;
+
 	//yydebug = 1;
 	const char * filename = "examples/source/hello.moss";
 	if (argc == 2)

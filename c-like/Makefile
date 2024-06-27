@@ -13,6 +13,8 @@ build/bin/moss-cc: \
 	compiler/parser.c \
 	compiler/errors.c \
 	compiler/types.c \
+	compiler/commandargs.c \
+
 
 	gcc -DYYDEBUG -I . -Wall -o $@ $^
 

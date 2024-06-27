@@ -1,6 +1,7 @@
 
 import system.stdio;
 import private my.stuff.to.test;
+import _.sibling.to.this.module;
 
 // these are file scoped.  It's safe to use them in import files
 // because they don't apply to the importing file.
