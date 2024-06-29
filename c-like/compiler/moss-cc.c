@@ -1,27 +1,18 @@
 
+#include "compiler/errors.h"
 #include "compiler/commandargs.h"
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
 #include "compiler/types.h"
+#include "compiler/fileio.h"
+#include "compiler/compile_state.h"
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-typedef struct StringList StringList;
-typedef struct CompilerSettings CompilerSettings;
+static CompileState compile_state;
 
-struct StringList
-{
-	const char **list;
-	int count;
-};
-
-struct CompilerSettings
-{
-	StringList import_paths;
-	StringList source_paths;
-	StringList lib_paths;
-	StringList targets;
-};
 
 extern int yydebug;
 
@@ -31,12 +22,47 @@ int main(int argc, const char *argv[])
 	if (args == NULL)
 		return -1;
 
+	// check args for validity
+	//    warnings;
+	//    optimizations;
+	//    generation;
+	//    defines;
+	//    versions;
+	//    outfile;
+	//    outdir;
+	//    treefile;
+
+	// basedirs;
+	ListInsertLast(&compile_state.basedirs, StringBufferFromChars("."));
+	for (ArgStringList *entry=args->basedirs; entry!=NULL; entry=entry->next)
+	{
+		printf("basedir = %s\n", entry->arg);
+		if (!IsValidPath(entry->arg))
+		{
+			Error("parameter '%s' is not a valid path.", entry->arg);
+			continue;
+		}
+		if (!DoesDirectoryExist(entry->arg))
+		{
+			Error("path '%s' does not exist.", entry->arg);
+			continue;
+		}
+		ListInsertLast(&compile_state.basedirs, StringBufferFromChars(entry->arg));
+	}
+
+	// inputs;
+
 	printf("inputs:\n");
 	PrintArgList(args->inputs);
 	printf("defines:\n");
 	PrintArgList(args->defines);
+	printf("basedirs:\n");
+	PrintArgList(args->basedirs);
 
+	CompileStateFree(&compile_state);
 	FreeArgs(args);
+
+	printf("allocation count = %d\n", AllocCount());
 	return 0;
 
 	//yydebug = 1;

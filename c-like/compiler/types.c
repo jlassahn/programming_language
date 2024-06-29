@@ -5,8 +5,43 @@
 #include <string.h>
 #include <stdio.h> // for MapPrint
 
-// if a Map bin has more than this, make a subtable
-const int MAX_COLLISIONS = 4;
+static int allocation_count = 0;
+
+int AllocCount(void)
+{
+	return allocation_count;
+}
+
+void *Alloc(int size)
+{
+	void *buf = malloc(size);
+	if (buf == NULL)
+	{
+		fprintf(stderr, "OUT OF MEMORY\n");
+		exit(ENOMEM);
+	}
+	memset(buf, 0, size);
+	allocation_count ++;
+	return buf;
+}
+
+void Free(void *p)
+{
+	free(p);
+	allocation_count --;
+}
+
+void *Realloc(void *p, int size)
+{
+	void *buf = realloc(p, size);
+	if (buf == NULL)
+	{
+		fprintf(stderr, "OUT OF MEMORY\n");
+		exit(ENOMEM);
+	}
+	return buf;
+}
+
 
 bool StringEquals(const String *a, const String *b)
 {
@@ -15,6 +50,74 @@ bool StringEquals(const String *a, const String *b)
 
 	return (memcmp(a->data, b->data, a->length) == 0);
 }
+
+StringBuffer *StringBufferFromChars(const char *chars)
+{
+	int length = strlen(chars);
+	StringBuffer *sb = Alloc(sizeof(StringBuffer) + length);
+	sb->string.data = sb->buffer;
+	sb->string.length = length;
+	sb->capacity = length;
+	strcpy(sb->buffer, chars);
+
+	return sb;
+}
+
+void StringBufferFree(StringBuffer *sb)
+{
+	Free(sb);
+}
+
+void ListInsertFirst(List *list, void *item)
+{
+	ListEntry *entry = Alloc(sizeof(ListEntry));
+	entry->prev = NULL;
+	entry->next = list->first;
+	entry->item = item;
+
+	if (list->first)
+		list->first->prev = entry;
+
+	list->first = entry;
+	if (list->last == NULL)
+		list->last = entry;
+}
+
+void ListInsertLast(List *list, void *item)
+{
+	ListEntry *entry = Alloc(sizeof(ListEntry));
+	entry->prev = list->last;
+	entry->next = NULL;
+	entry->item = item;
+
+	if (list->last)
+		list->last->next = entry;
+
+	list->last = entry;
+	if (list->first == NULL)
+		list->first = entry;
+}
+
+void *ListRemoveFirst(List *list)
+{
+	if (list->first == NULL)
+		return NULL;
+
+	ListEntry *entry = list->first;
+	list->first = entry->next;
+	if (entry->next)
+		entry->next->prev = NULL;
+
+	if (list->first == NULL)
+		list->last = NULL;
+
+	void *item = entry->item;
+	Free(entry);
+	return item;
+}
+
+// if a Map bin has more than this, make a subtable
+const int MAX_COLLISIONS = 4;
 
 static uint32_t HashString(const String *s)
 {
@@ -53,8 +156,7 @@ bool MapInsert(Map *map, const String *key, void *value)
 
 	if ((bin->count > MAX_COLLISIONS) && (map->shift < 24))
 	{
-		Map *submap = malloc(sizeof(Map));
-		memset(submap, 0, sizeof(Map));
+		Map *submap = Alloc(sizeof(Map));
 		submap->shift = map->shift + 8;
 
 		HashEntry *list = bin->list;
@@ -66,7 +168,7 @@ bool MapInsert(Map *map, const String *key, void *value)
 		{
 			HashEntry *next = list->next;
 			MapInsert(submap, &list->key, list->value);
-			free(list);
+			Free(list);
 			list = next;
 		}
 
@@ -76,7 +178,7 @@ bool MapInsert(Map *map, const String *key, void *value)
 		return true;
 	}
 
-	HashEntry *entry = malloc(sizeof(HashEntry));
+	HashEntry *entry = Alloc(sizeof(HashEntry));
 	entry->key = *key;
 	entry->value = value;
 	entry->next = bin->list;
@@ -118,7 +220,7 @@ void MapDestroyAll(Map *map)
 		while (entry != NULL)
 		{
 			HashEntry *next_entry = entry->next;
-			free(entry);
+			Free(entry);
 			entry = next_entry;
 		}
 		bin->list = NULL;
@@ -126,7 +228,7 @@ void MapDestroyAll(Map *map)
 		if (bin->subtable)
 		{
 			MapDestroyAll(bin->subtable);
-			free(bin->subtable);
+			Free(bin->subtable);
 		}
 		bin->subtable = NULL;
 		bin->count = 0;

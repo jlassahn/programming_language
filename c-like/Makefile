@@ -14,6 +14,8 @@ build/bin/moss-cc: \
 	compiler/errors.c \
 	compiler/types.c \
 	compiler/commandargs.c \
+	compiler/fileio.c \
+	compiler/compile_state.c \
 
 
 	gcc -DYYDEBUG -I . -Wall -o $@ $^

@@ -2,6 +2,7 @@
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
+#include "compiler/types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -131,7 +132,7 @@ ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 		exit(-1);
 	}
 
-	ParserNode *node = malloc(sizeof(ParserNode));
+	ParserNode *node = Alloc(sizeof(ParserNode));
 	memset(node, 0, sizeof(ParserNode));
 
 	node->symbol = kind;
@@ -166,7 +167,7 @@ void FreeNode(ParserNode *node)
 {
 	for(int i=0; i<node->count; i++)
 		FreeNode(node->children[i]);
-	free(node);
+	Free(node);
 	allocated_nodes --;
 }
 

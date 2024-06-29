@@ -1,6 +1,7 @@
 
 #include "compiler/errors.h"
 #include "compiler/parser_file.h"
+#include "compiler/types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -34,16 +35,7 @@ ParserFile *FileRead(const char *filename)
 		strlen(filename) + 1 +
 		length + padding;
 
-	char *p = malloc(buffer_size);
-	if (!p)
-	{
-		Error("Out of memory while opening file. Filename(%s)", filename);
-		fclose(fp);
-		return NULL;
-	}
-
-	// FIXME not efficient for large files.
-	memset(p, 0, buffer_size);
+	char *p = Alloc(buffer_size);
 
 	ParserFile *file = (ParserFile *)p;
 	p += sizeof(ParserFile);
@@ -58,7 +50,7 @@ ParserFile *FileRead(const char *filename)
 		Error("Unable to read file. Filename(%s) Reason(%s)",
 				filename, strerror(errno));
 		fclose(fp);
-		free(file);
+		Free(file);
 		return NULL;
 	}
 
@@ -71,7 +63,7 @@ ParserFile *FileRead(const char *filename)
 
 void FileFree(ParserFile *file)
 {
-	free(file);
+	Free(file);
 }
 
 bool FileMatchAndConsume(ParserFile *file, const char *text)

@@ -1,5 +1,6 @@
 
 #include "compiler/commandargs.h"
+#include "compiler/types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -103,7 +104,7 @@ static void ArgError(const char *txt, ...)
 
 static void AddArg(ArgStringList **list, const char *value)
 {
-	ArgStringList *item = malloc(sizeof(ArgStringList));
+	ArgStringList *item = Alloc(sizeof(ArgStringList));
 	memset(item, 0, sizeof(ArgStringList));
 	item->next = *list;
 	item->arg = value;
@@ -202,7 +203,7 @@ static void FreeArgList(ArgStringList *list)
 	while (list)
 	{
 		next = list->next;
-		free(list);
+		Free(list);
 		list = next;
 	}
 }
