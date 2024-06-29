@@ -1,7 +1,8 @@
 
+#include "compiler/types.h"
+#include "compiler/memory.h"
 #include "compiler/errors.h"
 #include "compiler/parser_file.h"
-#include "compiler/types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,7 +15,7 @@ ParserFile *FileRead(const char *filename)
 	FILE *fp = fopen(filename, "r");
 	if (!fp)
 	{
-		Error("Unable to open file. Filename(%s) Reason(%s)",
+		Error(ERROR_FILE, "Unable to open file. Filename(%s) Reason(%s)",
 				filename, strerror(errno));
 		return NULL;
 	}
@@ -47,7 +48,7 @@ ParserFile *FileRead(const char *filename)
 	long read_length = fread(p, 1, length,  fp);
 	if (read_length != length)
 	{
-		Error("Unable to read file. Filename(%s) Reason(%s)",
+		Error(ERROR_FILE, "Unable to read file. Filename(%s) Reason(%s)",
 				filename, strerror(errno));
 		fclose(fp);
 		Free(file);

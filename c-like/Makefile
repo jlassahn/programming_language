@@ -6,16 +6,17 @@ build/generated/grammar.c: grammar.bison
 
 build/bin/moss-cc: \
 	build/generated/grammar.c \
-	compiler/moss-cc.c \
-	compiler/parser_file.c \
-	compiler/tokenizer.c \
-	compiler/token_defs.c \
-	compiler/parser.c \
-	compiler/errors.c \
+	compiler/memory.c \
 	compiler/types.c \
-	compiler/commandargs.c \
+	compiler/errors.c \
 	compiler/fileio.c \
+	compiler/token_defs.c \
+	compiler/tokenizer.c \
+	compiler/parser_file.c \
+	compiler/parser.c \
+	compiler/commandargs.c \
 	compiler/compile_state.c \
+	compiler/moss-cc.c \
 
 
 	gcc -DYYDEBUG -I . -Wall -o $@ $^

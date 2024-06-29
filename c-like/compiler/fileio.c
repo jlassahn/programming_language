@@ -1,6 +1,7 @@
 
 #include "compiler/fileio.h"
 #include "compiler/types.h"
+#include "compiler/memory.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

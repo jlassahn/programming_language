@@ -4,8 +4,22 @@
 
 #include "compiler/parser_file.h"
 
-void Error(const char *text, ...);
-void ErrorAt(const char *filename, FilePosition *pos, const char *text, ...);
+typedef enum
+{
+	ERROR_FILE,
+	ERROR_PARSER,
+}
+ErrorCategory;
+
+void Error(ErrorCategory cat, const char *text, ...);
+
+void Warning(ErrorCategory cat, const char *text, ...);
+
+void ErrorAt(ErrorCategory cat, const char *filename, FilePosition *pos,
+		const char *text, ...);
+
+void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
+		const char *text, ...);
 
 #endif
 

@@ -1,11 +1,12 @@
 
+#include "compiler/types.h"
+#include "compiler/memory.h"
+#include "compiler/fileio.h"
 #include "compiler/errors.h"
 #include "compiler/commandargs.h"
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
-#include "compiler/types.h"
-#include "compiler/fileio.h"
 #include "compiler/compile_state.h"
 #include <stdio.h>
 #include <stdbool.h>
@@ -39,12 +40,13 @@ int main(int argc, const char *argv[])
 		printf("basedir = %s\n", entry->arg);
 		if (!IsValidPath(entry->arg))
 		{
-			Error("parameter '%s' is not a valid path.", entry->arg);
+			Error(ERROR_FILE,
+					"parameter '%s' is not a valid path.", entry->arg);
 			continue;
 		}
 		if (!DoesDirectoryExist(entry->arg))
 		{
-			Error("path '%s' does not exist.", entry->arg);
+			Error(ERROR_FILE, "path '%s' does not exist.", entry->arg);
 			continue;
 		}
 		ListInsertLast(&compile_state.basedirs, StringBufferFromChars(entry->arg));

@@ -2,14 +2,7 @@
 #ifndef INCLUDED_TYPES_H
 #define INCLUDED_TYPES_H
 
-#include <errno.h>
 #include <stdbool.h>
-#include "types.h"
-
-void *Alloc(int size);
-void Free(void *p);
-void *Realloc(void *p, int size);
-int AllocCount(void);
 
 typedef struct String String;
 struct String

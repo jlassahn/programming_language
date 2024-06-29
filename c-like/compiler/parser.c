@@ -1,8 +1,9 @@
 
+#include "compiler/types.h"
+#include "compiler/memory.h"
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
-#include "compiler/types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

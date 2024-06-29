@@ -1,6 +1,8 @@
 
 #include "compiler/commandargs.h"
+#include "compiler/memory.h"
 #include "compiler/types.h"
+#include "compiler/errors.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>

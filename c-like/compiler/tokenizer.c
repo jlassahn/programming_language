@@ -233,7 +233,8 @@ static void SkipSpaceAndComments(Tokenizer *tokenizer)
 		{
 			if (!SeekTo(file, "\n"))
 			{
-				ErrorAt(file->filename, &pos, "No end of line after #");
+				ErrorAt(ERROR_PARSER, file->filename, &pos,
+						"No end of line after #");
 				return;
 			}
 		}
@@ -241,7 +242,8 @@ static void SkipSpaceAndComments(Tokenizer *tokenizer)
 		{
 			if (!SeekTo(file, "\n"))
 			{
-				ErrorAt(file->filename, &pos, "No end of line after //");
+				ErrorAt(ERROR_PARSER, file->filename, &pos,
+						"No end of line after //");
 				return;
 			}
 		}
@@ -249,7 +251,8 @@ static void SkipSpaceAndComments(Tokenizer *tokenizer)
 		{
 			if (!SeekTo(file, "*/"))
 			{
-				ErrorAt(file->filename, &pos, "End of file inside /*");
+				ErrorAt(ERROR_PARSER, file->filename, &pos,
+						"End of file inside /*");
 				return;
 			}
 		}
@@ -353,12 +356,14 @@ static void ConsumeStringLiteral(Tokenizer *tokenizer)
 		char c = *FileGet(file);
 		if (c == 0)
 		{
-			ErrorAt(file->filename, &pos, "End of file inside string.");
+			ErrorAt(ERROR_PARSER, file->filename, &pos,
+					"End of file inside string.");
 			return;
 		}
 		else if (c == '\n')
 		{
-			ErrorAt(file->filename, &pos, "End of line inside string.");
+			ErrorAt(ERROR_PARSER, file->filename, &pos,
+					"End of line inside string.");
 			return;
 		}
 		else if (FileMatch(file, "\\\""))
@@ -387,13 +392,13 @@ static void ConsumeCharLiteral(Tokenizer *tokenizer)
 		char c = *FileGet(file);
 		if (c == 0)
 		{
-			ErrorAt(file->filename, &pos,
+			ErrorAt(ERROR_PARSER, file->filename, &pos,
 					"End of file inside character constant.");
 			return;
 		}
 		else if (c == '\n')
 		{
-			ErrorAt(file->filename, &pos,
+			ErrorAt(ERROR_PARSER, file->filename, &pos,
 					"End of line inside character constant.");
 			return;
 		}
