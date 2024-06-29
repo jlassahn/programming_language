@@ -12,5 +12,21 @@ void CompileStateFree(CompileState *state)
 			break;
 		StringBufferFree(sb);
 	}
+
+	while (true)
+	{
+		StringBuffer *sb = ListRemoveFirst(&state->input_files);
+		if (sb == NULL)
+			break;
+		StringBufferFree(sb);
+	}
+
+	while (true)
+	{
+		StringBuffer *sb = ListRemoveFirst(&state->input_modules);
+		if (sb == NULL)
+			break;
+		StringBufferFree(sb);
+	}
 }
 

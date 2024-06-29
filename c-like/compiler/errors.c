@@ -3,6 +3,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+static int error_count;
+static int warning_count;
+
 void Error(ErrorCategory cat, const char *text, ...)
 {
 	va_list args;
@@ -11,6 +14,8 @@ void Error(ErrorCategory cat, const char *text, ...)
 	vfprintf(stderr, text, args);
 	fprintf(stderr, "\n");
 	va_end(args);
+
+	error_count ++;
 }
 
 void ErrorAt(ErrorCategory cat, const char *filename, FilePosition *pos,
@@ -22,6 +27,8 @@ void ErrorAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 	vfprintf(stderr, text, args);
 	fprintf(stderr, "\n");
 	va_end(args);
+
+	error_count ++;
 }
 
 void Warning(ErrorCategory cat, const char *text, ...)
@@ -32,6 +39,8 @@ void Warning(ErrorCategory cat, const char *text, ...)
 	vfprintf(stderr, text, args);
 	fprintf(stderr, "\n");
 	va_end(args);
+
+	warning_count ++;
 }
 
 void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
@@ -43,5 +52,18 @@ void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 	vfprintf(stderr, text, args);
 	fprintf(stderr, "\n");
 	va_end(args);
+
+	warning_count ++;
 }
+
+int ErrorCount(void)
+{
+	return error_count;
+}
+
+int WarningCount(void)
+{
+	return warning_count;
+}
+
 

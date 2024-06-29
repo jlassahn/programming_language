@@ -1,5 +1,6 @@
 
 #include "compiler/memory.h"
+#include "compiler/exit_codes.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -18,7 +19,7 @@ void *Alloc(int size)
 	if (buf == NULL)
 	{
 		fprintf(stderr, "OUT OF MEMORY\n");
-		exit(ENOMEM);
+		exit(EXIT_SOFTWARE);
 	}
 	memset(buf, 0, size);
 	allocation_count ++;
@@ -37,7 +38,7 @@ void *Realloc(void *p, int size)
 	if (buf == NULL)
 	{
 		fprintf(stderr, "OUT OF MEMORY\n");
-		exit(ENOMEM);
+		exit(EXIT_SOFTWARE);
 	}
 	return buf;
 }

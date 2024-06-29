@@ -4,6 +4,12 @@
 
 #include <stdbool.h>
 
+#ifdef _WIN32
+#define USE_RESULT _Check_return_
+#else
+#define USE_RESULT __attribute__((warn_unused_result))
+#endif
+
 typedef struct String String;
 struct String
 {
@@ -21,12 +27,27 @@ struct StringBuffer
 	char buffer[];
 };
 
+// The StringBufferAppend functions return a new pointer to the modified
+// buffer (like realloc does for memory).
+
+USE_RESULT
 StringBuffer *StringBufferCreateEmpty(int capacity);
+
+USE_RESULT
 StringBuffer *StringBufferFromChars(const char *chars);
+
+USE_RESULT
 StringBuffer *StringBufferFromString(const String *str);
+
+USE_RESULT
 StringBuffer *StringBufferAppendChars(StringBuffer *sb, const char *chars);
+
+USE_RESULT
 StringBuffer *StringBufferAppendString(StringBuffer *sb, const String *str);
+
+USE_RESULT
 StringBuffer *StringBufferAppendBuffer(StringBuffer *sb, const StringBuffer *b);
+
 void StringBufferClear(StringBuffer *sb);
 void StringBufferLock(StringBuffer *sb);
 void StringBufferFree(StringBuffer *sb);

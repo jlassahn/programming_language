@@ -1,6 +1,7 @@
 
 #include "compiler/types.h"
 #include "compiler/memory.h"
+#include "compiler/exit_codes.h"
 #include "compiler/parser_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
@@ -129,8 +130,8 @@ ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 {
 	if (count > MAX_CHILDREN)
 	{
-		printf("ERROR: too many children %d\n", count);
-		exit(-1);
+		fprintf(stderr, "Internal parser error: too many children %d\n", count);
+		exit(EXIT_SOFTWARE);
 	}
 
 	ParserNode *node = Alloc(sizeof(ParserNode));

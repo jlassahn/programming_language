@@ -446,3 +446,31 @@ static const TokenType *MatchTokenList(TokenInfo *list, const char *text, int le
 	return NULL;
 }
 
+bool IsValidNamespace(const char *txt)
+{
+	bool word_start = true;
+	while (true)
+	{
+		int c = *txt;
+
+		if (c == 0)
+			return !word_start;
+
+		if (word_start)
+		{
+			if (!IsLetter(c))
+				return false;
+			word_start = false;
+		}
+		else
+		{
+			if (c == '.')
+				word_start = true;
+			else if (!IsLetter(c) && !IsDigit(c))
+				return false;
+		}
+
+		txt ++;
+	}
+}
+

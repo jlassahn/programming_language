@@ -1,8 +1,10 @@
 
 #include "compiler/types.h"
 #include "compiler/memory.h"
+#include "compiler/exit_codes.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h> // for MapPrint
 
 
@@ -14,16 +16,108 @@ bool StringEquals(const String *a, const String *b)
 	return (memcmp(a->data, b->data, a->length) == 0);
 }
 
+
+static void StringBufferAssertUnlocked(StringBuffer *sb)
+{
+	if (sb->capacity <= 0)
+	{
+		fprintf(stderr, "MODIFYING LOCKED StringBuffer: %s\n", sb->buffer);
+		exit(EXIT_SOFTWARE);
+	}
+}
+
+USE_RESULT
+static StringBuffer *StringBufferEnsureCapacity(StringBuffer *sb, int capacity)
+{
+	if (sb->capacity >= capacity)
+		return sb;
+
+	// grow by some minimum size rather than byte-by-byte
+	if (capacity < sb->capacity + 16)
+		capacity = sb->capacity + 16;
+
+	sb = Realloc(sb, sizeof(StringBuffer) + capacity);
+	sb->string.data = sb->buffer;
+	sb->capacity = capacity;
+	return sb;
+}
+
+USE_RESULT
+StringBuffer *StringBufferCreateEmpty(int capacity)
+{
+	// default to some reasonable initial size
+	if (capacity <= 0)
+		capacity = 200;
+
+	StringBuffer *sb = Alloc(sizeof(StringBuffer) + capacity);
+	sb->string.data = sb->buffer;
+	sb->string.length = 0;
+	sb->capacity = capacity;
+
+	return sb;
+}
+
+USE_RESULT
 StringBuffer *StringBufferFromChars(const char *chars)
 {
 	int length = strlen(chars);
-	StringBuffer *sb = Alloc(sizeof(StringBuffer) + length);
+	int capacity = length + 1;
+	StringBuffer *sb = Alloc(sizeof(StringBuffer) + capacity);
 	sb->string.data = sb->buffer;
 	sb->string.length = length;
-	sb->capacity = length;
+	sb->capacity = capacity;
 	strcpy(sb->buffer, chars);
 
 	return sb;
+}
+
+USE_RESULT
+StringBuffer *StringBufferAppendChars(StringBuffer *sb, const char *chars)
+{
+	StringBufferAssertUnlocked(sb);
+
+	int length = strlen(chars);
+	sb = StringBufferEnsureCapacity(sb, sb->string.length + length + 1);
+
+	memcpy(sb->buffer + sb->string.length, chars, length);
+	sb->string.length += length;
+	sb->buffer[sb->string.length] = 0;
+
+	return sb;
+}
+
+USE_RESULT
+StringBuffer *StringBufferAppendString(StringBuffer *sb, const String *str)
+{
+	StringBufferAssertUnlocked(sb);
+
+	int length = str->length;
+	sb = StringBufferEnsureCapacity(sb, sb->string.length + length + 1);
+
+	memcpy(sb->buffer + sb->string.length, str->data, length);
+	sb->string.length += length;
+	sb->buffer[sb->string.length] = 0;
+
+	return sb;
+}
+
+USE_RESULT
+StringBuffer *StringBufferAppendBuffer(StringBuffer *sb, const StringBuffer *b)
+{
+	return StringBufferAppendString(sb, &b->string);
+}
+
+void StringBufferLock(StringBuffer *sb)
+{
+	if (sb->capacity > 0)
+		sb->capacity = -sb->capacity;
+}
+
+void StringBufferClear(StringBuffer *sb)
+{
+	StringBufferAssertUnlocked(sb);
+	sb->buffer[0] = 0;
+	sb->string.length = 0;
 }
 
 void StringBufferFree(StringBuffer *sb)

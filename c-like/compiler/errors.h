@@ -21,5 +21,8 @@ void ErrorAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 		const char *text, ...);
 
+int ErrorCount(void);
+int WarningCount(void);
+
 #endif
 
