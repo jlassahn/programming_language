@@ -320,6 +320,18 @@ void MapDestroyAll(Map *map)
 	map->count = 0;
 }
 
+void MapIterate(Map *map, MapCallback handler, void *ctx)
+{
+	for (int i=0; i<256; i++)
+	{
+		HashBin *bin = &map->bins[i];
+		for (HashEntry *entry=bin->list; entry!=NULL; entry=entry->next)
+			handler(&entry->key, entry->value, ctx);
+
+		if (bin->subtable)
+			MapIterate(bin->subtable, handler, ctx);
+	}
+}
 
 static void Indent(int depth)
 {

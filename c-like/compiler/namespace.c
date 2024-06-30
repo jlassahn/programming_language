@@ -58,3 +58,17 @@ void NamespaceFree(Namespace *root)
 	// Map private_symbols;  // FIXME Map of ????
 }
 
+void NamespacePrinter(const String *key, void *value, void *ctx)
+{
+	int *depth = ctx;
+	Namespace *ns = value;
+
+	for (int i=0; i<*depth; i++)
+		printf("  ");
+	printf("%.*s:\n", key->length, key->data);
+
+	*depth = *depth + 1;
+	MapIterate(&ns->children, NamespacePrinter, depth);
+	*depth = *depth - 1;
+}
+

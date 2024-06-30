@@ -289,6 +289,10 @@ int main(int argc, const char *argv[])
 		// FIXME skip compile steps and exit
 	}
 
+	int depth = 1;
+	printf("\nNAMESPACE:\n");
+	MapIterate(&compile_state.root_namespace.children,
+			NamespacePrinter, &depth);
 
 	// FIXME cleanup starts here
 

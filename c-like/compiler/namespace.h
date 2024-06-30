@@ -27,5 +27,7 @@ NamespaceFlags;
 Namespace *NamespaceGetChild(Namespace *parent, String *name);
 void NamespaceFree(Namespace *root);
 
+void NamespacePrinter(const String *key, void *value, void *depth);
+
 #endif
 
