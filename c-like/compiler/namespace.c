@@ -3,6 +3,7 @@
 #include "compiler/types.h"
 #include "compiler/memory.h"
 #include "compiler/compiler_file.h"
+#include "compiler/fileio.h"
 #include <stdlib.h>
 
 Namespace *NamespaceGetChild(Namespace *parent, String *name)
@@ -13,6 +14,15 @@ Namespace *NamespaceGetChild(Namespace *parent, String *name)
 	{
 		child = Alloc(sizeof(Namespace));
 		MapInsert(&parent->children, name, child);
+
+		child->parent = parent;
+		StringBuffer *sb = StringBufferFromString(&parent->path->string);
+		int stem_offset = sb->string.length;
+		sb = StringBufferAppendString(sb, name);
+		sb = StringBufferAppendChars(sb, PATH_SEPARATOR_STRING);
+		child->path = sb;
+		child->stem.length = name->length;
+		child->stem.data = sb->string.data + stem_offset;
 	}
 
 	return child;
@@ -21,6 +31,14 @@ Namespace *NamespaceGetChild(Namespace *parent, String *name)
 void NamespaceFree(Namespace *root)
 {
 	root->flags = 0;
+	root->parent = NULL;
+	if (root->path)
+	{
+		StringBufferFree(root->path);
+		root->path = NULL;
+	}
+	root->stem.length = 0;
+	root->stem.data = NULL;
 
 	while (true)
 	{
@@ -65,7 +83,7 @@ void NamespacePrinter(const String *key, void *value, void *ctx)
 
 	for (int i=0; i<*depth; i++)
 		printf("  ");
-	printf("%.*s:\n", key->length, key->data);
+	printf("%.*s: %s\n", key->length, key->data, ns->path->buffer);
 
 	*depth = *depth + 1;
 	MapIterate(&ns->children, NamespacePrinter, depth);

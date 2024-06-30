@@ -250,6 +250,12 @@ struct BisonConnector
 
 static BisonConnector bison_connector;
 ParserNode * yylval = NULL;
+extern int yydebug;
+
+void ParseSetDebug(bool on)
+{
+	yydebug = (int)on;
+}
 
 ParserNode *ParseFile(ParserFile *file, ParserContext *context)
 {

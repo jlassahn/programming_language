@@ -19,7 +19,8 @@ struct CompilerFile
 
 typedef enum
 {
-	FILE_FROM_INPUT = 1,
+	FILE_FROM_INPUT = 0x0001,
+	FILE_PARSE_FAILED = 0x0002,
 }
 CompilerFileFlags;
 

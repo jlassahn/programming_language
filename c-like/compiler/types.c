@@ -72,6 +72,21 @@ StringBuffer *StringBufferFromChars(const char *chars)
 }
 
 USE_RESULT
+StringBuffer *StringBufferFromString(const String *string)
+{
+	int length = string->length;
+	int capacity = length + 1;
+	StringBuffer *sb = Alloc(sizeof(StringBuffer) + capacity);
+	sb->string.data = sb->buffer;
+	sb->string.length = length;
+	sb->capacity = capacity;
+	memcpy(sb->buffer, string->data, length);
+	sb->buffer[length+1] = 0;
+
+	return sb;
+}
+
+USE_RESULT
 StringBuffer *StringBufferAppendChars(StringBuffer *sb, const char *chars)
 {
 	StringBufferAssertUnlocked(sb);

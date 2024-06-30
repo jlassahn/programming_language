@@ -41,6 +41,8 @@ struct ParserNode
 	// error information
 };
 
+void ParseSetDebug(bool on);
+
 ParserNode *ParseFile(ParserFile *file, ParserContext *context);
 
 ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params);

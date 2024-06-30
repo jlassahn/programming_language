@@ -15,6 +15,7 @@ struct CompileState
 	Namespace root_namespace;
 };
 
+void CompileStateInit(CompileState *state);
 void CompileStateFree(CompileState *state);
 
 #endif

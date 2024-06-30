@@ -16,8 +16,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern int yydebug;
-
 static CompileState compile_state;
 
 bool AddBaseDir(CompileState *cs, const char *path)
@@ -197,7 +195,9 @@ int main(int argc, const char *argv[])
 	if (args == NULL)
 		return EXIT_USAGE;
 
-	//yydebug = 1;
+	ParseSetDebug(false);
+
+	CompileStateInit(&compile_state);
 
 	// FIXME handle other args
 	// check args for validity
@@ -262,6 +262,7 @@ int main(int argc, const char *argv[])
 		cf->root = ParseFile(cf->parser_file, NULL);
 		if (cf->parser_file->parser_result != 0)
 		{
+			cf->flags |= FILE_PARSE_FAILED;
 			// FIXME do we need to do anything with this error?
 		}
 
@@ -276,11 +277,7 @@ int main(int argc, const char *argv[])
 
 		// FIXME
 		// printf("PARSING FILE %s\n", cf->path->buffer);
-		//PrintNodeTree(stdout, cf->root);
-		// parse file
-		// determine namespace
-		// install in global namespace
-		// save file with namespace somewhere
+		// PrintNodeTree(stdout, cf->root);
 	}
 
 	if (!inputs_good)
