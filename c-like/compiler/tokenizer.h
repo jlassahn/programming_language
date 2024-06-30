@@ -3,6 +3,7 @@
 #define INCLUDED_TOKENIZER_H
 
 #include "compiler/parser_file.h"
+#include "compiler/types.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -42,6 +43,7 @@ void TokenPrint(FILE *fp, Token *token);
 // Checks if a string is formated as a namespace, without invoking the main
 // tokenizer.  Used for things like command parameter checking.
 bool IsValidNamespace(const char *txt);
+bool IsValidNamespaceName(String *str);
 
 extern const TokenType TOKEN_EOF;
 extern const TokenType TOKEN_IDENTIFIER;

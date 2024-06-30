@@ -57,6 +57,7 @@ ParserFile *FileRead(const char *filename)
 
 	file->data = p;
 	file->length = length;
+	file->parser_result = -1;
 
 	fclose(fp);
 	return file;

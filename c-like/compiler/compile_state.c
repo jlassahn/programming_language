@@ -1,6 +1,7 @@
 
 #include "compiler/compile_state.h"
 #include "compiler/types.h"
+#include "compiler/compiler_file.h"
 #include <stdlib.h>
 
 void CompileStateFree(CompileState *state)
@@ -15,10 +16,10 @@ void CompileStateFree(CompileState *state)
 
 	while (true)
 	{
-		StringBuffer *sb = ListRemoveFirst(&state->input_files);
-		if (sb == NULL)
+		CompilerFile *cf = ListRemoveFirst(&state->input_files);
+		if (cf == NULL)
 			break;
-		StringBufferFree(sb);
+		CompilerFileFree(cf);
 	}
 
 	while (true)
@@ -28,5 +29,7 @@ void CompileStateFree(CompileState *state)
 			break;
 		StringBufferFree(sb);
 	}
+
+	NamespaceFree(&state->root_namespace);
 }
 

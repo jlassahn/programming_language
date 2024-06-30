@@ -14,8 +14,10 @@ build/bin/moss-cc: \
 	compiler/tokenizer.c \
 	compiler/parser_file.c \
 	compiler/parser.c \
+	compiler/namespace.c \
 	compiler/commandargs.c \
 	compiler/compile_state.c \
+	compiler/compiler_file.c \
 	compiler/moss-cc.c \
 
 
@@ -33,6 +35,7 @@ tests: \
 
 build/bin/map_test: \
 	tests/unit/map_test.c \
+	compiler/memory.c \
 	compiler/types.c \
 
 	gcc -DYYDEBUG -I . -Wall -o $@ $^

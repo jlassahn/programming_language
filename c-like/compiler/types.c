@@ -239,7 +239,6 @@ bool MapInsert(Map *map, const String *key, void *value)
 	entry->key = *key;
 	entry->value = value;
 	entry->next = bin->list;
-	entry->prev = NULL;
 	bin->list = entry;
 	bin->count ++;
 	map->count ++;
@@ -266,6 +265,34 @@ void *MapFind(Map *map, const String *key)
 		}
 		return NULL;
 	}
+}
+
+void *MapRemoveFirst(Map *map)
+{
+	if (map->count == 0)
+		return NULL;
+
+	for (int i=0; i<256; i++)
+	{
+		HashBin *bin = &map->bins[i];
+
+		if (bin->count == 0)
+			continue;
+
+		bin->count --;
+		map->count --;
+
+		if (bin->subtable)
+			return MapRemoveFirst(bin->subtable);
+
+		HashEntry *entry = bin->list;
+		bin->list = entry->next;
+
+		void *value = entry->value;
+		Free(entry);
+		return value;
+	}
+	return NULL;
 }
 
 void MapDestroyAll(Map *map)

@@ -30,6 +30,7 @@ struct ParserFile
 	long length;
 
 	FilePosition current_pos;
+	int parser_result;
 };
 
 

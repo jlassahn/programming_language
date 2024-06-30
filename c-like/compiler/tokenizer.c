@@ -448,6 +448,8 @@ static const TokenType *MatchTokenList(TokenInfo *list, const char *text, int le
 
 bool IsValidNamespace(const char *txt)
 {
+	// FIXME don't allow "_" as a namespace element
+
 	bool word_start = true;
 	while (true)
 	{
@@ -472,5 +474,25 @@ bool IsValidNamespace(const char *txt)
 
 		txt ++;
 	}
+}
+
+bool IsValidNamespaceName(String *str)
+{
+	if (str->length <= 0)
+		return false;
+
+	if ((str->length == 1) && (str->data[0] == '_'))
+		return false;
+
+	if (!IsLetter(str->data[0]))
+		return false;
+
+	for (int i=1; i<str->length; i++)
+	{
+		if (!IsLetter(str->data[i]) && !IsDigit(str->data[i]))
+			return false;
+	}
+
+	return true;
 }
 

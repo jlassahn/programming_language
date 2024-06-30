@@ -77,7 +77,6 @@ typedef struct HashBin HashBin;
 
 struct HashEntry
 {
-	HashEntry *prev;
 	HashEntry *next;
 	String key;
 	void *value;
@@ -101,11 +100,11 @@ struct Map
 
 // copies the String struct, but not the backing char array.
 bool MapInsert(Map *map, const String *key, void *value);
-// void *MapRemove(Map *map, const String *key); // FIXME do we need this?
 void *MapFind(Map *map, const String *key);
+void *MapRemoveFirst(Map *map);
 void MapDestroyAll(Map *map);
 
-// FIXME way to destroy by iterating through everything, removing and returning
+// void *MapRemove(Map *map, const String *key); // FIXME do we need this?
 
 void MapPrint(Map *map);
 

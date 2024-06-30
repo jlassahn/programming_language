@@ -256,8 +256,7 @@ ParserNode *ParseFile(ParserFile *file, ParserContext *context)
 	bison_connector.file = file;
 	TokenizerStart(&bison_connector.tokenizer, file);
 
-	int ret = yyparse();
-	printf("parser return = %d\n", ret);
+	file->parser_result = yyparse();
 
 	// for Bison, the last node allocated is always the top level symbol
 	return last_node;

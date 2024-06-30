@@ -6,9 +6,11 @@
 #include "compiler/errors.h"
 #include "compiler/commandargs.h"
 #include "compiler/parser_file.h"
+#include "compiler/compiler_file.h"
 #include "compiler/tokenizer.h"
 #include "compiler/parser.h"
 #include "compiler/compile_state.h"
+#include "compiler/namespace.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -56,7 +58,6 @@ bool CheckForModuleStem(StringBuffer *dir, StringBuffer *stem)
 {
 	bool ret = false;
 
-	printf("searching %s for %s\n", dir->buffer, stem->buffer);
 	if (!DoesDirectoryExist(dir->buffer))
 		return false;
 
@@ -72,7 +73,6 @@ bool CheckForModuleStem(StringBuffer *dir, StringBuffer *stem)
 
 		if (strncmp(name, stem->buffer, stem->string.length) == 0)
 		{
-			printf("FOUND: %s\n", name);
 			ret = true;
 			break;
 		}
@@ -85,8 +85,6 @@ bool CheckForModuleStem(StringBuffer *dir, StringBuffer *stem)
 bool CheckForModuleFiles(List *base_paths, const char *name)
 {
 	bool ret = false;
-
-	printf("FIXME checking module '%s' ...\n", name);
 
 	int path_end = 0;
 	StringBuffer *mod_path = StringBufferFromChars(name);
@@ -167,7 +165,9 @@ bool AddInputFile(CompileState *cs, const char *name)
 	// FIXME if name ends with ".moss" assume it's a source file
 	//       otherwise it's a library or something.
 
-	ListInsertLast(&compile_state.input_files, sb);
+	CompilerFile *cf = CompilerFileCreate(sb);
+	cf->flags |= FILE_FROM_INPUT;
+	ListInsertLast(&compile_state.input_files, cf);
 
 	return true;
 }
@@ -197,6 +197,9 @@ int main(int argc, const char *argv[])
 	if (args == NULL)
 		return EXIT_USAGE;
 
+	//yydebug = 1;
+
+	// FIXME handle other args
 	// check args for validity
 	//    warnings;
 	//    optimizations;
@@ -221,12 +224,6 @@ int main(int argc, const char *argv[])
 
 
 	// FIXME printing results...
-	if (!inputs_good)
-	{
-		printf("BAD INPUTS\n");
-		// FIXME skip compile steps and exit
-	}
-
 	for (ListEntry *entry=compile_state.basedirs.first;
 			entry!=NULL; entry=entry->next)
 	{
@@ -237,8 +234,8 @@ int main(int argc, const char *argv[])
 	for (ListEntry *entry=compile_state.input_files.first;
 			entry!=NULL; entry=entry->next)
 	{
-		StringBuffer *sb = entry->item;
-		printf("input file: %s\n", sb->string.data);
+		CompilerFile *cf = entry->item;
+		printf("input file: %s\n", cf->path->string.data);
 	}
 
 	for (ListEntry *entry=compile_state.input_modules.first;
@@ -246,6 +243,50 @@ int main(int argc, const char *argv[])
 	{
 		StringBuffer *sb = entry->item;
 		printf("input module: %s\n", sb->string.data);
+	}
+
+	// FIXME continuing with parse
+	for (ListEntry *entry=compile_state.input_files.first;
+			entry!=NULL; entry=entry->next)
+	{
+		CompilerFile *cf = entry->item;
+
+		cf->parser_file = FileRead(cf->path->buffer);
+		if (!cf->parser_file)
+		{
+			Error(ERROR_FILE,
+				"Failed to read file '%s'.", cf->path->buffer);
+			inputs_good = false;
+			break;
+		}
+		cf->root = ParseFile(cf->parser_file, NULL);
+		if (cf->parser_file->parser_result != 0)
+		{
+			// FIXME do we need to do anything with this error?
+		}
+
+		// determine namespace after parsing, in case we add a file
+		// header that overrides the default filename-based namespace.
+		if (!CompilerFilePickNamespace(cf, &compile_state.root_namespace))
+		{
+			Error(ERROR_FILE,
+				"File name '%s' isn't a valid namespace.", cf->path->buffer);
+			inputs_good = false;
+		}
+
+		// FIXME
+		// printf("PARSING FILE %s\n", cf->path->buffer);
+		//PrintNodeTree(stdout, cf->root);
+		// parse file
+		// determine namespace
+		// install in global namespace
+		// save file with namespace somewhere
+	}
+
+	if (!inputs_good)
+	{
+		printf("BAD INPUTS\n");
+		// FIXME skip compile steps and exit
 	}
 
 
@@ -257,30 +298,6 @@ int main(int argc, const char *argv[])
 	printf("allocation count = %d\n", AllocCount());
 
 	printf("errors: %d, warnings: %d\n", ErrorCount(), WarningCount());
-
-	if (ErrorCount() > 0)
-		return EXIT_DATAERR;
-	return EXIT_OK;
-
-	//yydebug = 1;
-	const char * filename = "examples/source/hello.moss";
-	if (argc == 2)
-		filename = argv[1];
-
-	ParserFile *file = FileRead(filename);
-	if (!file)
-	{
-		printf("can't open file %s\n", filename);
-		return EXIT_NOINPUT;
-	}
-
-	ParserNode *root = ParseFile(file, NULL);
-	PrintNodeTree(stdout, root);
-	printf("nodes = %d\n", GetNodeCount());
-	FreeNode(root);
-	printf("nodes = %d\n", GetNodeCount());
-
-	FileFree(file);
 
 	if (ErrorCount() > 0)
 		return EXIT_DATAERR;

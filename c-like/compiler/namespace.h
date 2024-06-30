@@ -2,47 +2,30 @@
 #ifndef INCLUDED_NAMESPACE_H
 #define INCLUDED_NAMESPACE_H
 
+#include "compiler/types.h"
 #include <stdint.h>
-
-/*
-CompilerState:
-	root_namespace
-		child_namespaces...
-			flags (initialized, private, etc)
-			file_list
-				file...
-					symbol_declarations
-					using_statements
-					import_statements
-					file_namespace
-						using_namespace_stuff
-			symbols
-*/
-
-typedef struct CompilerFile CompilerFile;
-
-typedef struct FileList FileList;
-struct FileList
-{
-	CompilerFile *head;
-	CompilerFile *tail;
-};
 
 typedef struct Namespace Namespace;
 struct Namespace
 {
 	uint32_t flags;
-	FileList files;
-	MapNamespace namespaces;
-	MapSymbol symbols;
+	Map children;  // Map of Namespace
+	List public_files; // List of CompilerFile
+	List private_files; // List of CompilerFile
+	Map public_symbols;  // FIXME Map of ????
+	Map private_symbols;  // FIXME Map of ????
 };
 
-struct SymbolTable
+typedef enum
 {
-	Namespace global_namespace;
-	Namespace file_scope;
-	NamespaceStack local_scope;
-};
+	NAMESPACE_HAS_INFILE = 0x0001,
+	NAMESPACE_SCANNED_PUBLIC = 0x0002,
+	NAMESPACE_SCANNED_PRIVATE = 0x0004,
+}
+NamespaceFlags;
+
+Namespace *NamespaceGetChild(Namespace *parent, String *name);
+void NamespaceFree(Namespace *root);
 
 #endif
 
