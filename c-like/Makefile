@@ -1,41 +1,81 @@
 
-all: build/bin/moss-cc
+#
+# General targets
+#
+all: make_dirs make_compiler make_tests
 
+test: make_dirs make_tests
+
+clean:
+	rm -Rf build/*
+
+
+#
+# Outputs by category
+#
+make_compiler: \
+	build/bin/moss-cc
+
+make_tests: \
+	build/bin/map_test \
+
+make_dirs: \
+	build/generated/ \
+	build/obj/compiler/ \
+	build/obj/tests/ \
+	build/obj/tests/unit/ \
+	build/bin/ \
+
+
+#
+# Generated grammar files
+#
 build/generated/grammar.c: grammar.bison
 	bison -d -o $@ $^
 
+build/generated/grammar.o: build/generated/grammar.c
+	gcc -c -DYYDEBUG -I . -Wall -o $@ $<
+
+
+#
+# Compiler
+#
 build/bin/moss-cc: \
-	build/generated/grammar.c \
-	compiler/memory.c \
-	compiler/types.c \
-	compiler/errors.c \
-	compiler/fileio.c \
-	compiler/token_defs.c \
-	compiler/tokenizer.c \
-	compiler/parser_file.c \
-	compiler/parser.c \
-	compiler/namespace.c \
-	compiler/commandargs.c \
-	compiler/compile_state.c \
-	compiler/compiler_file.c \
-	compiler/moss-cc.c \
+	build/generated/grammar.o \
+	build/obj/compiler/memory.o \
+	build/obj/compiler/types.o \
+	build/obj/compiler/errors.o \
+	build/obj/compiler/fileio.o \
+	build/obj/compiler/token_defs.o \
+	build/obj/compiler/tokenizer.o \
+	build/obj/compiler/parser_file.o \
+	build/obj/compiler/parser.o \
+	build/obj/compiler/namespace.o \
+	build/obj/compiler/commandargs.o \
+	build/obj/compiler/compile_state.o \
+	build/obj/compiler/compiler_file.o \
+	build/obj/compiler/moss-cc.o \
+
+	gcc -o $@ $^
 
 
-	gcc -DYYDEBUG -I . -Wall -o $@ $^
-
-clean:
-	rm build/bin/moss-cc
-	rm build/generated/*.c
-	rm build/generated/*.h
-
-
-tests: \
-	build/bin/map_test \
-
-
+#
+# Individual Tests
+#
 build/bin/map_test: \
-	tests/unit/map_test.c \
-	compiler/memory.c \
-	compiler/types.c \
+	build/obj/tests/unit/map_test.o \
+	build/obj/compiler/memory.o \
+	build/obj/compiler/types.o \
 
-	gcc -DYYDEBUG -I . -Wall -o $@ $^
+	gcc -o $@ $^
+
+
+#
+# Patterns
+#
+build/obj/%.o: %.c
+	gcc -c -I . -Wall -o $@ $<
+
+build/%/:
+	mkdir -p $@
+
