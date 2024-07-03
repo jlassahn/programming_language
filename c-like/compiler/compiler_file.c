@@ -65,6 +65,8 @@ bool CompilerFilePickNamespace(CompilerFile *cf, Namespace *root)
 	ListInsertLast(&namespace->private_files, cf);
 	namespace->flags |= NAMESPACE_HAS_INFILE;
 
+	cf->namespace = namespace;
+
 	return true;
 }
 

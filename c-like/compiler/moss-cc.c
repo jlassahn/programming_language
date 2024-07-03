@@ -48,7 +48,7 @@ bool AddBaseDir(CompileState *cs, const char *path)
 	}
 
 	StringBufferLock(sb);
-	ListInsertLast(&compile_state.basedirs, sb);
+	ListInsertLast(&cs->basedirs, sb);
 	return true;
 }
 
@@ -136,18 +136,44 @@ bool CheckForModuleFiles(List *base_paths, const char *name)
 	return ret;
 }
 
-
-bool AddInputModule(CompileState *cs, const char *name)
+bool AddInputModule(CompileState *state, const char *path)
 {
-	if (!IsValidNamespace(name))
+	if (!IsValidNamespace(path))
 		return false;
 
-	if (!CheckForModuleFiles(&cs->basedirs, name))
+	if (!CheckForModuleFiles(&state->basedirs, path))
 		return false;
 
-	StringBuffer *sb = StringBufferFromChars(name);
-	StringBufferLock(sb);
-	ListInsertLast(&compile_state.input_modules, sb);
+	Namespace *ns = &state->root_namespace;
+
+	String name;
+	int length = strlen(path);
+	int start = 0;
+	int end = 0;
+	for (int i=0; i<length; i++)
+	{
+		if (path[i] == '.')
+		{
+			end = i;
+			name.data = &path[start];
+			name.length = end-start;
+			ns = NamespaceGetChild(ns, &name);
+			if (ns == NULL)
+				return false;
+			start = i+1;
+		}
+	}
+	if (start < length)
+	{
+		end = length;
+		name.data = &path[start];
+		name.length = end-start;
+		ns = NamespaceGetChild(ns, &name);
+		if (ns == NULL)
+			return false;
+	}
+
+	ListInsertLast(&compile_state.input_modules, ns);
 
 	return true;
 }
@@ -189,6 +215,150 @@ bool AddInput(CompileState *cs, const char *name)
 	return false;
 }
 
+bool ParseInputFile(CompilerFile *cf, Namespace *root)
+{
+	cf->parser_file = FileRead(cf->path->buffer);
+	if (!cf->parser_file)
+		return false;
+
+	cf->root = ParseFile(cf->parser_file, NULL);
+	if (cf->parser_file->parser_result != 0)
+		cf->flags |= FILE_PARSE_FAILED;
+
+	// determine namespace after parsing, in case we add a file
+	// header that overrides the default filename-based namespace.
+	if (!CompilerFilePickNamespace(cf, root))
+	{
+		Error(ERROR_FILE,
+			"File name '%s' isn't a valid namespace.", cf->path->buffer);
+		return false;
+	}
+	return true;
+}
+
+bool ScanImportNodes(ParserNode *node, CompileState *state)
+{
+	if (node == NULL)
+		return true;
+
+	if (node->symbol == &SYM_EMPTY)
+		return true;
+
+	if (node->symbol == &SYM_LIST)
+	{
+		for (int i=0; i<node->count; i++)
+		{
+			ScanImportNodes(node->children[i], state);
+		}
+	}
+
+	if ((node->symbol == &SYM_IMPORT) || (node->symbol == &SYM_IMPORT_PRIVATE))
+	{
+		int start = node->position.start.offset;
+		int end = node->position.end.offset;
+		const char *data = node->position.file->data;
+		printf("FIXME scanning import node %s: %.*s\n", node->symbol->rule_name, end-start, data+start);
+	}
+
+	return true;
+}
+
+bool ScanFileImports(CompilerFile *cf, CompileState *state)
+{
+	// FIXME for each import ScanNamespaceFiles()
+	printf("FIXME scanning %s for imports\n", cf->path->buffer);
+
+	return ScanImportNodes(cf->root, state);
+}
+
+bool ScanModuleFiles(StringBuffer *dir, StringBuffer *stem,
+		Namespace *ns, bool is_private, CompileState *state)
+{
+	printf("FIXME scanning module files %s, %s\n", dir->buffer, stem->buffer);
+
+	bool ret = true;
+
+	DirectorySearch *ds = DirectorySearchStart(dir->buffer);
+	if (!ds)
+		return true;
+
+	while (true)
+	{
+		const char *name = DirectorySearchNextFile(ds);
+		if (name == NULL)
+			break;
+
+		if (strncmp(name, stem->buffer, stem->string.length) == 0)
+		{
+			printf("   found %s\n", name);
+			StringBuffer *sb = StringBufferFromString(&dir->string);
+			sb = StringBufferAppendChars(sb, name);
+			StringBufferLock(sb);
+			CompilerFile *cf = CompilerFileCreate(sb);
+
+			cf->parser_file = FileRead(cf->path->buffer);
+			if (!cf->parser_file)
+			{
+				ret = false;
+				CompilerFileFree(cf);
+				continue;
+			}
+
+			cf->root = ParseFile(cf->parser_file, NULL);
+			if (cf->parser_file->parser_result != 0)
+			{
+				cf->flags |= FILE_PARSE_FAILED;
+				ret = false;
+			}
+
+			cf->namespace = ns;
+			if (is_private)
+				ListInsertLast(&ns->private_files, cf);
+			else
+				ListInsertLast(&ns->public_files, cf);
+
+			if (!ScanFileImports(cf, state))
+				ret = false;
+		}
+	}
+	DirectorySearchEnd(ds);
+	return ret;
+}
+
+bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
+{
+	printf("FIXME scanning namespace %s (%s, %.*s)\n", ns->path->buffer, ns->parent->path->buffer, ns->stem.length, ns->stem.data);
+
+	bool ret = true;
+	List *base_paths = &state->basedirs;
+
+	StringBuffer *dir = StringBufferCreateEmpty(200);
+	StringBuffer *stem = StringBufferFromString(&ns->stem);
+	stem = StringBufferAppendChars(stem, ".");
+	for (ListEntry *entry=base_paths->first; entry!=NULL; entry=entry->next)
+	{
+		StringBuffer *base = entry->item;
+
+		StringBufferClear(dir);
+		dir = StringBufferAppendBuffer(dir, base);
+		dir = StringBufferAppendChars(dir, "source/");
+		dir = StringBufferAppendBuffer(dir, ns->parent->path);
+		if (!ScanModuleFiles(dir, stem, ns, true, state))
+			ret = false;
+
+		StringBufferClear(dir);
+		dir = StringBufferAppendBuffer(dir, base);
+		dir = StringBufferAppendChars(dir, "import/");
+		dir = StringBufferAppendBuffer(dir, ns->parent->path);
+		if (!ScanModuleFiles(dir, stem, ns, false, state))
+			ret = false;
+	}
+
+	StringBufferFree(stem);
+	StringBufferFree(dir);
+	return ret;
+}
+
 int main(int argc, const char *argv[])
 {
 	const CompilerArgs *args = ParseArgs(argc, argv);
@@ -222,62 +392,26 @@ int main(int argc, const char *argv[])
 		inputs_good = AddInput(&compile_state, entry->arg) && inputs_good;
 	}
 
-
-	// FIXME printing results...
-	for (ListEntry *entry=compile_state.basedirs.first;
-			entry!=NULL; entry=entry->next)
-	{
-		StringBuffer *sb = entry->item;
-		printf("search directory: %s\n", sb->string.data);
-	}
+	CompileStatePrint(&compile_state);
 
 	for (ListEntry *entry=compile_state.input_files.first;
 			entry!=NULL; entry=entry->next)
 	{
 		CompilerFile *cf = entry->item;
-		printf("input file: %s\n", cf->path->string.data);
+
+		if (!ParseInputFile(cf, &compile_state.root_namespace))
+			inputs_good = false;
+
+		if (!ScanFileImports(cf, &compile_state))
+			inputs_good = false;
 	}
 
 	for (ListEntry *entry=compile_state.input_modules.first;
 			entry!=NULL; entry=entry->next)
 	{
-		StringBuffer *sb = entry->item;
-		printf("input module: %s\n", sb->string.data);
-	}
-
-	// FIXME continuing with parse
-	for (ListEntry *entry=compile_state.input_files.first;
-			entry!=NULL; entry=entry->next)
-	{
-		CompilerFile *cf = entry->item;
-
-		cf->parser_file = FileRead(cf->path->buffer);
-		if (!cf->parser_file)
-		{
-			Error(ERROR_FILE,
-				"Failed to read file '%s'.", cf->path->buffer);
+		Namespace *module = entry->item;
+		if (!ScanNamespaceFiles(module, &compile_state))
 			inputs_good = false;
-			break;
-		}
-		cf->root = ParseFile(cf->parser_file, NULL);
-		if (cf->parser_file->parser_result != 0)
-		{
-			cf->flags |= FILE_PARSE_FAILED;
-			// FIXME do we need to do anything with this error?
-		}
-
-		// determine namespace after parsing, in case we add a file
-		// header that overrides the default filename-based namespace.
-		if (!CompilerFilePickNamespace(cf, &compile_state.root_namespace))
-		{
-			Error(ERROR_FILE,
-				"File name '%s' isn't a valid namespace.", cf->path->buffer);
-			inputs_good = false;
-		}
-
-		// FIXME
-		// printf("PARSING FILE %s\n", cf->path->buffer);
-		// PrintNodeTree(stdout, cf->root);
 	}
 
 	if (!inputs_good)

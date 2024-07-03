@@ -73,7 +73,9 @@ build/bin/map_test: \
 #
 # Patterns
 #
-build/obj/%.o: %.c
+headers := $(wildcard compiler/*.h)
+
+build/obj/%.o: %.c $(headers)
 	gcc -c -I . -Wall -o $@ $<
 
 build/%/:

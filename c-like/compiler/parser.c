@@ -138,16 +138,20 @@ ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params)
 	memset(node, 0, sizeof(ParserNode));
 
 	node->symbol = kind;
-	if (count != 0)
-	{
-		node->position.file = params[0]->position.file;
-		node->position.start = params[0]->position.start;
-		node->position.end = params[count-1]->position.end;
-	}
 
 	int child_count = 0;
 	for (int i=0; i<count; i++)
 	{
+		if (params[i]->position.file)
+		{
+			if (node->position.file == NULL)
+			{
+				node->position.file = params[i]->position.file;
+				node->position.start = params[i]->position.start;
+			}
+			node->position.end = params[i]->position.end;
+		}
+
 		if (params[i]->symbol->flags & SYM_DISCARD)
 		{
 			FreeNode(params[i]);
@@ -281,7 +285,7 @@ int yylex(void)
 		GetCurrentToken(&bison_connector.tokenizer, &token);
 		TokenizerConsume(&bison_connector.tokenizer);
 
-		// FIXME fiind a better way than using flags for this
+		// FIXME find a better way than using flags for this
 		//       maybe token types have a ParserSymbol* member?
 		int token_sym = token.token_type->flags & 15;
 		static ParserSymbol *syms[] =

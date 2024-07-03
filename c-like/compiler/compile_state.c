@@ -35,12 +35,36 @@ void CompileStateFree(CompileState *state)
 
 	while (true)
 	{
-		StringBuffer *sb = ListRemoveFirst(&state->input_modules);
-		if (sb == NULL)
+		Namespace *ns = ListRemoveFirst(&state->input_modules);
+		if (ns == NULL)
 			break;
-		StringBufferFree(sb);
+		// Namespaces are owned by the root namespace below
 	}
 
 	NamespaceFree(&state->root_namespace);
+}
+
+void CompileStatePrint(const CompileState *state)
+{
+	for (ListEntry *entry=state->basedirs.first;
+			entry!=NULL; entry=entry->next)
+	{
+		StringBuffer *sb = entry->item;
+		printf("search directory: %s\n", sb->string.data);
+	}
+
+	for (ListEntry *entry=state->input_files.first;
+			entry!=NULL; entry=entry->next)
+	{
+		CompilerFile *cf = entry->item;
+		printf("input file: %s\n", cf->path->string.data);
+	}
+
+	for (ListEntry *entry=state->input_modules.first;
+			entry!=NULL; entry=entry->next)
+	{
+		Namespace *ns = entry->item;
+		printf("input module: %s\n", ns->path->buffer);
+	}
 }
 

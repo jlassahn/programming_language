@@ -14,6 +14,7 @@ struct CompilerFile
 	StringBuffer *path;
 	ParserFile *parser_file;
 	ParserNode *root;
+	Namespace *namespace;
 };
 
 

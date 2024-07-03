@@ -4,8 +4,6 @@
 
 #include <stdbool.h>
 
-#define MAX_PATH_STRING 4096
-
 #ifdef _WIN32
 #define PATH_SEPARATOR '\\'
 #define PATH_SEPARATOR_STRING "\\"
