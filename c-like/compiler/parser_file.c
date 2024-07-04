@@ -10,9 +10,9 @@
 #include <string.h>
 #include <errno.h>
 
-ParserFile *FileRead(const char *filename)
+ParserFile *ParserFileRead(const char *filename)
 {
-	FILE *fp = fopen(filename, "r");
+	FILE *fp = fopen(filename, "rb");
 	if (!fp)
 	{
 		Error(ERROR_FILE, "Unable to open file. Filename(%s) Reason(%s)",

@@ -18,6 +18,8 @@ make_compiler: \
 
 make_tests: \
 	build/bin/all_tests \
+	build/bin/test_fileio \
+
 
 make_dirs: \
 	build/generated/ \
@@ -27,6 +29,7 @@ make_dirs: \
 	build/bin/ \
 
 run_tests:
+	build/bin/test_fileio
 	build/bin/all_tests
 
 #
@@ -64,6 +67,14 @@ build/bin/moss-cc: \
 #
 # Individual Tests
 #
+build/bin/test_fileio: \
+	build/obj/tests/unit/unit_test.o \
+	build/obj/compiler/memory.o \
+	build/obj/compiler/fileio.o \
+	build/obj/tests/test_fileio.o \
+
+	gcc -o $@ $^
+
 build/bin/all_tests: \
 	build/obj/compiler/types.o \
 	build/obj/compiler/memory.o \

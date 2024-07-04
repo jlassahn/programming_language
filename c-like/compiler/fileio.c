@@ -148,3 +148,35 @@ bool IsValidPath(const char *txt)
 	return true;
 }
 
+OSFile *OSFileOpenRead(const char *path)
+{
+	FILE *file = fopen(path, "rb");
+	return (OSFile *)file;
+}
+
+void OSFileClose(OSFile *fp)
+{
+	FILE *file = (FILE *)fp;
+	fclose(file);
+}
+
+long OSFileGetSize(OSFile *fp)
+{
+	FILE *file = (FILE *)fp;
+
+	long original = ftell(file);
+	fseek(file, 0, SEEK_END);
+	long length = ftell(file);
+	fseek(file, original, SEEK_SET);
+
+	return length;
+}
+
+long OSFileRead(OSFile *fp, void *data_out, long max_bytes)
+{
+	FILE *file = (FILE *)fp;
+
+	long read_length = fread(data_out, 1, max_bytes, file);
+	return read_length;
+}
+

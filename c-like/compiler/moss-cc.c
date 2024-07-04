@@ -217,7 +217,7 @@ bool AddInput(CompileState *cs, const char *name)
 
 bool ParseInputFile(CompilerFile *cf, Namespace *root)
 {
-	cf->parser_file = FileRead(cf->path->buffer);
+	cf->parser_file = ParserFileRead(cf->path->buffer);
 	if (!cf->parser_file)
 		return false;
 
@@ -300,7 +300,7 @@ bool ScanModuleFiles(StringBuffer *dir, StringBuffer *stem,
 			StringBufferLock(sb);
 			CompilerFile *cf = CompilerFileCreate(sb);
 
-			cf->parser_file = FileRead(cf->path->buffer);
+			cf->parser_file = ParserFileRead(cf->path->buffer);
 			if (!cf->parser_file)
 			{
 				ret = false;
