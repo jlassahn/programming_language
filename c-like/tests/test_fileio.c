@@ -50,22 +50,60 @@ void TestFileExist(void)
 	CHECK(!DoesFileExist("tests/test_files/subdir1"));
 }
 
-/* FIXME test these
-typedef struct DirectorySearch DirectorySearch;
+void TestDirectorySearch(void)
+{
+	DirectorySearch *ds = NULL;
 
-DirectorySearch *DirectorySearchStart(const char *path);
-const char *DirectorySearchNextFile(DirectorySearch *dir);
-void DirectorySearchEnd(DirectorySearch *dir);
-*/
+	ds = DirectorySearchStart("tests/test_files/subdir1");
+	CHECK(ds != NULL);
+	if (ds != NULL)
+	{
+		CHECK(0 == strcmp(DirectorySearchNextFile(ds), "length10.txt"));
+		CHECK(DirectorySearchNextFile(ds) == NULL);
+		DirectorySearchEnd(ds);
+	}
+	ds = DirectorySearchStart("tests/test_files");
+	CHECK(ds != NULL);
+	if (ds != NULL)
+	{
+		// should not find subdirectories
+		CHECK(DirectorySearchNextFile(ds) == NULL);
+		DirectorySearchEnd(ds);
+	}
+}
 
-// FIXME test this
-// bool IsValidPath(const char *txt);
+void TestIsValidPath(void)
+{
+	CHECK(!IsValidPath(""));
+	CHECK(!IsValidPath("\n"));
+	CHECK(!IsValidPath("this/a\ttab/"));
+	CHECK(!IsValidPath("a//b"));
+	CHECK(!IsValidPath(" "));
+	CHECK(!IsValidPath(" x"));
+	CHECK(!IsValidPath("x "));
+	CHECK(!IsValidPath("a/ /b"));
+	CHECK(!IsValidPath("a/ x/b"));
+	CHECK(!IsValidPath("a/x /b"));
+
+	CHECK(IsValidPath("."));
+	CHECK(IsValidPath("./x"));
+	CHECK(IsValidPath("./x/"));
+	CHECK(IsValidPath("x"));
+	CHECK(IsValidPath("x/y"));
+	CHECK(IsValidPath("/y"));
+	CHECK(IsValidPath("C:/x"));
+	CHECK(IsValidPath("a long file with spaces"));
+
+	CHECK(IsValidPath("C:\\x"));
+}
 
 int main(int argc, const char *argv[])
 {
 	RUN_TEST(TestBasicRead);
 	RUN_TEST(TestBadRead);
 	RUN_TEST(TestFileExist);
+	RUN_TEST(TestDirectorySearch);
+	RUN_TEST(TestIsValidPath);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

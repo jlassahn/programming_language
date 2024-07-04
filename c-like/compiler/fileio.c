@@ -78,9 +78,10 @@ const char *DirectorySearchNextFile(DirectorySearch *dir)
 		if (entry == NULL)
 			return NULL;
 
-		const char *name = entry->d_name;
-		if (strcmp(name, ".") && strcmp(name, ".."))
-			return name;
+		if (entry->d_type != DT_REG)
+			continue;
+
+		return entry->d_name;
 	}
 }
 
@@ -115,8 +116,13 @@ bool DoesFileExist(const char *path)
 
 bool IsValidPath(const char *txt)
 {
-	bool sep = false;
+	int prevchar = -1;
+
 	if (*txt == 0)
+		return false;
+
+	// checks for first character in first filename
+	if (txt[0] == ' ')
 		return false;
 
 	while (*txt != 0)
@@ -132,19 +138,32 @@ bool IsValidPath(const char *txt)
 		if (c == '\'')
 			return false;
 
-		if ((c == '/') || (c == '\\'))
+		// checks for first character in filename
+		if ((prevchar == '/') || (prevchar == '\\'))
 		{
-			if (sep)
+			if (c == '/')
 				return false;
-			sep = true;
-		}
-		else
-		{
-			sep = false;
+			if (c == '\\')
+				return false;
+			if (c == ' ')
+				return false;
 		}
 
+		// checks for last character in internal filenames
+		if ((c == '/') || (c == '\\'))
+		{
+			if (prevchar == ' ')
+				return false;
+		}
+
+		prevchar = c;
 		txt ++;
 	}
+
+	// checks for last character in final filename
+	if (prevchar == ' ')
+		return false;
+
 	return true;
 }
 
