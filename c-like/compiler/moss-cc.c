@@ -236,8 +236,11 @@ bool ParseInputFile(CompilerFile *cf, Namespace *root)
 	return true;
 }
 
+// FIXME needs namespace of file being scanned
 bool ScanImportNodes(ParserNode *node, CompileState *state)
 {
+	// FIXME rename, reorganize, create List of ImportLink
+	//  on files.
 	if (node == NULL)
 		return true;
 
@@ -265,6 +268,7 @@ bool ScanImportNodes(ParserNode *node, CompileState *state)
 
 bool ScanFileImports(CompilerFile *cf, CompileState *state)
 {
+	// FIXME mark file as done with imports
 	// FIXME for each import ScanNamespaceFiles()
 	printf("FIXME scanning %s for imports\n", cf->path->buffer);
 
@@ -327,6 +331,7 @@ bool ScanModuleFiles(StringBuffer *dir, StringBuffer *stem,
 
 bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 {
+	// FIXME mark namespace as already scanned
 	printf("FIXME scanning namespace %s (%s, %.*s)\n", ns->path->buffer, ns->parent->path->buffer, ns->stem.length, ns->stem.data);
 
 	bool ret = true;
@@ -361,6 +366,11 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 
 int main(int argc, const char *argv[])
 {
+	// FIXME naming things ...
+	// Scan...  Parse...
+	// Translate...
+	// Generate
+
 	const CompilerArgs *args = ParseArgs(argc, argv);
 	if (args == NULL)
 		return EXIT_USAGE;
@@ -394,6 +404,7 @@ int main(int argc, const char *argv[])
 
 	CompileStatePrint(&compile_state);
 
+	// FIXME rename things Parse... and Scan...
 	for (ListEntry *entry=compile_state.input_files.first;
 			entry!=NULL; entry=entry->next)
 	{
@@ -404,6 +415,8 @@ int main(int argc, const char *argv[])
 
 		if (!ScanFileImports(cf, &compile_state))
 			inputs_good = false;
+
+		// FIXME scan namespace for other files
 	}
 
 	for (ListEntry *entry=compile_state.input_modules.first;
@@ -413,6 +426,8 @@ int main(int argc, const char *argv[])
 		if (!ScanNamespaceFiles(module, &compile_state))
 			inputs_good = false;
 	}
+
+	// FIXME all file input is done.
 
 	if (!inputs_good)
 	{

@@ -4,7 +4,7 @@
 #
 all: make_dirs make_compiler make_tests
 
-test: make_dirs make_tests
+test: make_dirs make_compiler make_tests run_tests
 
 clean:
 	rm -Rf build/*
@@ -17,7 +17,7 @@ make_compiler: \
 	build/bin/moss-cc
 
 make_tests: \
-	build/bin/map_test \
+	build/bin/all_tests \
 
 make_dirs: \
 	build/generated/ \
@@ -26,6 +26,8 @@ make_dirs: \
 	build/obj/tests/unit/ \
 	build/bin/ \
 
+run_tests:
+	build/bin/all_tests
 
 #
 # Generated grammar files
@@ -62,13 +64,14 @@ build/bin/moss-cc: \
 #
 # Individual Tests
 #
-build/bin/map_test: \
-	build/obj/tests/unit/map_test.o \
-	build/obj/compiler/memory.o \
+build/bin/all_tests: \
 	build/obj/compiler/types.o \
+	build/obj/compiler/memory.o \
+	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/all_tests.o \
+	build/obj/tests/unit/test_map.o \
 
 	gcc -o $@ $^
-
 
 #
 # Patterns
