@@ -59,6 +59,7 @@ build/bin/moss-cc: \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/compiler_file.o \
+	build/obj/compiler/search.o \
 	build/obj/compiler/moss-cc.o \
 
 	gcc -o $@ $^

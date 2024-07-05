@@ -10,7 +10,8 @@ struct SearchFiles
 	List *basedirs;
 	const char *part;
 	const char *path;
-	const char **filter;
+	const char *head;
+	const char **tails;
 	ListEntry *basedir;
 	StringBuffer *pathbuf;
 	DirectorySearch *ds;
@@ -21,13 +22,15 @@ SearchFiles *SearchFilesStart(
 		List *basedirs,
 		const char *part,
 		const char *path,
-		const char *filter[])
+		const char *head,
+		const char *tails[])
 {
 	SearchFiles *sf = Alloc(sizeof(SearchFiles));
 	sf->basedirs = basedirs;
 	sf->part = part;
 	sf->path = path;
-	sf->filter = filter;
+	sf->head = head;
+	sf->tails = tails;
 
 	sf->basedir = basedirs->first;
 	sf->pathbuf = StringBufferCreateEmpty(0);
@@ -69,11 +72,15 @@ StringBuffer *SearchFilesNext(SearchFiles *sf)
 			continue;
 		}
 
+		int hlength = strlen(sf->head);
+		if (strncmp(sf->head, filename, hlength) != 0)
+			continue;
+
 		int length = strlen(filename);
-		for (int i=0; sf->filter[i]!=NULL; i++)
+		for (int i=0; sf->tails[i]!=NULL; i++)
 		{
-			int flength = strlen(sf->filter[i]);
-			if (strcmp(sf->filter[i], filename +length-flength) == 0)
+			int flength = strlen(sf->tails[i]);
+			if (strcmp(sf->tails[i], filename +length-flength) == 0)
 			{
 				StringBuffer *ret;
 				ret = StringBufferFromString(&sf->pathbuf->string);

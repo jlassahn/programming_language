@@ -28,13 +28,32 @@ void TestSearch(void)
 	ListInsertLast(&basedirs, StringBufferFromChars("base1/"));
 	ListInsertLast(&basedirs, StringBufferFromChars("base2/"));
 
-	const char *filter[] =
+	const char *tails[] =
 	{
 		".moss",
 		NULL
 	};
 
-	SearchFiles *sf = SearchFilesStart(&basedirs, "import/", "system/", filter);
+	SearchFiles *sf;
+	sf = SearchFilesStart(&basedirs, "import/", "system/", "filelib.", tails);
+	CHECK(sf != NULL);
+	if (sf != NULL)
+	{
+		StringBuffer *file;
+
+		file = SearchFilesNext(sf);
+		CHECK(file != NULL);
+		CHECK(0 == strcmp(file->buffer,
+					"base1/import/system/filelib.moss"));
+		StringBufferFree(file);
+
+		file = SearchFilesNext(sf);
+		CHECK(file == NULL);
+
+		SearchFilesEnd(sf);
+	}
+
+	sf = SearchFilesStart(&basedirs, "import/", "system/", "", tails);
 	CHECK(sf != NULL);
 	if (sf != NULL)
 	{

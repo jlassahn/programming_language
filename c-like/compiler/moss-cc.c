@@ -11,12 +11,19 @@
 #include "compiler/parser.h"
 #include "compiler/compile_state.h"
 #include "compiler/namespace.h"
+#include "compiler/search.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 static CompileState compile_state;
+
+static const char *moss_file_extensions[] =
+{
+	".moss",
+	NULL
+};
 
 bool AddBaseDir(CompileState *cs, const char *path)
 {
@@ -52,34 +59,6 @@ bool AddBaseDir(CompileState *cs, const char *path)
 	return true;
 }
 
-bool CheckForModuleStem(StringBuffer *dir, StringBuffer *stem)
-{
-	bool ret = false;
-
-	if (!DoesDirectoryExist(dir->buffer))
-		return false;
-
-	DirectorySearch *ds = DirectorySearchStart(dir->buffer);
-	if (!ds)
-		return false;
-
-	while (true)
-	{
-		const char *name = DirectorySearchNextFile(ds);
-		if (name == NULL)
-			break;
-
-		if (strncmp(name, stem->buffer, stem->string.length) == 0)
-		{
-			ret = true;
-			break;
-		}
-	}
-	DirectorySearchEnd(ds);
-
-	return ret;
-}
-
 bool CheckForModuleFiles(List *base_paths, const char *name)
 {
 	bool ret = false;
@@ -103,34 +82,29 @@ bool CheckForModuleFiles(List *base_paths, const char *name)
 	mod_path->buffer[path_end] = 0;
 	mod_path->string.length = path_end;
 
-	StringBuffer *dir = StringBufferCreateEmpty(200);
+	SearchFiles *sf;
+	StringBuffer *file;
 
-	for (ListEntry *entry=base_paths->first; entry!=NULL; entry=entry->next)
+	sf = SearchFilesStart(base_paths, "source/",
+			mod_path->buffer, stem->buffer, moss_file_extensions);
+	file = SearchFilesNext(sf);
+	if (file != NULL)
 	{
-		StringBuffer *base = entry->item;
-
-		StringBufferClear(dir);
-		dir = StringBufferAppendBuffer(dir, base);
-		dir = StringBufferAppendChars(dir, "source/");
-		dir = StringBufferAppendBuffer(dir, mod_path);
-		if (CheckForModuleStem(dir, stem))
-		{
-			ret = true;
-			break;
-		}
-
-		StringBufferClear(dir);
-		dir = StringBufferAppendBuffer(dir, base);
-		dir = StringBufferAppendChars(dir, "import/");
-		dir = StringBufferAppendBuffer(dir, mod_path);
-		if (CheckForModuleStem(dir, stem))
-		{
-			ret = true;
-			break;
-		}
+		StringBufferFree(file);
+		ret = true;
 	}
+	SearchFilesEnd(sf);
 
-	StringBufferFree(dir);
+	sf = SearchFilesStart(base_paths, "import/",
+			mod_path->buffer, stem->buffer, moss_file_extensions);
+	file = SearchFilesNext(sf);
+	if (file != NULL)
+	{
+		StringBufferFree(file);
+		ret = true;
+	}
+	SearchFilesEnd(sf);
+
 	StringBufferFree(stem);
 	StringBufferFree(mod_path);
 	return ret;
