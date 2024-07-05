@@ -379,6 +379,9 @@ int main(int argc, const char *argv[])
 
 	CompileStateInit(&compile_state);
 
+	// FIXME PassConfigure(&compile_state, args, env);
+	//  env is the environment variable MOSS_IMPORT_PATH
+	//      which is a list of paths separated by PATH_SEPARATOR (":" or ";")
 	// FIXME handle other args
 	// check args for validity
 	//    warnings;
@@ -404,6 +407,7 @@ int main(int argc, const char *argv[])
 
 	CompileStatePrint(&compile_state);
 
+	// FIXME PassSearchAndParse(&compile_state);
 	// FIXME rename things Parse... and Scan...
 	for (ListEntry *entry=compile_state.input_files.first;
 			entry!=NULL; entry=entry->next)
@@ -428,12 +432,15 @@ int main(int argc, const char *argv[])
 	}
 
 	// FIXME all file input is done.
-
 	if (!inputs_good)
 	{
 		printf("BAD INPUTS\n");
 		// FIXME skip compile steps and exit
 	}
+
+	// FIXME PassTranslate(&compile_state);
+	// FIXME PassGenerate(&compile_state);
+	// FIXME PassLink(&compile_state);
 
 	int depth = 1;
 	printf("\nNAMESPACE:\n");

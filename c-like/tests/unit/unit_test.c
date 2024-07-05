@@ -1,5 +1,6 @@
 
 #include "unit_test.h"
+#include "compiler/memory.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@ void RunTest(UnitTest test, const char *name)
 {
 	int old_errors = test_errors;
 	test();
+	CHECK(AllocCount() == 0);
 	int errs = test_errors - old_errors;
 
 	test_count ++;

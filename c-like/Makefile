@@ -78,9 +78,13 @@ build/bin/test_fileio: \
 build/bin/all_tests: \
 	build/obj/compiler/types.o \
 	build/obj/compiler/memory.o \
+	build/obj/compiler/search.o \
 	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/fake_directory.o \
+	build/obj/tests/unit/test_fake_dir.o \
 	build/obj/tests/unit/all_tests.o \
 	build/obj/tests/unit/test_map.o \
+	build/obj/tests/unit/test_search.o \
 
 	gcc -o $@ $^
 

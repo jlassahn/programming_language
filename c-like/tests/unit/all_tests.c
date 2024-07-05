@@ -16,7 +16,9 @@ void TestPass(void)
 
 
 
+void TestFakeDir(void);
 void TestMap(void);
+void TestSearch(void);
 
 int main(void)
 {
@@ -24,7 +26,9 @@ int main(void)
 	RUN_TEST(TestFail);
 	RUN_TEST(TestPass);
 #endif
+	RUN_TEST(TestFakeDir);
 	RUN_TEST(TestMap);
+	RUN_TEST(TestSearch);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();
