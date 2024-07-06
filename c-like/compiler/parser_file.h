@@ -34,7 +34,7 @@ struct ParserFile
 };
 
 
-ParserFile *ParserFileRead(const char *filename);
+bool ParserFileRead(ParserFile *file, const char *filename);
 void FileFree(ParserFile *file);
 
 bool FileMatchAndConsume(ParserFile *file, const char *text);

@@ -192,12 +192,11 @@ bool AddInput(CompileState *cs, const char *name)
 
 bool ParseInputFile(CompilerFile *cf, Namespace *root)
 {
-	cf->parser_file = ParserFileRead(cf->path->buffer);
-	if (!cf->parser_file)
+	if (!ParserFileRead(&cf->parser_file, cf->path->buffer))
 		return false;
 
-	cf->root = ParseFile(cf->parser_file, NULL);
-	if (cf->parser_file->parser_result != 0)
+	cf->root = ParseFile(&cf->parser_file, NULL);
+	if (cf->parser_file.parser_result != 0)
 		cf->flags |= FILE_PARSE_FAILED;
 
 	// determine namespace after parsing, in case we add a file
@@ -256,16 +255,15 @@ bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 	StringBufferLock(path);
 	CompilerFile *cf = CompilerFileCreate(path);
 
-	cf->parser_file = ParserFileRead(cf->path->buffer);
-	if (!cf->parser_file)
+	if (!ParserFileRead(&cf->parser_file, cf->path->buffer))
 	{
 		CompilerFileFree(cf);
 		return false;
 	}
 
 	bool ret = true;
-	cf->root = ParseFile(cf->parser_file, NULL);
-	if (cf->parser_file->parser_result != 0)
+	cf->root = ParseFile(&cf->parser_file, NULL);
+	if (cf->parser_file.parser_result != 0)
 	{
 		cf->flags |= FILE_PARSE_FAILED;
 		ret = false;

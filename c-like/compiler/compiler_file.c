@@ -20,8 +20,7 @@ void CompilerFileFree(CompilerFile *cf)
 {
 	if (cf->path)
 		StringBufferFree(cf->path);
-	if (cf->parser_file)
-		FileFree(cf->parser_file);
+	FileFree(&cf->parser_file);
 	if (cf->root)
 		FreeNode(cf->root);
 

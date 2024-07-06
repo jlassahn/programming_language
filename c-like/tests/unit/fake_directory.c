@@ -80,3 +80,43 @@ void DirectorySearchEnd(DirectorySearch *ds)
 	Free(ds);
 }
 
+static const char *file_path;
+static const char *file_data;
+static int fake_file;
+
+void FakeFileSet(const char *path, const char *data)
+{
+	file_path = path;
+	file_data = data;
+}
+
+OSFile *OSFileOpenRead(const char *path)
+{
+	if (file_path == NULL)
+		return NULL;
+
+	if (strcmp(path, file_path) == 0)
+		return (OSFile *)&fake_file;
+
+	return NULL;
+}
+
+void OSFileClose(OSFile *fp)
+{
+}
+
+long OSFileGetSize(OSFile *fp)
+{
+	return strlen(file_data);
+}
+
+long OSFileRead(OSFile *fp, void *data_out, long max_bytes)
+{
+	long length = strlen(file_data);
+	if (length > max_bytes)
+		length = max_bytes;
+
+	memcpy(data_out, file_data, length);
+	return length;
+}
+

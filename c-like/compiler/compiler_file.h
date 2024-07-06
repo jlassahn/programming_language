@@ -10,9 +10,9 @@
 typedef struct CompilerFile CompilerFile;
 struct CompilerFile
 {
+	ParserFile parser_file;
 	uint32_t flags;
-	StringBuffer *path;
-	ParserFile *parser_file;
+	StringBuffer *path; // FIXME duplicated info in parser_file
 	ParserNode *root;
 	Namespace *namespace;
 };

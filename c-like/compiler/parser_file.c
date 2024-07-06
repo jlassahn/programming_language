@@ -2,70 +2,70 @@
 #include "compiler/types.h"
 #include "compiler/memory.h"
 #include "compiler/errors.h"
+#include "compiler/fileio.h"
 #include "compiler/parser_file.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
-ParserFile *ParserFileRead(const char *filename)
+bool ParserFileRead(ParserFile *file, const char *filename)
 {
-	FILE *fp = fopen(filename, "rb");
+	OSFile *fp = OSFileOpenRead(filename);
 	if (!fp)
 	{
 		Error(ERROR_FILE, "Unable to open file. Filename(%s) Reason(%s)",
 				filename, strerror(errno));
-		return NULL;
+		return false;
 	}
 
 	// FIXME consider making a way to turn stdin or other non-seekable streams
 	// into source files.
-	fseek(fp, 0, SEEK_END);
-	long length = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
+	long length = OSFileGetSize(fp);
 
 	// add some trailing zeros onto the end of the file buffer so we can
 	// do fixed-length memory compares looking for keywords and such without
 	// overrunning at End of File.
 	int padding = 16;
 
-	long buffer_size = 
-		sizeof(ParserFile) +
-		strlen(filename) + 1 +
-		length + padding;
+	long buffer_size = strlen(filename) + 1 + length + padding;
 
 	char *p = Alloc(buffer_size);
-
-	ParserFile *file = (ParserFile *)p;
-	p += sizeof(ParserFile);
 
 	strcpy(p, filename);
 	file->filename = p;
 	p += strlen(filename) + 1;
 
-	long read_length = fread(p, 1, length,  fp);
+	long read_length = OSFileRead(fp, p, length);
+	OSFileClose(fp);
+
 	if (read_length != length)
 	{
 		Error(ERROR_FILE, "Unable to read file. Filename(%s) Reason(%s)",
 				filename, strerror(errno));
-		fclose(fp);
-		Free(file);
-		return NULL;
+		Free(p);
+		file->filename = NULL;
+		return false;
 	}
 
 	file->data = p;
 	file->length = length;
 	file->parser_result = -1;
 
-	fclose(fp);
-	return file;
+	return true;
 }
 
 void FileFree(ParserFile *file)
 {
-	Free(file);
+	void *p = (void *)file->filename;
+	if (p != NULL)
+		Free(p);
+	file->data = NULL;
+	file->filename = NULL;
+	file->length = 0;
+	file->parser_result = -1;
 }
 
 bool FileMatchAndConsume(ParserFile *file, const char *text)
