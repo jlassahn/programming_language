@@ -249,57 +249,36 @@ bool ScanFileImports(CompilerFile *cf, CompileState *state)
 	return ScanImportNodes(cf->root, state);
 }
 
-bool ScanModuleFiles(StringBuffer *dir, StringBuffer *stem,
-		Namespace *ns, bool is_private, CompileState *state)
+bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
+		CompileState *state)
 {
-	printf("FIXME scanning module files %s, %s\n", dir->buffer, stem->buffer);
+	StringBufferLock(path);
+	CompilerFile *cf = CompilerFileCreate(path);
+
+	cf->parser_file = ParserFileRead(cf->path->buffer);
+	if (!cf->parser_file)
+	{
+		CompilerFileFree(cf);
+		return false;
+	}
 
 	bool ret = true;
-
-	DirectorySearch *ds = DirectorySearchStart(dir->buffer);
-	if (!ds)
-		return true;
-
-	while (true)
+	cf->root = ParseFile(cf->parser_file, NULL);
+	if (cf->parser_file->parser_result != 0)
 	{
-		const char *name = DirectorySearchNextFile(ds);
-		if (name == NULL)
-			break;
-
-		if (strncmp(name, stem->buffer, stem->string.length) == 0)
-		{
-			printf("   found %s\n", name);
-			StringBuffer *sb = StringBufferFromString(&dir->string);
-			sb = StringBufferAppendChars(sb, name);
-			StringBufferLock(sb);
-			CompilerFile *cf = CompilerFileCreate(sb);
-
-			cf->parser_file = ParserFileRead(cf->path->buffer);
-			if (!cf->parser_file)
-			{
-				ret = false;
-				CompilerFileFree(cf);
-				continue;
-			}
-
-			cf->root = ParseFile(cf->parser_file, NULL);
-			if (cf->parser_file->parser_result != 0)
-			{
-				cf->flags |= FILE_PARSE_FAILED;
-				ret = false;
-			}
-
-			cf->namespace = ns;
-			if (is_private)
-				ListInsertLast(&ns->private_files, cf);
-			else
-				ListInsertLast(&ns->public_files, cf);
-
-			if (!ScanFileImports(cf, state))
-				ret = false;
-		}
+		cf->flags |= FILE_PARSE_FAILED;
+		ret = false;
 	}
-	DirectorySearchEnd(ds);
+
+	cf->namespace = ns;
+	if (is_private)
+		ListInsertLast(&ns->private_files, cf);
+	else
+		ListInsertLast(&ns->public_files, cf);
+
+	if (!ScanFileImports(cf, state))
+		ret = false;
+
 	return ret;
 }
 
@@ -311,30 +290,41 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 	bool ret = true;
 	List *base_paths = &state->basedirs;
 
-	StringBuffer *dir = StringBufferCreateEmpty(200);
 	StringBuffer *stem = StringBufferFromString(&ns->stem);
 	stem = StringBufferAppendChars(stem, ".");
-	for (ListEntry *entry=base_paths->first; entry!=NULL; entry=entry->next)
+
+	SearchFiles *sf;
+	StringBuffer *file;
+
+	sf = SearchFilesStart(base_paths, "source/",
+			ns->parent->path->buffer, stem->buffer, moss_file_extensions);
+	while (true)
 	{
-		StringBuffer *base = entry->item;
-
-		StringBufferClear(dir);
-		dir = StringBufferAppendBuffer(dir, base);
-		dir = StringBufferAppendChars(dir, "source/");
-		dir = StringBufferAppendBuffer(dir, ns->parent->path);
-		if (!ScanModuleFiles(dir, stem, ns, true, state))
-			ret = false;
-
-		StringBufferClear(dir);
-		dir = StringBufferAppendBuffer(dir, base);
-		dir = StringBufferAppendChars(dir, "import/");
-		dir = StringBufferAppendBuffer(dir, ns->parent->path);
-		if (!ScanModuleFiles(dir, stem, ns, false, state))
+		bool is_private = true;
+		file = SearchFilesNext(sf);
+		if (file == NULL)
+			break;
+		printf("   found %s\n", file->buffer);
+		if (!DoModuleFile(file, ns, is_private, state))
 			ret = false;
 	}
+	SearchFilesEnd(sf);
+
+	sf = SearchFilesStart(base_paths, "import/",
+			ns->parent->path->buffer, stem->buffer, moss_file_extensions);
+	while (true)
+	{
+		bool is_private = false;
+		file = SearchFilesNext(sf);
+		if (file == NULL)
+			break;
+		printf("   found %s\n", file->buffer);
+		if (!DoModuleFile(file, ns, is_private, state))
+			ret = false;
+	}
+	SearchFilesEnd(sf);
 
 	StringBufferFree(stem);
-	StringBufferFree(dir);
 	return ret;
 }
 
