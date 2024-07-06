@@ -12,6 +12,7 @@
 #include "compiler/compile_state.h"
 #include "compiler/namespace.h"
 #include "compiler/search.h"
+#include "compiler/stringtypes.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -335,13 +336,13 @@ int main(int argc, const char *argv[])
 	// Translate...
 	// Generate
 
+	CompileStateInit(&compile_state);
+
 	const CompilerArgs *args = ParseArgs(argc, argv);
 	if (args == NULL)
 		return EXIT_USAGE;
 
 	ParseSetDebug(false);
-
-	CompileStateInit(&compile_state);
 
 	// FIXME PassConfigure(&compile_state, args, env);
 	//  env is the environment variable MOSS_IMPORT_PATH

@@ -40,11 +40,6 @@ bool TokenizerIsEOF(Tokenizer *tokenizer);
 
 void TokenPrint(FILE *fp, Token *token);
 
-// Checks if a string is formated as a namespace, without invoking the main
-// tokenizer.  Used for things like command parameter checking.
-bool IsValidNamespace(const char *txt);
-bool IsValidNamespaceName(String *str);
-
 extern const TokenType TOKEN_EOF;
 extern const TokenType TOKEN_IDENTIFIER;
 extern const TokenType TOKEN_NUMBER;

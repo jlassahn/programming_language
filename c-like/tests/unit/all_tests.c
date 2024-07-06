@@ -18,6 +18,7 @@ void TestPass(void)
 
 void TestFakeDir(void);
 void TestMap(void);
+void TestCompilerFile(void);
 void TestSearch(void);
 
 int main(void)
@@ -28,6 +29,7 @@ int main(void)
 #endif
 	RUN_TEST(TestFakeDir);
 	RUN_TEST(TestMap);
+	RUN_TEST(TestCompilerFile);
 	RUN_TEST(TestSearch);
 
 	int errs = TotalErrors();

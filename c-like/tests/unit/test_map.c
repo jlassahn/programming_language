@@ -1,5 +1,6 @@
 
 #include "compiler/types.h"
+#include "compiler/memory.h"
 #include "tests/unit/unit_test.h"
 #include <string.h>
 #include <stdlib.h>
@@ -29,13 +30,14 @@ void TestMap(void)
 	CHECK(NULL != MapFind(&map, &s));
 	CHECK(strcmp(MapFind(&map, &s), "Hello") == 0);
 
-	// FIXME leaks memory
+	char *values[1000];
 	for (int i=0; i<1000; i++)
 	{
-		char *data = malloc(5);
+		char *data = Alloc(5);
 		sprintf(data, "%.4d", i);
 		MakeString(&s, data);
 		CHECK(MapInsert(&map, &s, NULL));
+		values[i] = data;
 	}
 	MakeString(&s, "Hello");
 	CHECK(NULL != MapFind(&map, &s));
@@ -50,5 +52,8 @@ void TestMap(void)
 
 	MapDestroyAll(&map);
 	CHECK(map.count == 0);
+
+	for (int i=0; i<1000; i++)
+		Free(values[i]);
 }
 

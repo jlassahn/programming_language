@@ -6,50 +6,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "compiler/parser_file.h"
+#include "compiler/parser_node.h"
 
-typedef struct ParserSymbol ParserSymbol;
-typedef struct ParserNode ParserNode;
 typedef struct ParserContext ParserContext; // FIXME maybe not needed?
-
-#define MAX_CHILDREN 10
-
-enum ParseSymbolFlags
-{
-	PRINT_CONTENT = 0x0001,
-	SYM_DISCARD = 0x0100,
-};
-
-struct ParserSymbol
-{
-	const char *rule_name;
-	uint32_t flags;
-	// FIXME include actions for generators here.
-};
-
-struct ParserNode
-{
-	ParserSymbol *symbol;
-	FilePositionRange position;
-	ParserNode *children[MAX_CHILDREN];
-	int count;
-	uint32_t flags; // e.g. constant value
-
-	// extra data can include
-	// number or sting values for constants
-	// symbol table entries for variables
-	// operator type for unary or binary operators
-	// error information
-};
 
 void ParseSetDebug(bool on);
 
 ParserNode *ParseFile(ParserFile *file, ParserContext *context);
-
-ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params);
-void FreeNode(ParserNode *node);
-
-void PrintNodeTree(FILE *fp, ParserNode *root);
-int GetNodeCount(void);
 
 // symbols created from tokens
 extern ParserSymbol SYM_UNDEF;

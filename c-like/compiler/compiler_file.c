@@ -5,7 +5,8 @@
 #include "compiler/parser_file.h"
 #include "compiler/parser.h"
 #include "compiler/fileio.h"
-#include "compiler/tokenizer.h"
+//#include "compiler/tokenizer.h"
+#include "compiler/stringtypes.h"
 #include <string.h>
 
 CompilerFile *CompilerFileCreate(StringBuffer *path)
