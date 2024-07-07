@@ -29,6 +29,12 @@ void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 	warning_count ++;
 }
 
+void ClearErrorCounts(void)
+{
+	error_count = 0;
+	warning_count = 0;
+}
+
 int ErrorCount(void)
 {
 	return error_count;

@@ -1,6 +1,7 @@
 
 
 #include "tests/unit/unit_test.h"
+#include "tests/unit/fake_directory.h"
 #include "compiler/compiler_file.h"
 
 void TestCompilerFile(void)
@@ -15,5 +16,7 @@ void TestCompilerFile(void)
 	CHECK(cf->path == path);
 	CHECK(ParserFileRead(&cf->parser_file, path->buffer));
 	CompilerFileFree(cf);
+
+	FakeFilesFree();
 }
 

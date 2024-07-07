@@ -14,6 +14,10 @@
 
 #include <stdbool.h>
 
+// FIXME change of plan: normalize all paths to contain forward slashes
+//       when reading configuration, make Windows file IO functions convert
+//       back as needed.
+
 #ifdef _WIN32
 #define PATH_SEPARATOR '\\'
 #define PATH_SEPARATOR_STRING "\\"
@@ -116,17 +120,6 @@ long OSFileRead(OSFile *fp, void *data_out, long max_bytes);
 // maybe we'll want write calls as well soon...
 // OSFile *OSFileOpenWrite(const char *path);
 // long OSFileWrite(OSFile *fp, void *data, long bytes);
-
-/*!
-  @brief Checks whether a string is a reasonable path name.
-
-  Returns false for some weird things that are valid Unix
-  path names, but I don't want to deal with.
-
-  @param path The string to check.
-  @return true if the string is a usable path.
-*/
-bool IsValidPath(const char *path);
 
 #endif
 

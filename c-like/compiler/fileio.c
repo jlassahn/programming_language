@@ -114,59 +114,6 @@ bool DoesFileExist(const char *path)
 
 #endif
 
-bool IsValidPath(const char *txt)
-{
-	int prevchar = -1;
-
-	if (*txt == 0)
-		return false;
-
-	// checks for first character in first filename
-	if (txt[0] == ' ')
-		return false;
-
-	while (*txt != 0)
-	{
-		int c = *txt;
-
-		if (c < 0x20)
-			return false;
-		if (c == 0x7F)
-			return false;
-		if (c == '\"')
-			return false;
-		if (c == '\'')
-			return false;
-
-		// checks for first character in filename
-		if ((prevchar == '/') || (prevchar == '\\'))
-		{
-			if (c == '/')
-				return false;
-			if (c == '\\')
-				return false;
-			if (c == ' ')
-				return false;
-		}
-
-		// checks for last character in internal filenames
-		if ((c == '/') || (c == '\\'))
-		{
-			if (prevchar == ' ')
-				return false;
-		}
-
-		prevchar = c;
-		txt ++;
-	}
-
-	// checks for last character in final filename
-	if (prevchar == ' ')
-		return false;
-
-	return true;
-}
-
 OSFile *OSFileOpenRead(const char *path)
 {
 	FILE *file = fopen(path, "rb");

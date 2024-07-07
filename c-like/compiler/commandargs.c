@@ -108,9 +108,19 @@ static void AddArg(ArgStringList **list, const char *value)
 {
 	ArgStringList *item = Alloc(sizeof(ArgStringList));
 	memset(item, 0, sizeof(ArgStringList));
-	item->next = *list;
+
+	item->next = NULL;
 	item->arg = value;
-	*list = item;
+	if (*list == NULL)
+	{
+		*list = item;
+		return;
+	}
+
+	ArgStringList *tail = *list;
+	while (tail->next)
+		tail = tail->next;
+	tail->next = item;
 }
 
 const CompilerArgs *ParseArgs(int argc, const char *argv[])

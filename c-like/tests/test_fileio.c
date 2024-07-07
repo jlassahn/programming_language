@@ -1,5 +1,6 @@
 
 #include "tests/unit/unit_test.h"
+#include "compiler/stringtypes.h"
 #include "compiler/fileio.h"
 #include <stdio.h>
 #include <string.h>
@@ -72,38 +73,12 @@ void TestDirectorySearch(void)
 	}
 }
 
-void TestIsValidPath(void)
-{
-	CHECK(!IsValidPath(""));
-	CHECK(!IsValidPath("\n"));
-	CHECK(!IsValidPath("this/a\ttab/"));
-	CHECK(!IsValidPath("a//b"));
-	CHECK(!IsValidPath(" "));
-	CHECK(!IsValidPath(" x"));
-	CHECK(!IsValidPath("x "));
-	CHECK(!IsValidPath("a/ /b"));
-	CHECK(!IsValidPath("a/ x/b"));
-	CHECK(!IsValidPath("a/x /b"));
-
-	CHECK(IsValidPath("."));
-	CHECK(IsValidPath("./x"));
-	CHECK(IsValidPath("./x/"));
-	CHECK(IsValidPath("x"));
-	CHECK(IsValidPath("x/y"));
-	CHECK(IsValidPath("/y"));
-	CHECK(IsValidPath("C:/x"));
-	CHECK(IsValidPath("a long file with spaces"));
-
-	CHECK(IsValidPath("C:\\x"));
-}
-
 int main(int argc, const char *argv[])
 {
 	RUN_TEST(TestBasicRead);
 	RUN_TEST(TestBadRead);
 	RUN_TEST(TestFileExist);
 	RUN_TEST(TestDirectorySearch);
-	RUN_TEST(TestIsValidPath);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

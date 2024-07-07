@@ -62,6 +62,8 @@ build/bin/moss-cc: \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/compiler_file.o \
 	build/obj/compiler/search.o \
+	build/obj/compiler/pass_configure.o \
+	build/obj/compiler/pass_search_and_parse.o \
 	build/obj/compiler/moss-cc.o \
 
 	gcc -o $@ $^
@@ -86,15 +88,22 @@ build/bin/all_tests: \
 	build/obj/compiler/parser_file.o \
 	build/obj/compiler/parser_node.o \
 	build/obj/compiler/compiler_file.o \
+	build/obj/compiler/compile_state.o \
 	build/obj/compiler/search.o \
+	build/obj/compiler/commandargs.o \
+	build/obj/compiler/pass_configure.o \
+	build/obj/compiler/pass_search_and_parse.o \
 	build/obj/tests/unit/unit_test.o \
 	build/obj/tests/unit/fake_errors.o \
 	build/obj/tests/unit/fake_directory.o \
-	build/obj/tests/unit/test_fake_dir.o \
 	build/obj/tests/unit/all_tests.o \
+	build/obj/tests/unit/test_fake_dir.o \
 	build/obj/tests/unit/test_map.o \
+	build/obj/tests/unit/test_stringtypes.o \
 	build/obj/tests/unit/test_compiler_file.o \
 	build/obj/tests/unit/test_search.o \
+	build/obj/tests/unit/test_pass_configure.o \
+	build/obj/tests/unit/test_pass_search_and_parse.o \
 
 	gcc -o $@ $^
 

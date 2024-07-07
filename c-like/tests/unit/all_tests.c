@@ -18,8 +18,12 @@ void TestPass(void)
 
 void TestFakeDir(void);
 void TestMap(void);
+void TestIsValidPath(void);
+void TestAppendPathList(void);
 void TestCompilerFile(void);
 void TestSearch(void);
+void TestPassConfigure(void);
+void TestPassSearchAndParse(void);
 
 int main(void)
 {
@@ -29,8 +33,12 @@ int main(void)
 #endif
 	RUN_TEST(TestFakeDir);
 	RUN_TEST(TestMap);
+	RUN_TEST(TestIsValidPath);
+	RUN_TEST(TestAppendPathList);
 	RUN_TEST(TestCompilerFile);
 	RUN_TEST(TestSearch);
+	RUN_TEST(TestPassConfigure);
+	RUN_TEST(TestPassSearchAndParse);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

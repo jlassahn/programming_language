@@ -1,10 +1,21 @@
 = The Moss Programming Language
 Jeff Lassahn
+:doctype: book
+:title-logo-image: image::logo.svg[]
 :toc:
 
-image::logo.svg[]
-
 == Introduction
+Moss is a C-like language, but it is not backward compatible with C.
+The goals of Moss include:
+
+* The language has well-specified ways to directly access memory and
+  memory-mapped resources.
+* The core langauge does not depend on significant operating system or
+  runtime library support.
+* Replacing the C file include mechanism with a import system that makes
+  managing dependencies easier.
+* Providing a consistent structure for code modules that allows standardization
+  of build tools.
 
 == Hello World
 

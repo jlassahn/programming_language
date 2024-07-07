@@ -1,5 +1,6 @@
 
 #include "tests/unit/fake_directory.h"
+#include "tests/unit/unit_test.h"
 #include "compiler/types.h"
 #include "compiler/memory.h"
 #include "compiler/fileio.h"
@@ -80,43 +81,88 @@ void DirectorySearchEnd(DirectorySearch *ds)
 	Free(ds);
 }
 
-static const char *file_path;
-static const char *file_data;
-static int fake_file;
-
-void FakeFileSet(const char *path, const char *data)
+typedef struct FakeFile FakeFile;
+struct FakeFile
 {
-	file_path = path;
-	file_data = data;
+	const char *path;
+	const char *data;
+	bool is_open;
+	int length;
+	int index;
+};
+
+
+static List files;
+
+OSFile *FakeFileSet(const char *path, const char *data)
+{
+	FakeFile *file = Alloc(sizeof(FakeFile));
+	file->path = path;
+	file->data = data;
+	file->length = strlen(data);
+
+	ListInsertFirst(&files, file);
+
+	return (OSFile *)file;
+}
+
+void FakeFilesFree(void)
+{
+	FakeFile *file;
+	while (true)
+	{
+		file = ListRemoveFirst(&files);
+		if (file == NULL)
+			break;
+
+		CHECK(!file->is_open);
+		Free(file);
+	}
 }
 
 OSFile *OSFileOpenRead(const char *path)
 {
-	if (file_path == NULL)
-		return NULL;
+	for (ListEntry *entry=files.first; entry!=NULL; entry=entry->next)
+	{
+		FakeFile *file = entry->item;
 
-	if (strcmp(path, file_path) == 0)
-		return (OSFile *)&fake_file;
+		if (strcmp(path, file->path) == 0)
+		{
+			CHECK(!file->is_open);
+			file->is_open = true;
+			file->index = 0;
+			return (OSFile *)file;
+		}
+	}
 
 	return NULL;
 }
 
 void OSFileClose(OSFile *fp)
 {
+	FakeFile *file = (FakeFile *)fp;
+
+	CHECK(file->is_open);
+	file->is_open = false;
 }
 
 long OSFileGetSize(OSFile *fp)
 {
-	return strlen(file_data);
+	FakeFile *file = (FakeFile *)fp;
+	return file->length;
 }
 
 long OSFileRead(OSFile *fp, void *data_out, long max_bytes)
 {
-	long length = strlen(file_data);
+	FakeFile *file = (FakeFile *)fp;
+
+	CHECK(file->is_open);
+	long length = file->length - file->index;
 	if (length > max_bytes)
 		length = max_bytes;
 
-	memcpy(data_out, file_data, length);
+	memcpy(data_out, file->data+file->index, length);
+	file->index += length;
 	return length;
 }
 

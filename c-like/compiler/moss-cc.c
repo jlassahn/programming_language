@@ -13,8 +13,11 @@
 #include "compiler/namespace.h"
 #include "compiler/search.h"
 #include "compiler/stringtypes.h"
+#include "compiler/pass_configure.h"
+#include "compiler/pass_search_and_parse.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -26,169 +29,6 @@ static const char *moss_file_extensions[] =
 	NULL
 };
 
-bool AddBaseDir(CompileState *cs, const char *path)
-{
-	if (!IsValidPath(path))
-	{
-		Error(ERROR_FILE,
-				"parameter '%s' is not a valid path.", path);
-		return false;
-	}
-
-	StringBuffer *sb = StringBufferFromChars(path);
-
-	// FIXME maybe an official function for character replace
-	for (int i=0; i<sb->string.length; i++)
-	{
-		if ((sb->buffer[i] == '/') || (sb->buffer[i] == '\\'))
-			sb->buffer[i] = PATH_SEPARATOR;
-	}
-	if (sb->buffer[sb->string.length-1] != PATH_SEPARATOR)
-	{
-		sb = StringBufferAppendChars(sb, PATH_SEPARATOR_STRING);
-	}
-
-	if (!DoesDirectoryExist(sb->buffer))
-	{
-		Warning(ERROR_FILE, "path '%s' does not exist.", sb->buffer);
-		StringBufferFree(sb);
-		return false;
-	}
-
-	StringBufferLock(sb);
-	ListInsertLast(&cs->basedirs, sb);
-	return true;
-}
-
-bool CheckForModuleFiles(List *base_paths, const char *name)
-{
-	bool ret = false;
-
-	int path_end = 0;
-	StringBuffer *mod_path = StringBufferFromChars(name);
-
-	// FIXME maybe an official function for character replace
-	for (int i=0; i<mod_path->string.length; i++)
-	{
-		if (mod_path->buffer[i] == '.')
-		{
-			path_end = i+1;
-			mod_path->buffer[i] = PATH_SEPARATOR;
-		}
-	}
-	StringBuffer *stem = StringBufferFromChars(&mod_path->buffer[path_end]);
-	stem = StringBufferAppendChars(stem, ".");
-
-	// FIXME maybe an official function to trim a string buffer to length?
-	mod_path->buffer[path_end] = 0;
-	mod_path->string.length = path_end;
-
-	SearchFiles *sf;
-	StringBuffer *file;
-
-	sf = SearchFilesStart(base_paths, "source/",
-			mod_path->buffer, stem->buffer, moss_file_extensions);
-	file = SearchFilesNext(sf);
-	if (file != NULL)
-	{
-		StringBufferFree(file);
-		ret = true;
-	}
-	SearchFilesEnd(sf);
-
-	sf = SearchFilesStart(base_paths, "import/",
-			mod_path->buffer, stem->buffer, moss_file_extensions);
-	file = SearchFilesNext(sf);
-	if (file != NULL)
-	{
-		StringBufferFree(file);
-		ret = true;
-	}
-	SearchFilesEnd(sf);
-
-	StringBufferFree(stem);
-	StringBufferFree(mod_path);
-	return ret;
-}
-
-bool AddInputModule(CompileState *state, const char *path)
-{
-	if (!IsValidNamespace(path))
-		return false;
-
-	if (!CheckForModuleFiles(&state->basedirs, path))
-		return false;
-
-	Namespace *ns = &state->root_namespace;
-
-	String name;
-	int length = strlen(path);
-	int start = 0;
-	int end = 0;
-	for (int i=0; i<length; i++)
-	{
-		if (path[i] == '.')
-		{
-			end = i;
-			name.data = &path[start];
-			name.length = end-start;
-			ns = NamespaceGetChild(ns, &name);
-			if (ns == NULL)
-				return false;
-			start = i+1;
-		}
-	}
-	if (start < length)
-	{
-		end = length;
-		name.data = &path[start];
-		name.length = end-start;
-		ns = NamespaceGetChild(ns, &name);
-		if (ns == NULL)
-			return false;
-	}
-
-	ListInsertLast(&compile_state.input_modules, ns);
-
-	return true;
-}
-
-bool AddInputFile(CompileState *cs, const char *name)
-{
-	if (!DoesFileExist(name))
-		return false;
-
-	StringBuffer *sb = StringBufferFromChars(name);
-	StringBufferLock(sb);
-
-	// FIXME if name ends with ".moss" assume it's a source file
-	//       otherwise it's a library or something.
-
-	CompilerFile *cf = CompilerFileCreate(sb);
-	cf->flags |= FILE_FROM_INPUT;
-	ListInsertLast(&compile_state.input_files, cf);
-
-	return true;
-}
-
-bool AddInput(CompileState *cs, const char *name)
-{
-	if (!IsValidPath(name))
-	{
-		Error(ERROR_FILE,
-				"parameter '%s' is not a valid input name.", name);
-		return false;
-	}
-
-	if (AddInputModule(cs, name))
-		return true;
-	if (AddInputFile(cs, name))
-		return true;
-
-	Error(ERROR_FILE,
-			"Input name '%s' not found as either a file or a module.", name);
-	return false;
-}
 
 bool ParseInputFile(CompilerFile *cf, Namespace *root)
 {
@@ -340,35 +180,18 @@ int main(int argc, const char *argv[])
 	if (args == NULL)
 		return EXIT_USAGE;
 
-	ParseSetDebug(false);
+	const char *env = getenv("MOSS_IMPORT_PATH");
+	if (env == NULL)
+		env = "";
 
-	// FIXME PassConfigure(&compile_state, args, env);
-	//  env is the environment variable MOSS_IMPORT_PATH
-	//      which is a list of paths separated by PATH_SEPARATOR (":" or ";")
-	// FIXME handle other args
-	// check args for validity
-	//    warnings;
-	//    optimizations;
-	//    generation;
-	//    defines;
-	//    versions;
-	//    outfile;
-	//    outdir;
-	//    treefile;
-
-	// FIXME also add "well known" search paths here.  How? Environment vars?
-	AddBaseDir(&compile_state, ".");
-	for (ArgStringList *entry=args->basedirs; entry!=NULL; entry=entry->next)
-		AddBaseDir(&compile_state, entry->arg);
-
-	// must be done after basedirs are finished, so it can search for modules
-	bool inputs_good = true;
-	for (ArgStringList *entry=args->inputs; entry!=NULL; entry=entry->next)
-	{
-		inputs_good = AddInput(&compile_state, entry->arg) && inputs_good;
-	}
+	if (!PassConfigure(&compile_state, args, env))
+		return EXIT_USAGE;
 
 	CompileStatePrint(&compile_state);
+
+	ParseSetDebug(false);
+	bool inputs_good = true;
+	//bool inputs_good = PassSearchAndParse(&compile_state);
 
 	// FIXME PassSearchAndParse(&compile_state);
 	// FIXME rename things Parse... and Scan...
