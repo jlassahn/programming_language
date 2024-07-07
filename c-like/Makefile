@@ -2,9 +2,9 @@
 #
 # General targets
 #
-all: make_dirs make_compiler make_tests
+all: make_compiler make_tests
 
-test: make_dirs make_compiler make_tests run_tests
+test: make_compiler make_tests run_tests
 
 clean:
 	rm -Rf build/*
@@ -21,13 +21,6 @@ make_tests: \
 	build/bin/test_fileio \
 
 
-make_dirs: \
-	build/generated/ \
-	build/obj/compiler/ \
-	build/obj/tests/ \
-	build/obj/tests/unit/ \
-	build/bin/ \
-
 run_tests:
 	build/bin/test_fileio
 	build/bin/all_tests
@@ -36,6 +29,7 @@ run_tests:
 # Generated grammar files
 #
 build/generated/grammar.c: grammar.bison
+	@mkdir -p $(@D)
 	bison -d -o $@ $^
 
 build/generated/grammar.o: build/generated/grammar.c
@@ -66,6 +60,7 @@ build/bin/moss-cc: \
 	build/obj/compiler/pass_search_and_parse.o \
 	build/obj/compiler/moss-cc.o \
 
+	@mkdir -p $(@D)
 	gcc -o $@ $^
 
 
@@ -78,6 +73,7 @@ build/bin/test_fileio: \
 	build/obj/compiler/fileio.o \
 	build/obj/tests/test_fileio.o \
 
+	@mkdir -p $(@D)
 	gcc -o $@ $^
 
 build/bin/all_tests: \
@@ -106,6 +102,7 @@ build/bin/all_tests: \
 	build/obj/tests/unit/test_pass_configure.o \
 	build/obj/tests/unit/test_pass_search_and_parse.o \
 
+	@mkdir -p $(@D)
 	gcc -o $@ $^
 
 #
@@ -114,8 +111,7 @@ build/bin/all_tests: \
 headers := $(wildcard compiler/*.h)
 
 build/obj/%.o: %.c $(headers)
+	@mkdir -p $(@D)
 	gcc -c -I . -Wall -o $@ $<
 
-build/%/:
-	mkdir -p $@
 
