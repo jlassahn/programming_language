@@ -13,7 +13,6 @@ Namespace *NamespaceGetChild(Namespace *parent, String *name)
 	if (!child)
 	{
 		child = Alloc(sizeof(Namespace));
-		MapInsert(&parent->children, name, child);
 
 		child->parent = parent;
 		StringBuffer *sb = StringBufferFromString(&parent->path->string);
@@ -23,6 +22,8 @@ Namespace *NamespaceGetChild(Namespace *parent, String *name)
 		child->path = sb;
 		child->stem.length = name->length;
 		child->stem.data = sb->string.data + stem_offset;
+
+		MapInsert(&parent->children, &child->stem, child);
 	}
 
 	return child;
