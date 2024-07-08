@@ -4,6 +4,7 @@
 #include "tests/unit/fake_directory.h"
 #include "tests/unit/fake_errors.h"
 #include "tests/unit/fake_parser.h"
+#include "tests/unit/fake_nodes.h"
 #include "compiler/pass_search_and_parse.h"
 #include "compiler/compile_state.h"
 #include "compiler/compiler_file.h"
@@ -116,21 +117,34 @@ void TestImportList(void)
 
 	ListInsertFirst(&compile_state.input_files, cf);
 
-	ParserNode *node_list[2];
-	node_list[0] = MakeNode(&SYM_EMPTY, 0, NULL);
-	node_list[1] = MakeNode(&SYM_IMPORT_PRIVATE, 0, NULL);
-	node_list[0] = MakeNode(&SYM_LIST, 2, node_list);
-	node_list[1] = MakeNode(&SYM_IMPORT, 0, NULL);
-	node_list[0] = MakeNode(&SYM_LIST, 2, node_list);
-	node_list[1] = MakeNode(&SYM_IMPORT, 0, NULL);
-	node_list[0] = MakeNode(&SYM_LIST, 2, node_list);
+	// IMPORT has one child of type DOT_OP, which heads a list with no EMPTY
+	PushNodeStack(MakeNode(&SYM_EMPTY, 0, NULL));
 
-	FakeParserSet("./test.moss", node_list[0], 0);
+	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child1_1"));
+	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child2_1"));
+	MakeNodeOnStack(&SYM_DOT_OP, 2);
+	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child3_1"));
+	MakeNodeOnStack(&SYM_DOT_OP, 2);
+	MakeNodeOnStack(&SYM_IMPORT_PRIVATE, 1);
+	MakeNodeOnStack(&SYM_LIST, 2);
+
+	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child1_2"));
+	MakeNodeOnStack(&SYM_IMPORT, 1);
+	MakeNodeOnStack(&SYM_LIST, 2);
+
+	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child1_3"));
+	MakeNodeOnStack(&SYM_IMPORT, 1);
+	MakeNodeOnStack(&SYM_LIST, 2);
+
+	ParserNode *list = GetNodeStackTop();
+	// PrintNodeTree(stdout, list);
+
+	FakeParserSet("./test.moss", list, 0);
 	FakeFileSet("./test.moss", "abcdef");
 
 	CHECK(PassSearchAndParse(&compile_state));
 
-	CHECK(cf->root == node_list[0]);
+	CHECK(cf->root == list);
 	CHECK(cf->flags ==  FILE_FROM_INPUT);
 
 	ListEntry *entry = cf->imports.first;
@@ -139,6 +153,7 @@ void TestImportList(void)
 	CheckImportEntry(&entry, false);
 	CHECK(entry == NULL);
 
+	FreeFakeNodeValues();
 	FakeFilesFree();
 	FakeParserFree();
 	CompileStateFree(&compile_state);

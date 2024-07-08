@@ -65,6 +65,12 @@ int main(int argc, const char *argv[])
 	MapIterate(&compile_state.root_namespace.children,
 			NamespacePrinter, &depth);
 
+	bool print_parse = true;
+	if (print_parse && (compile_state.input_files.first != NULL))
+	{
+		CompilerFile *cf = compile_state.input_files.first->item;
+		PrintNodeTree(stdout, cf->root);
+	}
 	// FIXME cleanup starts here
 
 	CompileStateFree(&compile_state);

@@ -94,6 +94,7 @@ build/bin/all_tests: \
 	build/obj/tests/unit/fake_errors.o \
 	build/obj/tests/unit/fake_directory.o \
 	build/obj/tests/unit/fake_parser.o \
+	build/obj/tests/unit/fake_nodes.o \
 	build/obj/compiler/parser_symbols.o \
 	build/obj/tests/unit/all_tests.o \
 	build/obj/tests/unit/test_fake_dir.o \
