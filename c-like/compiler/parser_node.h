@@ -3,6 +3,7 @@
 #define INCLUDED_PARSER_NODE_H
 
 #include "compiler/parser_file.h"
+#include "compiler/types.h"
 
 #include <stdio.h>
 
@@ -40,6 +41,7 @@ struct ParserNode
 
 ParserNode *MakeNode(ParserSymbol *kind, int count, ParserNode **params);
 void FreeNode(ParserNode *node);
+bool ParserNodeGetValue(ParserNode *node, String *name_out);
 
 void PrintNodeTree(FILE *fp, ParserNode *root);
 int GetNodeCount(void);

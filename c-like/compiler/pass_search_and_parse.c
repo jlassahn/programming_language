@@ -18,24 +18,73 @@ bool ScanFileImports(CompilerFile *cf, CompileState *state)
 	return true; // FIXME fake
 }
 
+Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
+		Namespace *root_ns)
+{
+	String next_name;
+	Namespace *cur;
+	if ((node->symbol == &SYM_DOT_OP) && (node->count == 2))
+	{
+		cur = FindNamespaceFromDotList(node->children[0], cns, root_ns);
+		if (cur == NULL)
+			return NULL;
+
+		if (!ParserNodeGetValue(node->children[1], &next_name))
+			return NULL;
+
+		// FIXME special handling for "_"
+		return NamespaceGetChild(cur, &next_name);
+	}
+
+	// root node
+	if (!ParserNodeGetValue(node, &next_name))
+		return NULL;
+
+	// FIXME special handling for "_"
+	// FIXME check for identifiers that shadow predefined names
+	return NamespaceGetChild(root_ns, &next_name);
+}
+
+ImportLink *TranslateImportLink(ParserNode *node, Namespace *cns,
+		Namespace *root_ns)
+{
+	if (node->count != 1)
+		return NULL;
+
+	Namespace *ns = FindNamespaceFromDotList(node->children[0], cns, root_ns);
+	if (ns == NULL)
+		return NULL;
+
+	ImportLink *import = Alloc(sizeof(ImportLink));
+	import->parse = node;
+	import->is_private = false;
+	import->namespace = ns;
+
+	return import;
+}
+
 void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 		CompileState *state)
 {
 	if (node->symbol == &SYM_IMPORT)
 	{
-		ImportLink *import = Alloc(sizeof(ImportLink));
-		import->parse = node;
-		import->is_private = false;
-		import->namespace = NULL; // FIXME find
-		ListInsertLast(&cf->imports, import);
+		ImportLink *import = TranslateImportLink(node, cf->namespace,
+				&state->root_namespace);
+		if (import != NULL)
+		{
+			import->is_private = false;
+			ListInsertLast(&cf->imports, import);
+		}
 	}
 	else if (node->symbol == &SYM_IMPORT_PRIVATE)
 	{
-		ImportLink *import = Alloc(sizeof(ImportLink));
-		import->parse = node;
-		import->is_private = true;
-		import->namespace = NULL; // FIXME find
-		ListInsertLast(&cf->imports, import);
+		ImportLink *import = TranslateImportLink(node, cf->namespace,
+				&state->root_namespace);
+		if (import != NULL)
+		{
+			import->is_private = true;
+			ListInsertLast(&cf->imports, import);
+		}
 	}
 	else
 	{

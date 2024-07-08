@@ -67,6 +67,24 @@ void FreeNode(ParserNode *node)
 	allocated_nodes --;
 }
 
+bool ParserNodeGetValue(ParserNode *node, String *name_out)
+{
+	if (node->position.file == NULL)
+		return false;
+
+	ParserFile *file = node->position.file;
+	uint64_t start = node->position.start.offset;
+	uint64_t end = node->position.end.offset;
+
+	int length = (int)(end - start);
+	if (length <= 0)
+		return false;
+
+	name_out->data = file->data + start;
+	name_out->length = length;
+	return true;
+}
+
 int GetNodeCount(void)
 {
 	return allocated_nodes;

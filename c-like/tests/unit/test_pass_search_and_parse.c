@@ -93,7 +93,7 @@ void TestSimpleModule()
 	CompileStateFree(&compile_state);
 }
 
-static void CheckImportEntry(ListEntry **entry, bool is_private)
+static void CheckImportEntry(ListEntry **entry, bool is_private, Namespace *ns)
 {
 	CHECK(*entry != NULL);
 	if (*entry == NULL)
@@ -101,6 +101,7 @@ static void CheckImportEntry(ListEntry **entry, bool is_private)
 
 	ImportLink *import = (*entry)->item;
 	CHECK(is_private == import->is_private);
+	CHECK(ns == import->namespace);
 
 	(*entry) = (*entry)->next;
 }
@@ -117,7 +118,6 @@ void TestImportList(void)
 
 	ListInsertFirst(&compile_state.input_files, cf);
 
-	// IMPORT has one child of type DOT_OP, which heads a list with no EMPTY
 	PushNodeStack(MakeNode(&SYM_EMPTY, 0, NULL));
 
 	PushNodeStack(MakeNodeFakeValue(&SYM_IDENTIFIER, "child1_1"));
@@ -142,15 +142,42 @@ void TestImportList(void)
 	FakeParserSet("./test.moss", list, 0);
 	FakeFileSet("./test.moss", "abcdef");
 
+	String name;
+	Namespace *ns_root = &compile_state.root_namespace;
+
+	name.data = "child1_1";
+	name.length = strlen(name.data);
+	Namespace *ns_m1 = NamespaceGetChild(ns_root, &name);
+	name.data = "child2_1";
+	name.length = strlen(name.data);
+	ns_m1 = NamespaceGetChild(ns_m1, &name);
+	name.data = "child3_1";
+	name.length = strlen(name.data);
+	ns_m1 = NamespaceGetChild(ns_m1, &name);
+
+	name.data = "child1_2";
+	name.length = strlen(name.data);
+	Namespace *ns_m2 = NamespaceGetChild(ns_root, &name);
+
+	name.data = "child1_3";
+	name.length = strlen(name.data);
+	Namespace *ns_m3 = NamespaceGetChild(ns_root, &name);
+
+	// prevent the code from trying to search fake namespaces for files
+	// by marking them as already scanned.
+	ns_m1->flags |= NAMESPACE_SCANNED;
+	ns_m2->flags |= NAMESPACE_SCANNED;
+	ns_m3->flags |= NAMESPACE_SCANNED;
+
 	CHECK(PassSearchAndParse(&compile_state));
 
 	CHECK(cf->root == list);
 	CHECK(cf->flags ==  FILE_FROM_INPUT);
 
 	ListEntry *entry = cf->imports.first;
-	CheckImportEntry(&entry, true);
-	CheckImportEntry(&entry, false);
-	CheckImportEntry(&entry, false);
+	CheckImportEntry(&entry, true, ns_m1);
+	CheckImportEntry(&entry, false, ns_m2);
+	CheckImportEntry(&entry, false, ns_m3);
 	CHECK(entry == NULL);
 
 	FreeFakeNodeValues();
