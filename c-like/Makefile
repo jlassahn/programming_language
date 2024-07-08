@@ -50,6 +50,7 @@ build/bin/moss-cc: \
 	build/obj/compiler/tokenizer.o \
 	build/obj/compiler/parser_file.o \
 	build/obj/compiler/parser_node.o \
+	build/obj/compiler/parser_symbols.o \
 	build/obj/compiler/parser.o \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/commandargs.o \
@@ -93,6 +94,7 @@ build/bin/all_tests: \
 	build/obj/tests/unit/fake_errors.o \
 	build/obj/tests/unit/fake_directory.o \
 	build/obj/tests/unit/fake_parser.o \
+	build/obj/compiler/parser_symbols.o \
 	build/obj/tests/unit/all_tests.o \
 	build/obj/tests/unit/test_fake_dir.o \
 	build/obj/tests/unit/test_map.o \

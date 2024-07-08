@@ -7,6 +7,14 @@
 #include "compiler/types.h"
 #include "compiler/namespace.h"
 
+typedef struct ImportLink ImportLink;
+struct ImportLink
+{
+	ParserNode *parse;
+	bool is_private;
+	Namespace *namespace;
+};
+
 typedef struct CompilerFile CompilerFile;
 struct CompilerFile
 {
@@ -15,6 +23,8 @@ struct CompilerFile
 	StringBuffer *path; // FIXME duplicated info in parser_file
 	ParserNode *root;
 	Namespace *namespace;
+
+	List imports; // List of ImportLink*
 };
 
 

@@ -4,15 +4,71 @@
 #include "compiler/parser.h"
 #include "compiler/errors.h"
 #include "compiler/search.h"
+#include "compiler/memory.h"
 
-static const char *moss_file_extensions[] =
+const char *moss_file_extensions[] =
 {
 	".moss",
 	NULL
 };
 
-static bool ParseInputFile(CompilerFile *cf, Namespace *root)
+bool ScanFileImports(CompilerFile *cf, CompileState *state)
 {
+	printf("FIXME scanning file imports for %s\n", cf->path->buffer);
+	return true; // FIXME fake
+}
+
+void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
+		CompileState *state)
+{
+	if (node->symbol == &SYM_IMPORT)
+	{
+		ImportLink *import = Alloc(sizeof(ImportLink));
+		import->parse = node;
+		import->is_private = false;
+		import->namespace = NULL; // FIXME find
+		ListInsertLast(&cf->imports, import);
+	}
+	else if (node->symbol == &SYM_IMPORT_PRIVATE)
+	{
+		ImportLink *import = Alloc(sizeof(ImportLink));
+		import->parse = node;
+		import->is_private = true;
+		import->namespace = NULL; // FIXME find
+		ListInsertLast(&cf->imports, import);
+	}
+	else
+	{
+		printf("FIXME skipping top-level node %s\n", node->symbol->rule_name);
+		return;
+	}
+}
+
+void TranslateFileScopeList(ParserNode *node, CompilerFile *cf,
+		CompileState *state)
+{
+	if ((node->symbol == &SYM_LIST) && (node->count == 2))
+	{
+		TranslateFileScopeList(node->children[0], cf, state);
+		ParserNode *item = node->children[1];
+		TranslateFileScopeItem(item, cf, state);
+	}
+	else if (node->symbol != &SYM_EMPTY)
+	{
+		ParserNode *item = node;
+		TranslateFileScopeItem(item, cf, state);
+	}
+}
+
+void TopLevelScan(CompilerFile *cf, CompileState *state)
+{
+	TranslateFileScopeList(cf->root, cf, state);
+}
+
+bool ParseInputFile(CompilerFile *cf, CompileState *state)
+{
+	Namespace *root = &state->root_namespace;
+
 	if (!ParserFileRead(&cf->parser_file, cf->path->buffer))
 		return false;
 
@@ -28,16 +84,16 @@ static bool ParseInputFile(CompilerFile *cf, Namespace *root)
 			"File name '%s' isn't a valid namespace.", cf->path->buffer);
 		return false;
 	}
+
+	if (cf->root != NULL)
+		TopLevelScan(cf, state);
+	if (!ScanFileImports(cf, state))
+		return false;
+
 	return true;
 }
 
-static bool ScanFileImports(CompilerFile *cf, CompileState *state)
-{
-	printf("FIXME scanning file imports for %s\n", cf->path->buffer);
-	return true; // FIXME fake
-}
-
-static bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
+bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 		CompileState *state)
 {
 	StringBufferLock(path);
@@ -63,6 +119,8 @@ static bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 	else
 		ListInsertLast(&ns->public_files, cf);
 
+	if (cf->root != NULL)
+		TopLevelScan(cf, state);
 	if (!ScanFileImports(cf, state))
 		ret = false;
 
@@ -70,13 +128,12 @@ static bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 }
 
 
-static bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
+bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 {
 	if (ns->flags & NAMESPACE_SCANNED)
 		return true;
 	ns->flags |= NAMESPACE_SCANNED;
 
-	printf("FIXME scanning namespace %s (%s, %.*s)\n", ns->path->buffer, ns->parent->path->buffer, ns->stem.length, ns->stem.data);
 	bool ret = true;
 
 	List *base_paths = &state->basedirs;
@@ -95,7 +152,6 @@ static bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 		file = SearchFilesNext(sf);
 		if (file == NULL)
 			break;
-		printf("   found %s\n", file->buffer);
 		if (!DoModuleFile(file, ns, is_private, state))
 			ret = false;
 	}
@@ -109,7 +165,6 @@ static bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 		file = SearchFilesNext(sf);
 		if (file == NULL)
 			break;
-		printf("   found %s\n", file->buffer);
 		if (!DoModuleFile(file, ns, is_private, state))
 			ret = false;
 	}
@@ -135,15 +190,11 @@ bool PassSearchAndParse(CompileState *state)
 	{
 		CompilerFile *cf = entry->item;
 
-		if (!ParseInputFile(cf, &state->root_namespace))
+		if (!ParseInputFile(cf, state))
 		{
 			ret = false;
 			continue;
 		}
-
-		if (!ScanFileImports(cf, state))
-			ret = false;
-
 		// FIXME scan namespace for other files
 	}
 

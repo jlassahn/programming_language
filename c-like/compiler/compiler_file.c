@@ -24,6 +24,12 @@ void CompilerFileFree(CompilerFile *cf)
 	if (cf->root)
 		FreeNode(cf->root);
 
+	while (cf->imports.first != NULL)
+	{
+		ImportLink *import = ListRemoveFirst(&cf->imports);
+		Free(import);
+	}
+
 	Free(cf);
 }
 
