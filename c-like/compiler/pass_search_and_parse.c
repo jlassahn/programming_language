@@ -12,10 +12,19 @@ const char *moss_file_extensions[] =
 	NULL
 };
 
+bool ScanNamespaceFiles(Namespace *ns, CompileState *state);
+
 bool ScanFileImports(CompilerFile *cf, CompileState *state)
 {
-	printf("FIXME scanning file imports for %s\n", cf->path->buffer);
-	return true; // FIXME fake
+	bool ret = true;
+	for (ListEntry *entry=cf->imports.first; entry!=NULL; entry=entry->next)
+	{
+		ImportLink *import = entry->item;
+		if (!ScanNamespaceFiles(import->namespace, state))
+			ret = false;
+	}
+
+	return ret;
 }
 
 Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
@@ -88,7 +97,7 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 	}
 	else
 	{
-		printf("FIXME skipping top-level node %s\n", node->symbol->rule_name);
+		// FIXME handle other top-level stuff
 		return;
 	}
 }
@@ -223,7 +232,7 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 
 	if ((ns->private_files.first == NULL) && (ns->public_files.first == NULL))
 	{
-		Error(ERROR_FILE, "No files found for module %s\n", ns->path->buffer);
+		Error(ERROR_FILE, "No files found for module '%s'.", ns->path->buffer);
 		ret = false;
 	}
 

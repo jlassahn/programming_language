@@ -165,9 +165,15 @@ void TestImportList(void)
 
 	// prevent the code from trying to search fake namespaces for files
 	// by marking them as already scanned.
-	ns_m1->flags |= NAMESPACE_SCANNED;
+	// ns_m1->flags |= NAMESPACE_SCANNED; // let this one get scanned
 	ns_m2->flags |= NAMESPACE_SCANNED;
 	ns_m3->flags |= NAMESPACE_SCANNED;
+
+	StringBuffer *sb = StringBufferFromChars("basedir/");
+	ListInsertFirst(&compile_state.basedirs, sb);
+	FakeFileSet("basedir/import/child1_1/child2_1/child3_1.moss", "abcdef");
+	FakeDirectoryAdd("basedir/import/child1_1/child2_1/");
+	FakeDirectoryAddFile("child3_1.moss");
 
 	CHECK(PassSearchAndParse(&compile_state));
 
@@ -180,7 +186,11 @@ void TestImportList(void)
 	CheckImportEntry(&entry, false, ns_m3);
 	CHECK(entry == NULL);
 
+	// check that ns_m1 was recursively scanned
+	CHECK(ns_m1->public_files.first != NULL);
+
 	FreeFakeNodeValues();
+	FakeDirectoryFree();
 	FakeFilesFree();
 	FakeParserFree();
 	CompileStateFree(&compile_state);

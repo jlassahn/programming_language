@@ -65,7 +65,7 @@ int main(int argc, const char *argv[])
 	MapIterate(&compile_state.root_namespace.children,
 			NamespacePrinter, &depth);
 
-	bool print_parse = true;
+	bool print_parse = false;
 	if (print_parse && (compile_state.input_files.first != NULL))
 	{
 		CompilerFile *cf = compile_state.input_files.first->item;
