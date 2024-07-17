@@ -23,6 +23,19 @@
 
 static CompileState compile_state;
 
+void CheckBaseDirs(List *basedirs)
+{
+	for (ListEntry *entry=basedirs->first; entry!=NULL; entry=entry->next)
+	{
+		StringBuffer *path = entry->item;
+		if (!DoesDirectoryExist(path->buffer))
+		{
+			Warning(ERROR_FILE,
+					"Import path '%s' does not exist.", path->buffer);
+		}
+	}
+}
+
 int main(int argc, const char *argv[])
 {
 	CompileStateInit(&compile_state);
@@ -38,7 +51,9 @@ int main(int argc, const char *argv[])
 	if (!PassConfigure(&compile_state, args, env))
 		return EXIT_USAGE;
 
-	CompileStatePrint(&compile_state);
+	CheckBaseDirs(&compile_state.basedirs);
+
+	// CompileStatePrint(&compile_state);
 
 	ParseSetDebug(false);
 	bool inputs_good = PassSearchAndParse(&compile_state);

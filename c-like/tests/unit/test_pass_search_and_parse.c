@@ -41,7 +41,7 @@ void TestSimpleInputFile(void)
 	CHECK(strcmp(cf->parser_file.data, "abcdef") == 0);
 	CHECK(cf->parser_file.length == 6);
 
-	CHECK(cf->root == NULL); // FIXME should match fake parser return
+	CHECK(cf->root == NULL);
 	CHECK(cf->flags ==  FILE_FROM_INPUT);
 	// FIXME --  FILE_PARSE_FAILED gets set on parse errors
 

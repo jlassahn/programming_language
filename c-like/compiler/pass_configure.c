@@ -19,15 +19,6 @@ bool AddBaseDir(CompileState *cs, const char *path)
 	StringBuffer *sb = StringBufferFromChars(path);
 	sb = NormalizePath(sb);
 
-	/* FIXME move somewhere
-	if (!DoesDirectoryExist(sb->buffer))
-	{
-		Warning(ERROR_FILE, "path '%s' does not exist.", sb->buffer);
-		StringBufferFree(sb);
-		return false;
-	}
-	*/
-
 	StringBufferLock(sb);
 	ListInsertLast(&cs->basedirs, sb);
 	return true;
@@ -37,11 +28,6 @@ bool AddInputModule(CompileState *state, const char *path)
 {
 	if (!IsValidNamespace(path))
 		return false;
-
-	/* FIXME do somewhere else
-	if (!CheckForModuleFiles(&state->basedirs, path))
-		return false;
-	*/
 
 	Namespace *ns = &state->root_namespace;
 
@@ -79,11 +65,6 @@ bool AddInputModule(CompileState *state, const char *path)
 
 bool AddInputFile(CompileState *state, const char *name)
 {
-	/* FIXME do this somewhere else
-	if (!DoesFileExist(name))
-		return false;
-	*/
-
 	StringBuffer *sb = StringBufferFromChars(name);
 	StringBufferLock(sb);
 

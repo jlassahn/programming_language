@@ -104,8 +104,6 @@ void *MapFind(Map *map, const String *key);
 void *MapRemoveFirst(Map *map);
 void MapDestroyAll(Map *map);
 
-// void *MapRemove(Map *map, const String *key); // FIXME do we need this?
-
 typedef void (*MapCallback)(const String *key, void *value, void *ctx);
 void MapIterate(Map *map, MapCallback handler, void *ctx);
 void MapPrint(Map *map);

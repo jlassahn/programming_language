@@ -48,10 +48,6 @@ extern const TokenType TOKEN_STRINGCONST;
 
 extern const TokenType TOKEN_UNKNOWN;
 
-// extern const TokenType TOKEN_PUNCTUATION;
-
-// extern const TokenType TOKEN_OPERATOR; // FIXME remove
-
 // keywords
 extern const TokenType TOKEN_ALIAS;
 extern const TokenType TOKEN_ALLIGNMENT; // FIXME maybe not real

@@ -10,8 +10,6 @@ ParserSymbol SYM_PUNCTUATION = { "PUNCTUATION", PRINT_CONTENT | SYM_DISCARD };
 ParserSymbol SYM_KEYWORD = { "KEYWORD", PRINT_CONTENT | SYM_DISCARD };
 ParserSymbol SYM_OPERATOR = { "OPERATOR", PRINT_CONTENT | SYM_DISCARD };
 
-ParserSymbol SYM_FIXME = { "FIXME", 0 };
-
 ParserSymbol SYM_EMPTY = { "EMPTY", 0 };
 ParserSymbol SYM_LIST = { "LIST", 0 };
 ParserSymbol SYM_DOT_OP = { "DOT_OP", 0 };

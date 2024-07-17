@@ -14,8 +14,6 @@ extern ParserSymbol SYM_PUNCTUATION;
 extern ParserSymbol SYM_KEYWORD;
 extern ParserSymbol SYM_OPERATOR;
 
-extern ParserSymbol SYM_FIXME;
-
 // production symbols
 extern ParserSymbol SYM_EMPTY; // for rules that don't have any content
 extern ParserSymbol SYM_LIST;
