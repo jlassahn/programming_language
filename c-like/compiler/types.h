@@ -18,6 +18,7 @@ struct String
 };
 
 bool StringEquals(const String *a, const String *b);
+bool StringEqualsCString(const String *a, const char *b);
 
 typedef struct StringBuffer StringBuffer;
 struct StringBuffer

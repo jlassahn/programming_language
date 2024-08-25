@@ -16,6 +16,20 @@ bool StringEquals(const String *a, const String *b)
 	return (memcmp(a->data, b->data, a->length) == 0);
 }
 
+bool StringEqualsCString(const String *a, const char *b)
+{
+	for (int i=0; i<a->length; i++)
+	{
+		if (a->data[i] != b[i])
+			return false;
+		if (b[i] == 0) // can only happen if a contains zero bytes
+			return false;
+	}
+	if (b[a->length] == 0)
+		return true;
+	else
+		return false;
+}
 
 static void StringBufferAssertUnlocked(StringBuffer *sb)
 {

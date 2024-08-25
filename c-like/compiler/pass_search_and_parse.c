@@ -41,7 +41,10 @@ Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
 		if (!ParserNodeGetValue(node->children[1], &next_name))
 			return NULL;
 
-		// FIXME special handling for "_"
+		// special handling for "_"
+		if (StringEqualsCString(&next_name, "_"))
+			return cur->parent; //can be NULL for malformed import lists
+
 		return NamespaceGetChild(cur, &next_name);
 	}
 
@@ -49,7 +52,10 @@ Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
 	if (!ParserNodeGetValue(node, &next_name))
 		return NULL;
 
-	// FIXME special handling for "_"
+	// special handling for "_" at beginning of list
+	if (StringEqualsCString(&next_name, "_"))
+		return cns->parent;
+
 	// FIXME check for identifiers that shadow predefined names
 	return NamespaceGetChild(root_ns, &next_name);
 }
@@ -61,8 +67,12 @@ ImportLink *TranslateImportLink(ParserNode *node, Namespace *cns,
 		return NULL;
 
 	Namespace *ns = FindNamespaceFromDotList(node->children[0], cns, root_ns);
-	if (ns == NULL)
+	if ((ns == NULL) || (ns == root_ns))
+	{
+		ErrorAt(ERROR_FILE, node->position.file->filename, &node->position.start,
+				"import with invalid namespace name");
 		return NULL;
+	}
 
 	ImportLink *import = Alloc(sizeof(ImportLink));
 	import->parse = node;
