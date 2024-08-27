@@ -24,6 +24,7 @@ void TestCompilerFile(void);
 void TestSearch(void);
 void TestPassConfigure(void);
 void TestPassSearchAndParse(void);
+void TestDataType(void);
 
 int main(void)
 {
@@ -39,6 +40,7 @@ int main(void)
 	RUN_TEST(TestSearch);
 	RUN_TEST(TestPassConfigure);
 	RUN_TEST(TestPassSearchAndParse);
+	RUN_TEST(TestDataType);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();
