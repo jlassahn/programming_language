@@ -13,7 +13,7 @@ void SimpleVariable(void)
 	CompileState compile_state;
 	CompileStateInit(&compile_state);
 
-	const char *env = "tests/scan_tests/relative_files";
+	const char *env = "tests";
 
 	const char *argv[] =
 	{

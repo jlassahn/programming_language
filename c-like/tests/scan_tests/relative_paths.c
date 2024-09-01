@@ -12,12 +12,12 @@ void RelativePaths(void)
 	CompileState compile_state;
 	CompileStateInit(&compile_state);
 
-	const char *env = "tests/scan_tests/relative_files";
+	const char *env = "tests";
 
 	const char *argv[] =
 	{
 		"moss-cc",
-		"local.group.part1"
+		"file_tests.group.part1"
 	};
 	int argc = sizeof(argv)/sizeof(const char *);
 

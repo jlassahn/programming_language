@@ -1,5 +1,5 @@
 // source file
-import local.group.part2;
+import file_tests.group.part2;
 import _.part3;
 import _._.group.part3;
 

@@ -1,0 +1,22 @@
+
+struct FileHandler
+{
+	function(pointer File, pointer readonly uint8, int length) int Read;
+	function(pointer File, pointer uint8, int length) int Write;
+	function(pointer File) void Close;
+}
+
+
+int Write(pointer File fp, pointer readonly uint8 data, int length);
+int Read(pointer File fp, pointer uint8 data, int length);
+
+struct File
+{
+	pointer FileHandler handler;
+	int descriptor;
+}
+
+pointer File stdin = File{
+	.descriptor = 1,
+};
+

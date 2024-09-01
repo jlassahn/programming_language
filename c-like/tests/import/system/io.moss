@@ -1,0 +1,12 @@
+
+struct File;
+
+pointer File stdin;
+pointer File stdout;
+pointer File stderr;
+
+pointer File Open(pointer readonly uint8 filename, uint32 flags);
+void Close(pointer File fp);
+int Write(pointer File fp, pointer readonly uint8 data, int length);
+int Read(pointer File fp, pointer uint8 data, int length);
+
