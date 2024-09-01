@@ -45,7 +45,7 @@ Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
 		if (StringEqualsCString(&next_name, "_"))
 			return cur->parent; //can be NULL for malformed import lists
 
-		return NamespaceGetChild(cur, &next_name);
+		return NamespaceMakeChild(cur, &next_name);
 	}
 
 	// root node
@@ -57,7 +57,7 @@ Namespace *FindNamespaceFromDotList(ParserNode *node, Namespace *cns,
 		return cns->parent;
 
 	// FIXME check for identifiers that shadow predefined names
-	return NamespaceGetChild(root_ns, &next_name);
+	return NamespaceMakeChild(root_ns, &next_name);
 }
 
 ImportLink *TranslateImportLink(ParserNode *node, Namespace *cns,
@@ -80,6 +80,36 @@ ImportLink *TranslateImportLink(ParserNode *node, Namespace *cns,
 	import->namespace = ns;
 
 	return import;
+}
+
+bool TranslateDeclaration(ParserNode *node, Namespace *ns)
+{
+	ParserNode *dtype = node->children[0];
+	ParserNode *name = node->children[1];
+	ParserNode *properties = node->children[2];
+	ParserNode *value = node->children[3];
+
+	String name_str;
+	if (!ParserNodeGetValue(name, &name_str))
+	{
+		// FIXME can't happen?
+		return false;
+	}
+
+
+	Symbol *sym = MapFind(&ns->symbols, &name_str);
+	if (sym != NULL)
+	{
+		// FIXME merge symbol data
+		return true;
+	}
+
+	sym = SymbolCreate(&name_str);
+	MapInsert(&ns->symbols, &name_str, sym);
+
+	// FIXME store more symbol information
+
+	return true;
 }
 
 void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
@@ -105,9 +135,23 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 			ListInsertLast(&cf->imports, import);
 		}
 	}
+	else if (node->symbol == &SYM_DECLARATION)
+	{
+		TranslateDeclaration(node, cf->namespace);
+	}
 	else
 	{
 		// FIXME handle other top-level stuff
+		// SYM_USING
+		// SYM_USING_AS
+		// SYM_PROTOTYPE
+		// SYM_FUNC
+		// SYM_STRUCT_DEC
+		// SYM_STRUCT_DEF
+		// SYM_UNION_DEC
+		// SYM_UNION_DEF
+		// SYM_ENUM_DEC
+		// SYM_ENUM_DEF
 		return;
 	}
 }

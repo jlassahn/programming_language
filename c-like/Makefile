@@ -56,6 +56,7 @@ build/bin/moss-cc: \
 	build/obj/compiler/parser.o \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
+	build/obj/compiler/symbol.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/compiler_file.o \
@@ -86,6 +87,7 @@ build/bin/all_tests: \
 	build/obj/compiler/stringtypes.o \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
+	build/obj/compiler/symbol.o \
 	build/obj/compiler/parser_file.o \
 	build/obj/compiler/parser_node.o \
 	build/obj/compiler/parser_symbols.o \
@@ -129,6 +131,7 @@ build/bin/scan_tests: \
 	build/obj/compiler/token_defs.o \
 	build/obj/compiler/tokenizer.o \
 	build/obj/compiler/compiler_file.o \
+	build/obj/compiler/symbol.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/pass_configure.o \
@@ -139,6 +142,7 @@ build/bin/scan_tests: \
 	build/obj/tests/scan_tests/good_filenames.o \
 	build/obj/tests/scan_tests/bad_filenames.o \
 	build/obj/tests/scan_tests/relative_paths.o \
+	build/obj/tests/scan_tests/simple_variable.o \
 
 
 	@mkdir -p $(@D)

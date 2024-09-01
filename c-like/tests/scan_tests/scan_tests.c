@@ -5,12 +5,14 @@
 void GoodFilenames(void);
 void BadFilenames(void);
 void RelativePaths(void);
+void SimpleVariable(void);
 
 int main(void)
 {
 	RUN_TEST(GoodFilenames);
 	RUN_TEST(BadFilenames);
 	RUN_TEST(RelativePaths);
+	RUN_TEST(SimpleVariable);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

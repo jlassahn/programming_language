@@ -62,11 +62,11 @@ void TestSimpleModule()
 
 	name.data = "child1";
 	name.length = 6;
-	ns = NamespaceGetChild(ns, &name);
+	ns = NamespaceMakeChild(ns, &name);
 
 	name.data = "child2";
 	name.length = 6;
-	ns = NamespaceGetChild(ns, &name);
+	ns = NamespaceMakeChild(ns, &name);
 
 	ListInsertFirst(&compile_state.input_modules, ns);
 
@@ -147,21 +147,21 @@ void TestImportList(void)
 
 	name.data = "child1_1";
 	name.length = strlen(name.data);
-	Namespace *ns_m1 = NamespaceGetChild(ns_root, &name);
+	Namespace *ns_m1 = NamespaceMakeChild(ns_root, &name);
 	name.data = "child2_1";
 	name.length = strlen(name.data);
-	ns_m1 = NamespaceGetChild(ns_m1, &name);
+	ns_m1 = NamespaceMakeChild(ns_m1, &name);
 	name.data = "child3_1";
 	name.length = strlen(name.data);
-	ns_m1 = NamespaceGetChild(ns_m1, &name);
+	ns_m1 = NamespaceMakeChild(ns_m1, &name);
 
 	name.data = "child1_2";
 	name.length = strlen(name.data);
-	Namespace *ns_m2 = NamespaceGetChild(ns_root, &name);
+	Namespace *ns_m2 = NamespaceMakeChild(ns_root, &name);
 
 	name.data = "child1_3";
 	name.length = strlen(name.data);
-	Namespace *ns_m3 = NamespaceGetChild(ns_root, &name);
+	Namespace *ns_m3 = NamespaceMakeChild(ns_root, &name);
 
 	// prevent the code from trying to search fake namespaces for files
 	// by marking them as already scanned.

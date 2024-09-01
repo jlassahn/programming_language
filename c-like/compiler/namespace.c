@@ -6,7 +6,7 @@
 #include "compiler/fileio.h"
 #include <stdlib.h>
 
-Namespace *NamespaceGetChild(Namespace *parent, String *name)
+Namespace *NamespaceMakeChild(Namespace *parent, String *name)
 {
 	Namespace *child = NULL;
 	child = MapFind(&parent->children, name);
@@ -26,6 +26,13 @@ Namespace *NamespaceGetChild(Namespace *parent, String *name)
 		MapInsert(&parent->children, &child->stem, child);
 	}
 
+	return child;
+}
+
+Namespace *NamespaceGetChild(Namespace *parent, String *name)
+{
+	Namespace *child = NULL;
+	child = MapFind(&parent->children, name);
 	return child;
 }
 
@@ -72,9 +79,28 @@ void NamespaceFree(Namespace *root)
 		Free(child);
 	}
 
-	// FIXME free these...
-	// Map public_symbols;  // FIXME Map of ????
-	// Map private_symbols;  // FIXME Map of ????
+	while (true)
+	{
+		Symbol *sym = MapRemoveFirst(&root->symbols);
+		if (sym == NULL)
+			break;
+		SymbolDestroy(sym);
+	}
+}
+
+Symbol *NamespaceFindSymbol(Namespace *ns, String *name)
+{
+	return MapFind(&ns->symbols, name);
+}
+
+void SymbolPrinter(const String *key, void *value, void *ctx)
+{
+	int *depth = ctx;
+	Symbol *sym = value;
+
+	for (int i=0; i<*depth; i++)
+		printf("  ");
+	printf("-> %.*s\n", key->length, key->data);
 }
 
 void NamespacePrinter(const String *key, void *value, void *ctx)
@@ -87,6 +113,7 @@ void NamespacePrinter(const String *key, void *value, void *ctx)
 	printf("%.*s: %s\n", key->length, key->data, ns->path->buffer);
 
 	*depth = *depth + 1;
+	MapIterate(&ns->symbols, SymbolPrinter, depth);
 	MapIterate(&ns->children, NamespacePrinter, depth);
 	*depth = *depth - 1;
 }

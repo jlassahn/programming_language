@@ -44,6 +44,7 @@ void yyerror(const char *s);
 %token ELSE
 %token ENUM
 %token FOR
+%token FUNCTION
 %token GOTO
 %token IF
 %token IMPORT
@@ -116,6 +117,7 @@ file_element:
   import_statement     { MkMove; }
 | using_statement      { MkMove; }
 | external_declaration { MkMove; }
+| ';'                  { MkNode(&SYM_EMPTY_STATEMENT); }
 ;
 
 import_statement:
@@ -519,6 +521,7 @@ type_modifier:
 | ARRAY '(' expressions ')'            { MkNode(&SYM_TYPE_ARRAY); }
 | ARRAY '(' MULT_PTR_OP ')'            { MkNode(&SYM_TYPE_ARRAY_MATCH); }
 | BITFIELD '(' constant_expression ')' { MkNode(&SYM_TYPE_BITFIELD); }
+| FUNCTION '(' proto_params ')'        { MkNode(&SYM_TYPE_FUNCTION); }
 //FIXME maybe noaddress to prevent making pointers to it
 ;
 

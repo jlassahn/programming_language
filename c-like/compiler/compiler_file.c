@@ -67,7 +67,7 @@ bool CompilerFilePickNamespace(CompilerFile *cf, Namespace *root)
 	if (!IsValidNamespaceName(&stem))
 		return false;
 
-	Namespace *namespace = NamespaceGetChild(root, &stem);
+	Namespace *namespace = NamespaceMakeChild(root, &stem);
 	ListInsertLast(&namespace->private_files, cf);
 	namespace->flags |= NAMESPACE_HAS_INFILE;
 

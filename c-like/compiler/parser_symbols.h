@@ -113,6 +113,7 @@ extern ParserSymbol SYM_TYPE_EXPRESSION;
 extern ParserSymbol SYM_TYPE_ARRAY;
 extern ParserSymbol SYM_TYPE_ARRAY_MATCH;
 extern ParserSymbol SYM_TYPE_BITFIELD;
+extern ParserSymbol SYM_TYPE_FUNCTION;
 extern ParserSymbol SYM_TYPE_LINKAGE;
 extern ParserSymbol SYM_TYPE_LINKNAME;
 #endif

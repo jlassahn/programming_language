@@ -42,7 +42,7 @@ bool AddInputModule(CompileState *state, const char *path)
 			end = i;
 			name.data = &path[start];
 			name.length = end-start;
-			ns = NamespaceGetChild(ns, &name);
+			ns = NamespaceMakeChild(ns, &name);
 			if (ns == NULL)
 				return false;
 			start = i+1;
@@ -53,7 +53,7 @@ bool AddInputModule(CompileState *state, const char *path)
 		end = length;
 		name.data = &path[start];
 		name.length = end-start;
-		ns = NamespaceGetChild(ns, &name);
+		ns = NamespaceMakeChild(ns, &name);
 		if (ns == NULL)
 			return false;
 	}

@@ -83,6 +83,7 @@ TokenInfo keyword_list[] =
 	{ "else", &TOKEN_ELSE },
 	{ "enum", &TOKEN_ENUM },
 	{ "for", &TOKEN_FOR },
+	{ "function", &TOKEN_FUNCTION },
 	{ "goto", &TOKEN_GOTO },
 	{ "if", &TOKEN_IF },
 	{ "import", &TOKEN_IMPORT },

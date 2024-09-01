@@ -3,6 +3,7 @@
 #define INCLUDED_NAMESPACE_H
 
 #include "compiler/types.h"
+#include "compiler/symbol.h"
 #include <stdint.h>
 
 typedef struct Namespace Namespace;
@@ -17,8 +18,7 @@ struct Namespace
 	List public_files; // List of CompilerFile
 	List private_files; // List of CompilerFile
 
-	Map public_symbols;  // FIXME Map of ????
-	Map private_symbols;  // FIXME Map of ????
+	Map symbols; // Map of Symbol
 };
 
 typedef enum
@@ -28,8 +28,10 @@ typedef enum
 }
 NamespaceFlags;
 
+Namespace *NamespaceMakeChild(Namespace *parent, String *name);
 Namespace *NamespaceGetChild(Namespace *parent, String *name);
 void NamespaceFree(Namespace *root);
+Symbol *NamespaceFindSymbol(Namespace *ns, String *name);
 
 void NamespacePrinter(const String *key, void *value, void *depth);
 

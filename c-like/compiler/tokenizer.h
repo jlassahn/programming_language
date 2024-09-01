@@ -64,6 +64,7 @@ extern const TokenType TOKEN_DO;
 extern const TokenType TOKEN_ELSE;
 extern const TokenType TOKEN_ENUM;
 extern const TokenType TOKEN_FOR;
+extern const TokenType TOKEN_FUNCTION;
 extern const TokenType TOKEN_GOTO;
 extern const TokenType TOKEN_IF;
 extern const TokenType TOKEN_IMPORT;
