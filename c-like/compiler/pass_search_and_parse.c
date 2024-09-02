@@ -112,7 +112,7 @@ bool TranslateDeclaration(ParserNode *node, Namespace *ns)
 	return true;
 }
 
-void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
+void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf, bool is_private,
 		CompileState *state)
 {
 	if (node->symbol == &SYM_IMPORT)
@@ -123,6 +123,9 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 		{
 			import->is_private = false;
 			ListInsertLast(&cf->imports, import);
+			ListInsertLast(&cf->namespace->all_imports, import);
+			if (!is_private)
+				ListInsertLast(&cf->namespace->public_imports, import);
 		}
 	}
 	else if (node->symbol == &SYM_IMPORT_PRIVATE)
@@ -133,6 +136,9 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 		{
 			import->is_private = true;
 			ListInsertLast(&cf->imports, import);
+			ListInsertLast(&cf->namespace->all_imports, import);
+			if (!is_private)
+				ListInsertLast(&cf->namespace->public_imports, import);
 		}
 	}
 	else if (node->symbol == &SYM_DECLARATION)
@@ -156,25 +162,25 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf,
 	}
 }
 
-void TranslateFileScopeList(ParserNode *node, CompilerFile *cf,
+void TranslateFileScopeList(ParserNode *node, CompilerFile *cf, bool is_private,
 		CompileState *state)
 {
 	if ((node->symbol == &SYM_LIST) && (node->count == 2))
 	{
-		TranslateFileScopeList(node->children[0], cf, state);
+		TranslateFileScopeList(node->children[0], cf, is_private, state);
 		ParserNode *item = node->children[1];
-		TranslateFileScopeItem(item, cf, state);
+		TranslateFileScopeItem(item, cf, is_private, state);
 	}
 	else if (node->symbol != &SYM_EMPTY)
 	{
 		ParserNode *item = node;
-		TranslateFileScopeItem(item, cf, state);
+		TranslateFileScopeItem(item, cf, is_private, state);
 	}
 }
 
-void TopLevelScan(CompilerFile *cf, CompileState *state)
+void TopLevelScan(CompilerFile *cf, bool is_private, CompileState *state)
 {
-	TranslateFileScopeList(cf->root, cf, state);
+	TranslateFileScopeList(cf->root, cf, is_private, state);
 }
 
 bool ParseInputFile(CompilerFile *cf, CompileState *state)
@@ -197,8 +203,9 @@ bool ParseInputFile(CompilerFile *cf, CompileState *state)
 		return false;
 	}
 
+	bool is_private = true; // explicitly specified input files are private
 	if (cf->root != NULL)
-		TopLevelScan(cf, state);
+		TopLevelScan(cf, is_private, state);
 	if (!ScanFileImports(cf, state))
 		return false;
 
@@ -232,7 +239,7 @@ bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 		ListInsertLast(&ns->public_files, cf);
 
 	if (cf->root != NULL)
-		TopLevelScan(cf, state);
+		TopLevelScan(cf, is_private, state);
 	if (!ScanFileImports(cf, state))
 		ret = false;
 

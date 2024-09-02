@@ -4,9 +4,19 @@
 
 #include "compiler/types.h"
 #include "compiler/symbol.h"
+#include "compiler/parser_node.h"
 #include <stdint.h>
 
+typedef struct ImportLink ImportLink;
 typedef struct Namespace Namespace;
+
+struct ImportLink
+{
+	ParserNode *parse;
+	bool is_private;
+	Namespace *namespace;
+};
+
 struct Namespace
 {
 	uint32_t flags;
@@ -17,6 +27,8 @@ struct Namespace
 	Map children;  // Map of Namespace
 	List public_files; // List of CompilerFile
 	List private_files; // List of CompilerFile
+	List public_imports; // List of ImportLink
+	List all_imports; // List of ImportLink
 
 	Map symbols; // Map of Symbol
 };

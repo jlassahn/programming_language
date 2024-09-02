@@ -141,6 +141,7 @@ build/bin/scan_tests: \
 	build/obj/tests/scan_tests/scan_tests.o \
 	build/obj/tests/scan_tests/good_filenames.o \
 	build/obj/tests/scan_tests/bad_filenames.o \
+	build/obj/tests/scan_tests/import_files.o \
 	build/obj/tests/scan_tests/relative_paths.o \
 	build/obj/tests/scan_tests/simple_variable.o \
 

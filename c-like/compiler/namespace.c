@@ -86,6 +86,22 @@ void NamespaceFree(Namespace *root)
 			break;
 		SymbolDestroy(sym);
 	}
+
+	while (true)
+	{
+		ImportLink *import = ListRemoveFirst(&root->public_imports);
+		if (import == NULL)
+			break;
+		// don't destroy import here, all of these are also in all_imports
+	}
+
+	while (true)
+	{
+		ImportLink *import = ListRemoveFirst(&root->all_imports);
+		if (import == NULL)
+			break;
+		// currently destroyed by CompilerFile
+	}
 }
 
 Symbol *NamespaceFindSymbol(Namespace *ns, String *name)

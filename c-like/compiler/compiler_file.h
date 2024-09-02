@@ -7,14 +7,6 @@
 #include "compiler/types.h"
 #include "compiler/namespace.h"
 
-typedef struct ImportLink ImportLink;
-struct ImportLink
-{
-	ParserNode *parse;
-	bool is_private;
-	Namespace *namespace;
-};
-
 typedef struct CompilerFile CompilerFile;
 struct CompilerFile
 {
