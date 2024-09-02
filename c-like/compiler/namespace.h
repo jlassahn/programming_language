@@ -4,6 +4,7 @@
 
 #include "compiler/types.h"
 #include "compiler/symbol.h"
+#include "compiler/symbol_table.h"
 #include "compiler/parser_node.h"
 #include <stdint.h>
 
@@ -30,7 +31,10 @@ struct Namespace
 	List public_imports; // List of ImportLink
 	List all_imports; // List of ImportLink
 
-	Map symbols; // Map of Symbol
+	Map public_symbols; // Map of Symbol
+	Map all_symbols; // Map of Symbol
+
+	SymbolTable symbol_table;
 };
 
 typedef enum
@@ -44,6 +48,7 @@ Namespace *NamespaceMakeChild(Namespace *parent, String *name);
 Namespace *NamespaceGetChild(Namespace *parent, String *name);
 void NamespaceFree(Namespace *root);
 Symbol *NamespaceFindSymbol(Namespace *ns, String *name);
+Symbol *NamespaceFindPrivateSymbol(Namespace *ns, String *name);
 
 void NamespacePrinter(const String *key, void *value, void *depth);
 

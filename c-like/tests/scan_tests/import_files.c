@@ -1,5 +1,6 @@
 
 #include "tests/unit/unit_test.h"
+#include "tests/unit/utils.h"
 #include "compiler/errors.h"
 #include "compiler/compile_state.h"
 #include "compiler/commandargs.h"
@@ -8,14 +9,6 @@
 #include "compiler/compiler_file.h"
 
 #include <string.h>
-
-String *TempString(const char *cstr)
-{
-	static String s;
-	s. length = strlen(cstr);
-	s.data = cstr;
-	return &s;
-}
 
 bool CompilerFileListContains(const List *list, const char *path)
 {

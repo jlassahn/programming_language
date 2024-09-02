@@ -43,6 +43,16 @@ void SimpleVariable(void)
 	Symbol *sym = NamespaceFindSymbol(ns, &string);
 	CHECK(sym != NULL);
 	CHECK(StringEqualsCString(&sym->name, "var_int32"));
+	Symbol *sym2 = NamespaceFindPrivateSymbol(ns, &string);
+	CHECK(sym2 != NULL);
+	CHECK(StringEqualsCString(&sym2->name, "var_int32"));
+	CHECK(sym->associated == sym2);
+	CHECK(sym2->associated == sym);
+	CHECK(sym2 != sym);
+
+	SymbolTable *syms = &ns->symbol_table;
+	CHECK(SymbolTableFind(syms, &string) == sym2);
+
 
 	CHECK(ErrorCount() == 0);
 	CompileStateFree(&compile_state);

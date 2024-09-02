@@ -8,6 +8,7 @@ typedef enum
 {
 	ERROR_FILE,
 	ERROR_PARSER,
+	ERROR_DEFINITION,
 }
 ErrorCategory;
 

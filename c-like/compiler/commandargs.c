@@ -43,7 +43,7 @@ static OptionList opt_opts[] =
 
 static OptionList gen_opts[] =
 {
-	{"debug", "Generate debyg symbols."},
+	{"debug", "Generate debug symbols."},
 	{"mosscall", "Use normal Moss calling conventions."},
 	{"isource", "Prefer to compile imports from source."},
 	{"istatic", "Prefer to link imports from static libraries."},

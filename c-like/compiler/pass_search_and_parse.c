@@ -82,7 +82,7 @@ ImportLink *TranslateImportLink(ParserNode *node, Namespace *cns,
 	return import;
 }
 
-bool TranslateDeclaration(ParserNode *node, Namespace *ns)
+bool TranslateDeclaration(ParserNode *node, Namespace *ns, bool is_private)
 {
 	ParserNode *dtype = node->children[0];
 	ParserNode *name = node->children[1];
@@ -96,18 +96,27 @@ bool TranslateDeclaration(ParserNode *node, Namespace *ns)
 		return false;
 	}
 
+	Symbol *sym_pub = MapFind(&ns->public_symbols, &name_str);
+	Symbol *sym_all = MapFind(&ns->all_symbols, &name_str);
 
-	Symbol *sym = MapFind(&ns->symbols, &name_str);
-	if (sym != NULL)
+	if (sym_all == NULL)
 	{
-		// FIXME merge symbol data
-		return true;
+		sym_all = SymbolCreate(&name_str);
+		MapInsert(&ns->all_symbols, &name_str, sym_all);
 	}
 
-	sym = SymbolCreate(&name_str);
-	MapInsert(&ns->symbols, &name_str, sym);
+	if (!is_private && (sym_pub == NULL))
+	{
+		sym_pub = SymbolCreate(&name_str);
+		sym_pub->associated = sym_all;
+		sym_all->associated = sym_pub;
+		MapInsert(&ns->public_symbols, &name_str, sym_pub);
+	}
 
-	// FIXME store more symbol information
+	// FIXME store or merge more symbol information
+	(void)dtype;
+	(void)properties;
+	(void)value;
 
 	return true;
 }
@@ -143,7 +152,7 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf, bool is_private,
 	}
 	else if (node->symbol == &SYM_DECLARATION)
 	{
-		TranslateDeclaration(node, cf->namespace);
+		TranslateDeclaration(node, cf->namespace, is_private);
 	}
 	else
 	{
@@ -300,6 +309,30 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 	return ret;
 }
 
+void AddGlobalsToNamespace(const String *key, void *value, void *ctx)
+{
+	Namespace *ns = value;
+	bool *ret_out = ctx;
+
+	MapIterate(&ns->children, AddGlobalsToNamespace, ret_out);
+
+	bool ret = true;
+	// FIXME add builtins to tables
+	if (!SymbolTableInsertMap(&ns->symbol_table, &ns->all_symbols))
+		ret = false;
+
+	if (!ret)
+		*ret_out = false;
+}
+
+bool AddGlobalsToSymbolTables(CompileState *state)
+{
+	bool ret = true;
+	MapIterate(&state->root_namespace.children, AddGlobalsToNamespace, &ret);
+
+	return ret;
+}
+
 bool PassSearchAndParse(CompileState *state)
 {
 	bool ret = true;
@@ -324,6 +357,9 @@ bool PassSearchAndParse(CompileState *state)
 		if (!ScanNamespaceFiles(module, state))
 			ret = false;
 	}
+
+	if (!AddGlobalsToSymbolTables(state))
+		ret = false;
 
 	return ret;
 }

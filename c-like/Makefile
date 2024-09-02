@@ -35,7 +35,7 @@ build/generated/grammar.c: grammar.bison
 	bison -d -o $@ $^
 
 build/generated/grammar.o: build/generated/grammar.c
-	gcc -c -DYYDEBUG -I . -Wall -o $@ $<
+	gcc -c -DYYDEBUG -I . -Wall -Werror -o $@ $<
 
 
 #
@@ -57,6 +57,8 @@ build/bin/moss-cc: \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
 	build/obj/compiler/symbol.o \
+	build/obj/compiler/symbol_table.o \
+	build/obj/compiler/builtins.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/compiler_file.o \
@@ -74,6 +76,7 @@ build/bin/moss-cc: \
 #
 build/bin/test_fileio: \
 	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/utils.o \
 	build/obj/compiler/memory.o \
 	build/obj/compiler/fileio.o \
 	build/obj/tests/test_fileio.o \
@@ -88,6 +91,8 @@ build/bin/all_tests: \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
 	build/obj/compiler/symbol.o \
+	build/obj/compiler/symbol_table.o \
+	build/obj/compiler/builtins.o \
 	build/obj/compiler/parser_file.o \
 	build/obj/compiler/parser_node.o \
 	build/obj/compiler/parser_symbols.o \
@@ -98,6 +103,7 @@ build/bin/all_tests: \
 	build/obj/compiler/pass_configure.o \
 	build/obj/compiler/pass_search_and_parse.o \
 	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/utils.o \
 	build/obj/tests/unit/fake_errors.o \
 	build/obj/tests/unit/fake_directory.o \
 	build/obj/tests/unit/fake_parser.o \
@@ -111,6 +117,8 @@ build/bin/all_tests: \
 	build/obj/tests/unit/test_pass_configure.o \
 	build/obj/tests/unit/test_pass_search_and_parse.o \
 	build/obj/tests/unit/test_data_type.o \
+	build/obj/tests/unit/test_symbol_table.o \
+	build/obj/tests/unit/test_builtins.o \
 
 
 	@mkdir -p $(@D)
@@ -132,11 +140,14 @@ build/bin/scan_tests: \
 	build/obj/compiler/tokenizer.o \
 	build/obj/compiler/compiler_file.o \
 	build/obj/compiler/symbol.o \
+	build/obj/compiler/symbol_table.o \
+	build/obj/compiler/builtins.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/pass_configure.o \
 	build/obj/compiler/pass_search_and_parse.o \
 	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/utils.o \
 	build/obj/tests/unit/fake_errors.o \
 	build/obj/tests/scan_tests/scan_tests.o \
 	build/obj/tests/scan_tests/good_filenames.o \
@@ -156,6 +167,6 @@ headers := $(wildcard compiler/*.h)
 
 build/obj/%.o: %.c $(headers)
 	@mkdir -p $(@D)
-	gcc -c -I . -Wall -o $@ $<
+	gcc -c -I . -Wall -Werror -o $@ $<
 
 
