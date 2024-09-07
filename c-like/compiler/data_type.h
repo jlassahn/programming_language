@@ -32,6 +32,7 @@ DTypeFlags;
 typedef struct DataType DataType;
 struct DataType
 {
+	int refcount;
 	DTypeBase base_type;
 	uint32_t flags;
 	// DataType *subtype;
@@ -40,6 +41,7 @@ struct DataType
 
 
 DataType *DTypeMakeScalar(DTypeBase dts, uint32_t flags);
+DataType *DTypeCopy(DataType *dt);
 void DTypeFree(DataType *dt);
 
 #endif

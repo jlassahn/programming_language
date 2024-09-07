@@ -12,6 +12,7 @@ struct CompileState
 	List input_files; // List of CompilerFile*
 	List input_modules; // List of Namespace*
 
+	Map builtins; // Map of Symbol*
 	Namespace root_namespace;
 };
 

@@ -25,6 +25,7 @@ void TestSearch(void);
 void TestPassConfigure(void);
 void TestPassSearchAndParse(void);
 void TestDataType(void);
+void TestDataValue(void);
 void TestSymbolTable(void);
 void TestBuiltins(void);
 
@@ -43,6 +44,7 @@ int main(void)
 	RUN_TEST(TestPassConfigure);
 	RUN_TEST(TestPassSearchAndParse);
 	RUN_TEST(TestDataType);
+	RUN_TEST(TestDataValue);
 	RUN_TEST(TestSymbolTable);
 	RUN_TEST(TestBuiltins);
 

@@ -56,6 +56,7 @@ build/bin/moss-cc: \
 	build/obj/compiler/parser.o \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
+	build/obj/compiler/data_value.o \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
@@ -90,6 +91,7 @@ build/bin/all_tests: \
 	build/obj/compiler/stringtypes.o \
 	build/obj/compiler/namespace.o \
 	build/obj/compiler/data_type.o \
+	build/obj/compiler/data_value.o \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
@@ -117,6 +119,7 @@ build/bin/all_tests: \
 	build/obj/tests/unit/test_pass_configure.o \
 	build/obj/tests/unit/test_pass_search_and_parse.o \
 	build/obj/tests/unit/test_data_type.o \
+	build/obj/tests/unit/test_data_value.o \
 	build/obj/tests/unit/test_symbol_table.o \
 	build/obj/tests/unit/test_builtins.o \
 
@@ -142,6 +145,8 @@ build/bin/scan_tests: \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
+	build/obj/compiler/data_type.o \
+	build/obj/compiler/data_value.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/pass_configure.o \

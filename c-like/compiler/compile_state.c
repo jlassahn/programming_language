@@ -2,6 +2,7 @@
 #include "compiler/compile_state.h"
 #include "compiler/types.h"
 #include "compiler/compiler_file.h"
+#include "compiler/builtins.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,6 +43,7 @@ void CompileStateFree(CompileState *state)
 	}
 
 	NamespaceFree(&state->root_namespace);
+	FreeBuiltins(&state->builtins);
 }
 
 void CompileStatePrint(const CompileState *state)

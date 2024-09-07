@@ -5,6 +5,7 @@
 #include "compiler/stringtypes.h"
 #include "compiler/fileio.h"
 #include "compiler/compiler_file.h"
+#include "compiler/builtins.h"
 #include <string.h>
 
 bool AddBaseDir(CompileState *cs, const char *path)
@@ -128,6 +129,9 @@ bool PassConfigure(CompileState *state, const CompilerArgs *args,
 	//    outfile;
 	//    outdir;
 	//    treefile;
+
+	int bus_bits = 64; //FIXME set from config options
+	InitBuiltins(&state->builtins, bus_bits);
 
 	// true to continue compilation.  So far no errors are bad enough to abort.
 	return true;

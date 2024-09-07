@@ -309,30 +309,44 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 	return ret;
 }
 
-void AddGlobalsToNamespace(const String *key, void *value, void *ctx)
+typedef struct AddGlobalsCtx AddGlobalsCtx;
+struct AddGlobalsCtx
+{
+	bool ret;
+	CompileState *state;
+};
+
+void AddGlobalsToNamespace(const String *key, void *value, void *vctx)
 {
 	Namespace *ns = value;
-	bool *ret_out = ctx;
+	AddGlobalsCtx *ctx = vctx;
 
-	MapIterate(&ns->children, AddGlobalsToNamespace, ret_out);
+	MapIterate(&ns->children, AddGlobalsToNamespace, vctx);
 
 	bool ret = true;
-	// FIXME add builtins to tables
+	if (!SymbolTableInsertMap(&ns->private_syms.symbol_table, &ctx->state->builtins))
+		ret = false;
 	if (!SymbolTableInsertMap(&ns->private_syms.symbol_table, &ns->private_syms.exports))
+		ret = false;
+
+	if (!SymbolTableInsertMap(&ns->public_syms.symbol_table, &ctx->state->builtins))
 		ret = false;
 	if (!SymbolTableInsertMap(&ns->public_syms.symbol_table, &ns->public_syms.exports))
 		ret = false;
 
 	if (!ret)
-		*ret_out = false;
+		ctx->ret = false;
 }
 
 bool AddGlobalsToSymbolTables(CompileState *state)
 {
-	bool ret = true;
-	MapIterate(&state->root_namespace.children, AddGlobalsToNamespace, &ret);
+	AddGlobalsCtx ctx;
+	ctx.ret = true;
+	ctx.state = state;
 
-	return ret;
+	MapIterate(&state->root_namespace.children, AddGlobalsToNamespace, &ctx);
+
+	return ctx.ret;
 }
 
 bool PassSearchAndParse(CompileState *state)

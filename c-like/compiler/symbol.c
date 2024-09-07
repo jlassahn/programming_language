@@ -12,6 +12,12 @@ Symbol *SymbolCreate(const String *name)
 
 void SymbolDestroy(Symbol *sym)
 {
+	DValueClear(&sym->dvalue);
 	Free(sym);
+}
+
+DataValue *SymbolGetDValue(Symbol *sym)
+{
+	return &sym->dvalue;
 }
 

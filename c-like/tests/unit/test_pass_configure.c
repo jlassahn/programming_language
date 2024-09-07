@@ -1,5 +1,6 @@
 
 #include "tests/unit/unit_test.h"
+#include "tests/unit/utils.h"
 #include "compiler/pass_configure.h"
 #include "compiler/compile_state.h"
 #include "compiler/commandargs.h"
@@ -71,6 +72,12 @@ static void CheckModuleEntry(ListEntry **entry,
 	*entry = (*entry)->next;
 }
 
+static void CheckBuiltins(CompileState *cs)
+{
+	Map *builtins = &cs->builtins;
+	CHECK(MapFind(builtins, TempString("void")) != NULL);
+}
+
 void TestPassConfigure(void)
 {
 	CompileState compile_state;
@@ -111,6 +118,8 @@ void TestPassConfigure(void)
 	entry = compile_state.input_modules.first;
 	CheckModuleEntry(&entry, "system/clib/", "clib");
 	CHECK(entry == NULL);
+
+	CheckBuiltins(&compile_state);
 
 	FreeArgs(args);
 	CompileStateFree(&compile_state);
