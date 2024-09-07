@@ -96,13 +96,13 @@ bool TranslateDeclaration(ParserNode *node, Namespace *ns, bool is_private)
 		return false;
 	}
 
-	Symbol *sym_pub = MapFind(&ns->public_symbols, &name_str);
-	Symbol *sym_all = MapFind(&ns->all_symbols, &name_str);
+	Symbol *sym_pub = MapFind(&ns->public_syms.exports, &name_str);
+	Symbol *sym_all = MapFind(&ns->private_syms.exports, &name_str);
 
 	if (sym_all == NULL)
 	{
 		sym_all = SymbolCreate(&name_str);
-		MapInsert(&ns->all_symbols, &name_str, sym_all);
+		MapInsert(&ns->private_syms.exports, &name_str, sym_all);
 	}
 
 	if (!is_private && (sym_pub == NULL))
@@ -110,7 +110,7 @@ bool TranslateDeclaration(ParserNode *node, Namespace *ns, bool is_private)
 		sym_pub = SymbolCreate(&name_str);
 		sym_pub->associated = sym_all;
 		sym_all->associated = sym_pub;
-		MapInsert(&ns->public_symbols, &name_str, sym_pub);
+		MapInsert(&ns->public_syms.exports, &name_str, sym_pub);
 	}
 
 	// FIXME store or merge more symbol information
@@ -132,9 +132,9 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf, bool is_private,
 		{
 			import->is_private = false;
 			ListInsertLast(&cf->imports, import);
-			ListInsertLast(&cf->namespace->all_imports, import);
+			ListInsertLast(&cf->namespace->private_syms.imports, import);
 			if (!is_private)
-				ListInsertLast(&cf->namespace->public_imports, import);
+				ListInsertLast(&cf->namespace->public_syms.imports, import);
 		}
 	}
 	else if (node->symbol == &SYM_IMPORT_PRIVATE)
@@ -145,9 +145,9 @@ void TranslateFileScopeItem(ParserNode *node, CompilerFile *cf, bool is_private,
 		{
 			import->is_private = true;
 			ListInsertLast(&cf->imports, import);
-			ListInsertLast(&cf->namespace->all_imports, import);
+			ListInsertLast(&cf->namespace->private_syms.imports, import);
 			if (!is_private)
-				ListInsertLast(&cf->namespace->public_imports, import);
+				ListInsertLast(&cf->namespace->public_syms.imports, import);
 		}
 	}
 	else if (node->symbol == &SYM_DECLARATION)
@@ -243,9 +243,9 @@ bool DoModuleFile(StringBuffer *path, Namespace *ns, bool is_private,
 
 	cf->namespace = ns;
 	if (is_private)
-		ListInsertLast(&ns->private_files, cf);
+		ListInsertLast(&ns->private_syms.files, cf);
 	else
-		ListInsertLast(&ns->public_files, cf);
+		ListInsertLast(&ns->public_syms.files, cf);
 
 	if (cf->root != NULL)
 		TopLevelScan(cf, is_private, state);
@@ -300,7 +300,7 @@ bool ScanNamespaceFiles(Namespace *ns, CompileState *state)
 
 	StringBufferFree(stem);
 
-	if ((ns->private_files.first == NULL) && (ns->public_files.first == NULL))
+	if ((ns->private_syms.files.first == NULL) && (ns->public_syms.files.first == NULL))
 	{
 		Error(ERROR_FILE, "No files found for module '%s'.", ns->path->buffer);
 		ret = false;
@@ -318,7 +318,9 @@ void AddGlobalsToNamespace(const String *key, void *value, void *ctx)
 
 	bool ret = true;
 	// FIXME add builtins to tables
-	if (!SymbolTableInsertMap(&ns->symbol_table, &ns->all_symbols))
+	if (!SymbolTableInsertMap(&ns->private_syms.symbol_table, &ns->private_syms.exports))
+		ret = false;
+	if (!SymbolTableInsertMap(&ns->public_syms.symbol_table, &ns->public_syms.exports))
 		ret = false;
 
 	if (!ret)

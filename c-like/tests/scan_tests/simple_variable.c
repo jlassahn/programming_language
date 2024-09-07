@@ -50,9 +50,8 @@ void SimpleVariable(void)
 	CHECK(sym2->associated == sym);
 	CHECK(sym2 != sym);
 
-	SymbolTable *syms = &ns->symbol_table;
+	SymbolTable *syms = &ns->private_syms.symbol_table;
 	CHECK(SymbolTableFind(syms, &string) == sym2);
-
 
 	CHECK(ErrorCount() == 0);
 	CompileStateFree(&compile_state);

@@ -32,9 +32,9 @@ void TestSimpleInputFile(void)
 
 	Namespace *ns = MapFind(&compile_state.root_namespace.children, &s);
 	CHECK(ns != NULL);
-	CHECK(ns->private_files.first != NULL);
-	CHECK(ns->private_files.first->item == cf);
-	CHECK(ns->public_files.first == NULL);
+	CHECK(ns->private_syms.files.first != NULL);
+	CHECK(ns->private_syms.files.first->item == cf);
+	CHECK(ns->public_syms.files.first == NULL);
 	CHECK(ns->flags == NAMESPACE_HAS_INFILE);
 	CHECK(cf->namespace == ns);
 	CHECK(strcmp(cf->parser_file.filename, "./test.moss") == 0);
@@ -80,10 +80,10 @@ void TestSimpleModule()
 	CHECK(PassSearchAndParse(&compile_state));
 	CHECK(ns->flags == NAMESPACE_SCANNED);
 
-	CHECK(ns->private_files.first == NULL);
-	CHECK(ns->public_files.first != NULL);
+	CHECK(ns->private_syms.files.first == NULL);
+	CHECK(ns->public_syms.files.first != NULL);
 	
-	CompilerFile *cf = ns->public_files.first->item;
+	CompilerFile *cf = ns->public_syms.files.first->item;
 	CHECK(strcmp(cf->path->buffer, "basedir/import/child1/child2.moss") == 0);
 
 	CHECK(ErrorCount() == 0);
@@ -187,7 +187,7 @@ void TestImportList(void)
 	CHECK(entry == NULL);
 
 	// check that ns_m1 was recursively scanned
-	CHECK(ns_m1->public_files.first != NULL);
+	CHECK(ns_m1->public_syms.files.first != NULL);
 
 	FreeFakeNodeValues();
 	FakeDirectoryFree();

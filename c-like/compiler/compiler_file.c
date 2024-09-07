@@ -33,6 +33,7 @@ void CompilerFileFree(CompilerFile *cf)
 	Free(cf);
 }
 
+// FIXME this feels like it does too much.  Refactor?
 bool CompilerFilePickNamespace(CompilerFile *cf, Namespace *root)
 {
 	// For source files from the command line,
@@ -68,7 +69,7 @@ bool CompilerFilePickNamespace(CompilerFile *cf, Namespace *root)
 		return false;
 
 	Namespace *namespace = NamespaceMakeChild(root, &stem);
-	ListInsertLast(&namespace->private_files, cf);
+	ListInsertLast(&namespace->private_syms.files, cf);
 	namespace->flags |= NAMESPACE_HAS_INFILE;
 
 	cf->namespace = namespace;

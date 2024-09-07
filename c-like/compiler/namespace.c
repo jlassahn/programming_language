@@ -50,7 +50,7 @@ void NamespaceFree(Namespace *root)
 
 	while (true)
 	{
-		CompilerFile *cf = ListRemoveFirst(&root->public_files);
+		CompilerFile *cf = ListRemoveFirst(&root->public_syms.files);
 		if (cf == NULL)
 			break;
 
@@ -61,7 +61,7 @@ void NamespaceFree(Namespace *root)
 
 	while (true)
 	{
-		CompilerFile *cf = ListRemoveFirst(&root->private_files);
+		CompilerFile *cf = ListRemoveFirst(&root->private_syms.files);
 		if (cf == NULL)
 			break;
 
@@ -81,7 +81,7 @@ void NamespaceFree(Namespace *root)
 
 	while (true)
 	{
-		Symbol *sym = MapRemoveFirst(&root->public_symbols);
+		Symbol *sym = MapRemoveFirst(&root->public_syms.exports);
 		if (sym == NULL)
 			break;
 		SymbolDestroy(sym);
@@ -89,7 +89,7 @@ void NamespaceFree(Namespace *root)
 
 	while (true)
 	{
-		Symbol *sym = MapRemoveFirst(&root->all_symbols);
+		Symbol *sym = MapRemoveFirst(&root->private_syms.exports);
 		if (sym == NULL)
 			break;
 		SymbolDestroy(sym);
@@ -98,31 +98,32 @@ void NamespaceFree(Namespace *root)
 	// FIXME untangle ownership of ImportLink
 	while (true)
 	{
-		ImportLink *import = ListRemoveFirst(&root->public_imports);
+		ImportLink *import = ListRemoveFirst(&root->public_syms.imports);
 		if (import == NULL)
 			break;
-		// don't destroy import here, all of these are also in all_imports
+		// don't destroy import here, all of these are also in private_syms.imports
 	}
 
 	while (true)
 	{
-		ImportLink *import = ListRemoveFirst(&root->all_imports);
+		ImportLink *import = ListRemoveFirst(&root->private_syms.imports);
 		if (import == NULL)
 			break;
 		// currently destroyed by CompilerFile
 	}
 
-	SymbolTableDestroy(&root->symbol_table);
+	SymbolTableDestroy(&root->public_syms.symbol_table);
+	SymbolTableDestroy(&root->private_syms.symbol_table);
 }
 
 Symbol *NamespaceFindSymbol(Namespace *ns, String *name)
 {
-	return MapFind(&ns->public_symbols, name);
+	return MapFind(&ns->public_syms.exports, name);
 }
 
 Symbol *NamespaceFindPrivateSymbol(Namespace *ns, String *name)
 {
-	return MapFind(&ns->all_symbols, name);
+	return MapFind(&ns->private_syms.exports, name);
 }
 
 void SymbolPrinter(const String *key, void *value, void *ctx)
@@ -145,7 +146,7 @@ void NamespacePrinter(const String *key, void *value, void *ctx)
 	printf("%.*s: %s\n", key->length, key->data, ns->path->buffer);
 
 	*depth = *depth + 1;
-	MapIterate(&ns->all_symbols, SymbolPrinter, depth);
+	MapIterate(&ns->private_syms.exports, SymbolPrinter, depth);
 	MapIterate(&ns->children, NamespacePrinter, depth);
 	*depth = *depth - 1;
 }

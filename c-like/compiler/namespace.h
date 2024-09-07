@@ -18,23 +18,25 @@ struct ImportLink
 	Namespace *namespace;
 };
 
+typedef struct NamespaceSymbols NamespaceSymbols;
+struct NamespaceSymbols
+{
+	List files; // List of CompilerFile
+	List imports; // List of ImportLink
+	Map exports; // Map of Symbol
+	SymbolTable symbol_table;
+};
+
 struct Namespace
 {
 	uint32_t flags;
 	Namespace *parent;
 	StringBuffer *path;
 	String stem;
-
 	Map children;  // Map of Namespace
-	List public_files; // List of CompilerFile
-	List private_files; // List of CompilerFile
-	List public_imports; // List of ImportLink
-	List all_imports; // List of ImportLink
 
-	Map public_symbols; // Map of Symbol
-	Map all_symbols; // Map of Symbol
-
-	SymbolTable symbol_table;
+	NamespaceSymbols public_syms;
+	NamespaceSymbols private_syms;
 };
 
 typedef enum
