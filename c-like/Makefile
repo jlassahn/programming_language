@@ -18,6 +18,7 @@ make_compiler: \
 
 make_tests: \
 	build/bin/all_tests \
+	build/bin/full_tests \
 	build/bin/scan_tests \
 	build/bin/test_fileio \
 
@@ -26,6 +27,7 @@ run_tests:
 	build/bin/test_fileio
 	build/bin/all_tests
 	build/bin/scan_tests
+	build/bin/full_tests
 
 #
 # Generated grammar files
@@ -60,12 +62,14 @@ build/bin/moss-cc: \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
+	build/obj/compiler/eval.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/compiler_file.o \
 	build/obj/compiler/search.o \
 	build/obj/compiler/pass_configure.o \
 	build/obj/compiler/pass_search_and_parse.o \
+	build/obj/compiler/pass_resolve_globals.o \
 	build/obj/compiler/moss-cc.o \
 
 	@mkdir -p $(@D)
@@ -95,6 +99,7 @@ build/bin/all_tests: \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
+	build/obj/compiler/eval.o \
 	build/obj/compiler/parser_file.o \
 	build/obj/compiler/parser_node.o \
 	build/obj/compiler/parser_symbols.o \
@@ -104,6 +109,7 @@ build/bin/all_tests: \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/pass_configure.o \
 	build/obj/compiler/pass_search_and_parse.o \
+	build/obj/compiler/pass_resolve_globals.o \
 	build/obj/tests/unit/unit_test.o \
 	build/obj/tests/unit/utils.o \
 	build/obj/tests/unit/fake_errors.o \
@@ -122,10 +128,11 @@ build/bin/all_tests: \
 	build/obj/tests/unit/test_data_value.o \
 	build/obj/tests/unit/test_symbol_table.o \
 	build/obj/tests/unit/test_builtins.o \
-
+	build/obj/tests/unit/test_eval_data_type.o \
 
 	@mkdir -p $(@D)
 	gcc -o $@ $^
+
 
 build/bin/scan_tests: \
 	build/generated/grammar.o \
@@ -145,12 +152,14 @@ build/bin/scan_tests: \
 	build/obj/compiler/symbol.o \
 	build/obj/compiler/symbol_table.o \
 	build/obj/compiler/builtins.o \
+	build/obj/compiler/eval.o \
 	build/obj/compiler/data_type.o \
 	build/obj/compiler/data_value.o \
 	build/obj/compiler/compile_state.o \
 	build/obj/compiler/commandargs.o \
 	build/obj/compiler/pass_configure.o \
 	build/obj/compiler/pass_search_and_parse.o \
+	build/obj/compiler/pass_resolve_globals.o \
 	build/obj/tests/unit/unit_test.o \
 	build/obj/tests/unit/utils.o \
 	build/obj/tests/unit/fake_errors.o \
@@ -159,8 +168,42 @@ build/bin/scan_tests: \
 	build/obj/tests/scan_tests/bad_filenames.o \
 	build/obj/tests/scan_tests/import_files.o \
 	build/obj/tests/scan_tests/relative_paths.o \
-	build/obj/tests/scan_tests/simple_variable.o \
 
+	@mkdir -p $(@D)
+	gcc -o $@ $^
+
+
+build/bin/full_tests: \
+	build/generated/grammar.o \
+	build/obj/compiler/fileio.o \
+	build/obj/compiler/types.o \
+	build/obj/compiler/memory.o \
+	build/obj/compiler/stringtypes.o \
+	build/obj/compiler/search.o \
+	build/obj/compiler/namespace.o \
+	build/obj/compiler/parser_file.o \
+	build/obj/compiler/parser_node.o \
+	build/obj/compiler/parser_symbols.o \
+	build/obj/compiler/parser.o \
+	build/obj/compiler/token_defs.o \
+	build/obj/compiler/tokenizer.o \
+	build/obj/compiler/compiler_file.o \
+	build/obj/compiler/symbol.o \
+	build/obj/compiler/symbol_table.o \
+	build/obj/compiler/builtins.o \
+	build/obj/compiler/eval.o \
+	build/obj/compiler/data_type.o \
+	build/obj/compiler/data_value.o \
+	build/obj/compiler/compile_state.o \
+	build/obj/compiler/commandargs.o \
+	build/obj/compiler/pass_configure.o \
+	build/obj/compiler/pass_search_and_parse.o \
+	build/obj/compiler/pass_resolve_globals.o \
+	build/obj/tests/unit/unit_test.o \
+	build/obj/tests/unit/utils.o \
+	build/obj/tests/unit/fake_errors.o \
+	build/obj/tests/full_tests/full_tests.o \
+	build/obj/tests/full_tests/simple_variable.o \
 
 	@mkdir -p $(@D)
 	gcc -o $@ $^

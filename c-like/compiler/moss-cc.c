@@ -13,8 +13,7 @@
 #include "compiler/namespace.h"
 #include "compiler/search.h"
 #include "compiler/stringtypes.h"
-#include "compiler/pass_configure.h"
-#include "compiler/pass_search_and_parse.h"
+#include "compiler/passes.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -70,6 +69,8 @@ int main(int argc, const char *argv[])
 		printf("BAD INPUTS\n");
 		// FIXME skip compile steps and exit
 	}
+
+	PassResolveGlobals(&compile_state);
 
 	// FIXME PassTranslate(&compile_state);
 	// FIXME PassGenerate(&compile_state);

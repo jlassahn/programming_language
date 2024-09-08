@@ -26,6 +26,7 @@ struct DataValue
 
 void DValueSetToDType(DataValue *dv, DataType *dt);
 void DValueClear(DataValue *dv);
+void DValueCopy(DataValue *dest, DataValue *src);
 
 #endif
 

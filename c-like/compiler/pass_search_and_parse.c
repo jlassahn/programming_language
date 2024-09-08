@@ -1,5 +1,5 @@
 
-#include "compiler/pass_search_and_parse.h"
+#include "compiler/passes.h"
 #include "compiler/compiler_file.h"
 #include "compiler/parser.h"
 #include "compiler/errors.h"
@@ -102,16 +102,23 @@ bool TranslateDeclaration(ParserNode *node, Namespace *ns, bool is_private)
 	if (sym_all == NULL)
 	{
 		sym_all = SymbolCreate(&name_str);
+		sym_all->flags |= SYM_PRIVATE;
+		sym_all->exported_from = ns;
 		MapInsert(&ns->private_syms.exports, &name_str, sym_all);
 	}
 
 	if (!is_private && (sym_pub == NULL))
 	{
 		sym_pub = SymbolCreate(&name_str);
+		sym_pub->exported_from = ns;
 		sym_pub->associated = sym_all;
 		sym_all->associated = sym_pub;
 		MapInsert(&ns->public_syms.exports, &name_str, sym_pub);
 	}
+
+	ListInsertFirst(&sym_all->definitions, node);
+	if (sym_pub != NULL)
+		ListInsertFirst(&sym_pub->definitions, node);
 
 	// FIXME store or merge more symbol information
 	(void)dtype;

@@ -29,6 +29,17 @@ void WarningAt(ErrorCategory cat, const char *filename, FilePosition *pos,
 	warning_count ++;
 }
 
+void ErrorAtNode(ErrorCategory cat, ParserNode *node, const char *text, ...)
+{
+	error_count ++;
+}
+
+
+void WarningAtNode(ErrorCategory cat, ParserNode *node, const char *text, ...)
+{
+	warning_count ++;
+}
+
 void ClearErrorCounts(void)
 {
 	error_count = 0;

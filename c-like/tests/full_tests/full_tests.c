@@ -2,17 +2,11 @@
 #include "tests/unit/unit_test.h"
 #include <stdio.h>
 
-void GoodFilenames(void);
-void BadFilenames(void);
-void ImportFiles(void);
-void RelativePaths(void);
+void SimpleVariable(void);
 
 int main(void)
 {
-	RUN_TEST(GoodFilenames);
-	RUN_TEST(BadFilenames);
-	RUN_TEST(ImportFiles);
-	RUN_TEST(RelativePaths);
+	RUN_TEST(SimpleVariable);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

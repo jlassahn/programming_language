@@ -28,6 +28,7 @@ void TestDataType(void);
 void TestDataValue(void);
 void TestSymbolTable(void);
 void TestBuiltins(void);
+void TestEvalDataType(void);
 
 int main(void)
 {
@@ -47,6 +48,7 @@ int main(void)
 	RUN_TEST(TestDataValue);
 	RUN_TEST(TestSymbolTable);
 	RUN_TEST(TestBuiltins);
+	RUN_TEST(TestEvalDataType);
 
 	int errs = TotalErrors();
 	int failed_tests = TestsFailed();

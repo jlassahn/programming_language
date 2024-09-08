@@ -4,8 +4,7 @@
 #include "compiler/errors.h"
 #include "compiler/compile_state.h"
 #include "compiler/commandargs.h"
-#include "compiler/pass_configure.h"
-#include "compiler/pass_search_and_parse.h"
+#include "compiler/passes.h"
 
 void TestFile(const char *name)
 {

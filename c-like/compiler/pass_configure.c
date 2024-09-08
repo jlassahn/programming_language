@@ -1,5 +1,5 @@
 
-#include "compiler/pass_configure.h"
+#include "compiler/passes.h"
 #include "compiler/errors.h"
 #include "compiler/types.h"
 #include "compiler/stringtypes.h"

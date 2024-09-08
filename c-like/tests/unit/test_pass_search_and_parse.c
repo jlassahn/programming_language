@@ -5,7 +5,7 @@
 #include "tests/unit/fake_errors.h"
 #include "tests/unit/fake_parser.h"
 #include "tests/unit/fake_nodes.h"
-#include "compiler/pass_search_and_parse.h"
+#include "compiler/passes.h"
 #include "compiler/compile_state.h"
 #include "compiler/compiler_file.h"
 #include <string.h>

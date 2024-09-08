@@ -1,7 +1,7 @@
 
 #include "tests/unit/unit_test.h"
 #include "tests/unit/utils.h"
-#include "compiler/pass_configure.h"
+#include "compiler/passes.h"
 #include "compiler/compile_state.h"
 #include "compiler/commandargs.h"
 #include "compiler/compiler_file.h"

@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_PASS_CONFIGURE_H
-#define INCLUDED_PASS_CONFIGURE_H
+#ifndef INCLUDED_PASSES_H
+#define INCLUDED_PASSES_H
 
 #include "compiler/compile_state.h"
 #include "compiler/commandargs.h"
@@ -8,6 +8,8 @@
 
 bool PassConfigure(CompileState *state, const CompilerArgs *args,
 		const char *env);
+bool PassSearchAndParse(CompileState *state);
+bool PassResolveGlobals(CompileState *state);
 
 #endif
 

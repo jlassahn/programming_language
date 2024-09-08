@@ -3,10 +3,9 @@
 #include "tests/unit/utils.h"
 #include "compiler/errors.h"
 #include "compiler/compile_state.h"
-#include "compiler/commandargs.h"
-#include "compiler/pass_configure.h"
-#include "compiler/pass_search_and_parse.h"
 #include "compiler/data_value.h"
+#include "compiler/commandargs.h"
+#include "compiler/passes.h"
 #include <string.h>
 
 void SimpleVariable(void)
@@ -28,6 +27,7 @@ void SimpleVariable(void)
 	CHECK(args);
 	CHECK(PassConfigure(&compile_state, args, env));
 	CHECK(PassSearchAndParse(&compile_state));
+	CHECK(PassResolveGlobals(&compile_state));
 
 	Namespace *ns = NamespaceGetChild(&compile_state.root_namespace, TempString("local"));
 	CHECK(ns != NULL);
@@ -37,10 +37,17 @@ void SimpleVariable(void)
 	Symbol *sym = NamespaceFindSymbol(ns, TempString("var_int32"));
 	CHECK(sym != NULL);
 	CHECK(StringEqualsCString(&sym->name, "var_int32"));
+	CHECK((sym->flags & SYM_PRIVATE) == 0);
+	CHECK(sym->exported_from == ns);
+	CHECK(sym->definitions.first != NULL);
 
 	Symbol *sym2 = NamespaceFindPrivateSymbol(ns, TempString("var_int32"));
 	CHECK(sym2 != NULL);
 	CHECK(StringEqualsCString(&sym2->name, "var_int32"));
+	CHECK((sym2->flags & SYM_PRIVATE) != 0);
+	CHECK(sym2->exported_from == ns);
+	CHECK(sym2->definitions.first != NULL);
+
 	CHECK(sym->associated == sym2);
 	CHECK(sym2->associated == sym);
 	CHECK(sym2 != sym);
@@ -57,6 +64,11 @@ void SimpleVariable(void)
 	DataValue *dtype_dval = SymbolGetDValue(dtype_sym);
 	CHECK(dtype_dval != NULL);
 	CHECK(dtype_dval->value_type == VTYPE_DTYPE);
+
+	DataType *dtype = SymbolGetDType(sym);
+	CHECK(dtype != NULL);
+	CHECK(dtype->base_type == DTYPE_INT32);
+	CHECK(dtype->flags == 0);
 
 	CHECK(ErrorCount() == 0);
 	CompileStateFree(&compile_state);
